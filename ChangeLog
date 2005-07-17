@@ -1,0 +1,4 @@
+2005-07-16  Shiro Kawai  <shiro@acm.org>
+
+	* adapted dbd-mysql to the new extension building scheme
+
