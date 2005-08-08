@@ -1,8 +1,8 @@
 ;;-*-Scheme-*-
 ;; mysqllib.stub - mysql driver stub
 ;;
-;;  Copyright (c) 2003 Scheme Arts, L.L.C., All rights reserved.
-;;  Copyright (c) 2003 Time Intermedia Corporation, All rights reserved.
+;;  Copyright (c) 2003-2005 Scheme Arts, L.L.C., All rights reserved.
+;;  Copyright (c) 2003-2005 Time Intermedia Corporation, All rights reserved.
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -18,11 +18,64 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: gauche_dbd_mysqllib.stub,v 1.1 2005/07/17 06:43:17 shiro Exp $
+;; $Id: dbd_mysqllib.stub,v 1.1 2005/08/08 10:17:22 shiro Exp $
 
 "
-#include \"gauche_dbd_mysql.h\"
+#include \"dbd_mysql.h\"
 "
+
+(define-type <mysql-handle> "MYSQL*" "MySQL handle"
+  "MYSQL_HANDLE_P" "MYSQL_HANDLE_UNBOX" "MYSQL_HANDLE_BOX")
+(define-type <mysql-res> "MYSQL_RES*" "MySQL result handle"
+  "MYSQL_RES_P" "MYSQL_RES_UNBOX" "MYSQL_RES_BOX")
+
+;; Constructors
+(define-cproc mysql-real-connect (host::<const-cstring>?
+				  user::<const-cstring>?
+				  password::<const-cstring>?
+				  db::<const-cstring>?
+				  port::<uint>
+				  unix_socket::<const-cstring>?
+				  client_flag::<uint>)
+  (body <mysql-handle>
+        "MYSQL *handle = SCM_NEW(MYSQL);"
+        "handle = mysql_init(handle);"
+        "SCM_RESULT = mysql_real_connect(handle,"
+        "                                host, user, password, db,"
+        "                                port, unix_socket, client_flag);"
+        "if (SCM_RESULT == NULL) {"
+        "  Scm_RaiseCondition("
+        "     SCM_SYMBOL_VALUE(\"dbd.mysql\", \"<mysql-error>\"),"
+        "     \"error-code\", SCM_MAKE_INT(mysql_errno(handle)),"
+        "     SCM_RAISE_CONDITION_MESSAGE,"
+        "     \"Couldn't make a mysql connection: %s\", mysql_error(handle)"
+        "     );"
+        "}"
+        ))
+
+(define-cproc mysql-real-query (connection::<mysql-handle> query::<string>)
+  (body <int>
+        "int qlen = SCM_STRING_SIZE(query);"
+        "const char *qstr = Scm_GetStringConst(query);"
+        "SCM_RESULT = mysql_real_query(connection, qstr, qlen);"))
+
+(define-cproc mysql-store-result (connection::<mysql-handle>)
+  (call <mysql-res> "mysql_store_result"))
+
+(define-cproc mysql-error (connection::<mysql-handle>)
+  (call <const-cstring> "mysql_error"))
+
+(define-cproc mysql-errno (connection::<mysql-handle>)
+  (call <int> "mysql_errno"))
+
+(define-cproc mysql-fetch-row (result::<mysql-res>)
+  (call "MysqlFetchRow"))
+
+(define-cproc mysql-free-result (result::<mysql-res>)
+  (call <void> "mysql_free_result"))
+
+(define-cproc mysql-close (connection::<mysql-handle>)
+  (call <void> "mysql_close"))
 
 ;; from errmsg.h mysql-3.23
 (define-enum CR_MIN_ERROR)
@@ -271,39 +324,3 @@
 (define-enum ER_ROW_IS_REFERENCED)
 (define-enum ER_ERROR_MESSAGES)
 
-
-(define-cproc mysql-real-connect (host::<string>
-				  user::<string>
-				  password::<string>
-				  db::<string>
-				  port::<uint>
-				  unix_socket::<string>
-				  client_flag::<uint>
-				  &optional driver connection)
-  "SCM_RETURN(
-    Scm_MysqlRealConnect(host, user, password, db, port,
-                         unix_socket, client_flag, driver, connection));")
-
-
-(define-cproc mysql-query-use-result
-  (query::<string> &optional connection result)
-  "SCM_RETURN(Scm_MysqlQueryUseResult(query, connection, result));")
-
-(define-cproc mysql-query-store-result
-  (query::<string> &optional connection result)
-  "SCM_RETURN(Scm_MysqlQueryStoreResult(query, connection, result));")
-
-(define-cproc mysql-error (&optional connection)
-  "SCM_RETURN(Scm_MysqlError(connection));")
-
-(define-cproc mysql-errno (&optional connection)
-  "SCM_RETURN(Scm_MysqlErrno(connection));")
-
-(define-cproc mysql-fetch-row (&optional result)
-  "SCM_RETURN(Scm_MysqlFetchRow(result));")
-
-(define-cproc mysql-free-result (&optional result)
-  "SCM_RETURN(Scm_MysqlFreeResult(result));")
-
-(define-cproc mysql-close(&optional connection)
-  "SCM_RETURN(Scm_MysqlClose(connection));")

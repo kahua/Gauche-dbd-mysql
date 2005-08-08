@@ -12,98 +12,67 @@
 (use dbd.mysql)
 (test-module 'dbd.mysql)
 
-;; dbi-make-driver のテスト:
-;; "mysql" ドライバーをロードして
-;; クラス <mysql-driver> のインスタンスだったら合格
-(define mysql-driver (dbi-make-driver "mysql"))
-(test* "dbi-make-driver mysql"
-       #t
-       (is-a? mysql-driver <mysql-driver>))
+(define conn #f)
+(define result #f)
 
-;; dbi-make-connection のテスト:
-;; <mysql-driver>型のインスタンスを引数にしたとき
-;; dbi-make-connection の戻り値が 
-;; <mysql-connection>型のインスタンスだったら合格
-;; 注: (sys-getenv "USER")で取得した現在のユーザーがパスワードなしで
-;;     MySQLの"test"データベースに接続できる必要がある。
-(define current-user (sys-getenv "USER"))
-(define mysql-connection
-  (dbi-make-connection mysql-driver current-user "" "db=test"))
-(test* "dbi-make-connection <mysql-driver>"
-       #t
-       (is-a? mysql-connection <mysql-connection>))
+;; Test connecting the database.
+;; The tester should set up the mysql database so that the current user
+;; can connect to the database "test" without password.
+(test* "dbi-connect" '<mysql-connection>
+       (let1 c (dbi-connect "dbi:mysql:test")
+         (set! conn c)
+         (class-name (class-of c))))
 
-;; dbi-make-query のテスト:
-;; <mysql-connection>型のインスタンスを引数にしたとき
-;; dbi-make-queryの戻り値が
-;; <mysql-query>型のインスタンスだったら合格
-(define mysql-query (dbi-make-query mysql-connection))
-(test* "dbi-make-query <mysql-connection>"
-       #t
-       (is-a? mysql-query <mysql-query>))
-;;
-;;;; testデータベースをdropしておく
-;(dbi-execute-query mysql-query "drop database dbi-mysql-test")
-;;;; testデータベースを作成しておく
-;(dbi-execute-query mysql-query "create database dbi-mysql-test")
-;;;; testデータベースに接続する
-;(dbi-execute-query mysql-query "connect test")
-;;;; testテーブルをdropしておく
-(with-error-handler
-  (lambda (e) #t)
- (lambda () (dbi-execute-query mysql-query "drop table test")))
-;;;; testテーブルを作成しておく
-(dbi-execute-query mysql-query
-		   "create table test (id integer, name varchar(255))")
-;;;; testテーブルにデータをinsertしておく
-(dbi-execute-query mysql-query
-		   "insert into test (id, name) values (10, 'yasuyuki')")
-(dbi-execute-query mysql-query
-		  "insert into test (id, name) values (20, 'nyama')")
+(test* "dbi-do drop table test" #t
+       (begin (dbi-do conn "drop table test") #t))
 
-;; dbi-execute-query のテスト:
-;; <mysql-query>型のインスタンスを引数にしたとき
-;; dbi-execute-query の戻り値が
-;; <mysql-result-set>型のインスタンスだったら合格
-(define mysql-result-set (dbi-execute-query mysql-query "select * from test"))
-(test* "dbi-execute-query <mysql-query>"
-       #t
-       (is-a? mysql-result-set <mysql-result-set>))
+(test* "dbi-do create table test" #t
+       (begin (dbi-do conn "create table test (id integer, name varchar(255))")
+              #t))
 
-;; dbi-get-valueのテスト:
-;; map の中で mysql-get-value を使って <mysql-result-set> からすべての行を取得し、
-;; あらかじめ insertされた (("10" "yasuyuki") ("20" "nyama")) に等しければ合格
-(test* "dbi-get-value with map"
-       '(("10" "yasuyuki") ("20" "nyama"))
-  (map (lambda (row)
-	      (list (dbi-get-value row 0) (dbi-get-value row 1)))
-	    mysql-result-set))
+(test* "dbi-do insert" #t
+       (begin
+         (dbi-do conn "insert into test (id, name) values (10, 'yasuyuki')")
+         (dbi-do conn "insert into test (id, name) values (20, 'nyama')")
+         #t))
 
-;; dbi-close <dbi-result-set> のテスト:
-;; <mysql-result-set>型のインスタンスをcloseして再度アクセスし、
-;; <dbi-exception>が発生したら合格
-(dbi-close mysql-result-set)
-(test* "dbi-close <mysql-result-set>" *test-error*
-       (dbi-close mysql-result-set))
+(test* "dbi-do select" '<mysql-result-set>
+       (let1 r (dbi-do conn "select * from test")
+         (set! result r)
+         (class-name (class-of r))))
 
-;; dbi-close <dbi-query> のテスト:
-;; <mysql-query>型のインスタンスをcloseして再度アクセスし、
-;; <dbi-exception>が発生したら合格
-(dbi-close mysql-query)
-(test* "dbi-clse <mysql-query>" *test-error*
-       (dbi-close mysql-query))
+(test* "dbi-get-value" '(("10" "yasuyuki") ("20" "nyama"))
+       (map (lambda (row)
+              (list (dbi-get-value row 0) (dbi-get-value row 1)))
+            result))
 
-;; dbi-close <dbi-connection> のテスト:
-;; <mysql-connection>型のインスタンスをcloseして再度アクセスし、
-;; <dbi-exception>が発生したら合格
-(dbi-close mysql-connection)
-(test* "dbi-close <mysql-connection>" *test-error*
-       (dbi-cluse mysql-connection))
+(test* "dbi-prepare & dbi-execute" '(("10" "yasuyuki"))
+       (map (lambda (row)
+              (list (dbi-get-value row 0) (dbi-get-value row 1)))
+            (dbi-execute (dbi-prepare conn "select * from test where id=?")
+                         "10")))
+
+(test* "dbi-prepare & dbi-execute" '(("20" "nyama"))
+       (map (lambda (row)
+              (list (dbi-get-value row 0) (dbi-get-value row 1)))
+            (dbi-execute (dbi-prepare conn "select * from test where id=?")
+                         "20")))
+
+(test* "dbi-prepare & dbi-execute" '()
+       (map (lambda (row)
+              (list (dbi-get-value row 0) (dbi-get-value row 1)))
+            (dbi-execute (dbi-prepare conn "select * from test where id=?")
+                         "30")))
+
+(test* "dbi-close" #f
+       (begin (dbi-close conn)
+              (dbi-open? conn)))
+
+;; Test for exceptional cases
+;; This would fail if there _is_ a database named "nosuchdb", so
+;; I don't enable it by default.
+'(test* "dbi-connect (non-existent db)" *test-error*
+        (dbi-connect "dbi:mysql:nosuchdb"))
 
 ;; epilogue
 (test-end)
-
-
-
-
-

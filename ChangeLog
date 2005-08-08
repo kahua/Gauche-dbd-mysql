@@ -1,3 +1,14 @@
+2005-08-08  Shiro Kawai  <shiro@acm.org>
+
+	* rewrote almost everything.  requires CVS HEAD of Gauche to build.
+	  - using the new (0.8.6) Gauche's extension API to make
+	    the code cleaner.
+	  - adapted to the new DBI API.
+	  - handling MYSQL handle properly.
+	  - handling mysql error as <mysql-error> extension.
+	  - fixed collection framework to allow multiple application of
+	    call-with-iterators.
+
 2005-07-16  Shiro Kawai  <shiro@acm.org>
 
 	* adapted dbd-mysql to the new extension building scheme

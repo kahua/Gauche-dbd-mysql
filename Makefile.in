@@ -1,5 +1,5 @@
 #
-# $Id: Makefile.in,v 1.1 2005/07/17 06:43:17 shiro Exp $
+# $Id: Makefile.in,v 1.2 2005/08/08 10:17:22 shiro Exp $
 #
 
 # General info
@@ -25,7 +25,7 @@ EXEEXT = @EXEEXT@
 # Module-specific stuff
 PACKAGE   = Gauche-dbd-mysql
 
-ARCHFILES = gauche_dbd_mysql.$(SOEXT)
+ARCHFILES = dbd_mysql.$(SOEXT)
 SCMFILES  = dbd/mysql.scm
 HEADERS   = 
 
@@ -41,15 +41,15 @@ HEADER_INSTALL_DIR  = $(DESTDIR)`$(GAUCHE_CONFIG) --siteincdir`
 SCM_INSTALL_DIR     = $(DESTDIR)`$(GAUCHE_CONFIG) --sitelibdir`
 ARCH_INSTALL_DIR    = $(DESTDIR)`$(GAUCHE_CONFIG) --sitearchdir`
 
-gauche_dbd_mysql_SRCS = gauche_dbd_mysql.c gauche_dbd_mysqllib.stub
+dbd_mysql_SRCS = dbd_mysql.c dbd_mysqllib.stub
 
 all : $(TARGET)
 
-gauche_dbd_mysql.$(SOEXT): $(gauche_dbd_mysql_SRCS)
+dbd_mysql.$(SOEXT): $(dbd_mysql_SRCS)
 	$(GAUCHE_PACKAGE) compile --verbose \
 	   --cflags="$(MYSQL_CFLAGS)" \
-           --libs="$(MYSQL_LIBS)"     \
-	   gauche_dbd_mysql $(gauche_dbd_mysql_SRCS) 
+	   --libs="$(MYSQL_LIBS)"     \
+	   dbd_mysql $(dbd_mysql_SRCS) 
 
 check : all
 	@rm -f test.log
@@ -68,7 +68,7 @@ uninstall :
 	$(INSTALL) -U $(SCM_INSTALL_DIR)/.packages $(PACKAGE).gpd
 
 clean :
-	$(GAUCHE_PACKAGE) compile --clean gauche_dbd_mysql $(gauche_dbd_mysql_SRCS)
+	$(GAUCHE_PACKAGE) compile --clean dbd_mysql $(dbd_mysql_SRCS)
 	rm -rf core $(TARGET) $(GENERATED) *~ test.log so_locations
 
 distclean : clean
