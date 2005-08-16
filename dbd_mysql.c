@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.1 2005/08/08 10:17:22 shiro Exp $
+ * $Id: dbd_mysql.c,v 1.2 2005/08/16 21:45:12 shiro Exp $
  */
 
 #include "dbd_mysql.h"
@@ -42,27 +42,46 @@ static void mysql_res_cleanup(ScmObj obj)
 }
 
 /*
- * cprocs
+ * Auxiliary utilities
  */
 
-ScmObj MysqlFetchRow(MYSQL_RES *result) {
-    ScmObj row = SCM_NIL, t = SCM_NIL;
-    MYSQL_ROW mysql_row;
-    unsigned int num_fields, i;
-    unsigned long *len;
+ScmObj MysqlFetchFieldNames(MYSQL_RES *result)
+{
+    MYSQL_FIELD *fields;
+    int nfields, i;
+    ScmObj v;
 
-    mysql_row = mysql_fetch_row(result);
-    if (mysql_row == NULL) return SCM_FALSE;
-
-    num_fields = mysql_num_fields(result);
-    len = mysql_fetch_lengths(result);
-    for (i = 0; i < num_fields; i++) {
-        SCM_APPEND1(row, t,
-                    mysql_row[i] ?
-                    Scm_MakeString(mysql_row[i], len[i], -1,
-                                   SCM_MAKSTR_COPYING) : SCM_FALSE);
+    if (result == NULL) return SCM_FALSE;
+    
+    nfields = mysql_num_fields(result);
+    fields = mysql_fetch_fields(result);
+    v = Scm_MakeVector(nfields, SCM_FALSE);
+    for (i=0; i<nfields; i++) {
+        SCM_VECTOR_ELEMENTS(v)[i] = SCM_MAKE_STR_COPYING(fields[i].name);
     }
-    return row;
+    return v;
+}
+
+ScmObj MysqlFetchRow(MYSQL_RES *result)
+{
+    MYSQL_ROW row;
+    unsigned int nfields, i;
+    unsigned long *len;
+    ScmObj v;
+
+    if (result == NULL) return SCM_FALSE;
+    row = mysql_fetch_row(result);
+    if (row == NULL) return SCM_FALSE;
+
+    nfields = mysql_num_fields(result);
+    len = mysql_fetch_lengths(result);
+    v = Scm_MakeVector(nfields, SCM_FALSE);
+    for (i = 0; i < nfields; i++) {
+        if (row[i] == NULL) continue;
+        SCM_VECTOR_ELEMENTS(v)[i] =
+            Scm_MakeString(row[i], len[i], -1, SCM_MAKSTR_COPYING);
+    }
+    return v;
 }
 
 /*

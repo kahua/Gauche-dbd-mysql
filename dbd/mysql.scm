@@ -17,11 +17,12 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.2 2005/08/08 10:17:22 shiro Exp $
+;; $Id: mysql.scm,v 1.3 2005/08/16 21:45:13 shiro Exp $
 
 (define-module dbd.mysql
   (use dbi)
   (use gauche.collection)
+  (use util.relations)
   (use srfi-1)
   (use srfi-13)
   (use util.list)
@@ -56,9 +57,10 @@
 (define-class <mysql-connection> (<dbi-connection>)
   ((%handle     :init-keyword :handle :init-value #f)))
 
-(define-class <mysql-result-set> (<dbi-result-set> <collection>)
+(define-class <mysql-result-set> (<dbi-result-set> <relation>)
   ((%handle     :init-keyword :handle :init-value #f)
    (%result-set :init-keyword :result-set :init-value #f)
+   (field-names :init-keyword :field-names)
    (num-cols    :init-keyword :num-cols)
    (rows        :init-form #f)))
 
@@ -86,8 +88,11 @@
       (errorf <mysql-error> :error-code (mysql-errno h)
               "Mysql query failed: ~a" (mysql-error h)))
     (let1 rset (mysql-store-result h)
-      (make <mysql-result-set> :open #t :connection h :result-set rset))))
+      (make <mysql-result-set>
+        :open #t :connection h :result-set rset
+        :field-names (mysql-fetch-field-names rset)))))
 
+;; Relation API
 (define-method call-with-iterator ((r <mysql-result-set>) proc . option)
   (unless (slot-ref r 'open)
     (error <dbi-error> "<mysql-result> already closed:" r))
@@ -102,17 +107,22 @@
         (loop (cons row rows))
         (reverse! rows)))))
 
-(define-method dbi-get-value ((l <list>) (n <integer>))
-  (cond ((null? l) l)
-	((< n 0)
-	 (raise
-	  (make <dbi-exception> :error-code -5
-		:message "column id invalid.")))
-	((> n (length l))
-	 (raise
-	  (make <dbi-exception> :error-code -6
-		:message "clumn id out of range.")))
-	(else (car (drop l n)))))
+(define-method relation-column-names ((result-set <mysql-result-set>))
+  (ref result-set 'field-names))
+
+(define-method relation-column-getter ((result-set <mysql-result-set>) column)
+  (and-let* ((i (find-index (cut string=? <> column)
+                            (ref result-set 'field-names))))
+    (lambda (row . opts)
+      (if (null? opts) (vector-ref row i) (vector-ref row i (car opts))))))
+
+(define-method relation-column-setter ((result-set <mysql-result-set>) column)
+  (and-let* ((i (find-index (cut string=? <> column)
+                            (ref result-set 'field-names))))
+    (lambda (row val) (vector-set! row i val))))
+
+(define-method relation-coercer ((result-set <mysql-result-set>))
+  identity)
 
 (define-method dbi-close ((result-set <mysql-result-set>))
   (when (dbi-open? c)
@@ -121,7 +131,7 @@
     (let* ((errno  (mysql-errno (slot-ref result-set '%handle)))
            (errmsg (mysql-error (slot-ref result-set '%handle))))
       (unless (string-null? errmsg)
-        (error <dbi-exception> :error-code errno :message errmsg)))))
+        (error <mysql-error> :error-code errno :message errmsg)))))
 
 (define-method dbi-close ((c <mysql-connection>))
   (when (dbi-open? c)
@@ -130,7 +140,7 @@
     (let* ((errno  (mysql-errno (slot-ref c '%handle)))
            (errmsg (mysql-error (slot-ref c '%handle))))
       (unless (string-null? errmsg)
-        (error <dbi-exception> :error-code errno :message errmsg)))))
+        (error <mysql-error> :error-code errno :message errmsg)))))
 
 ;; Epilogue
 (provide "dbd/mysql")
