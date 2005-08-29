@@ -17,12 +17,12 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.3 2005/08/16 21:45:13 shiro Exp $
+;; $Id: mysql.scm,v 1.4 2005/08/29 12:43:26 shiro Exp $
 
 (define-module dbd.mysql
   (use dbi)
   (use gauche.collection)
-  (use util.relations)
+  (use util.relation)
   (use srfi-1)
   (use srfi-13)
   (use util.list)

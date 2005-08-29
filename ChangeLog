@@ -1,3 +1,7 @@
+2005-08-29  Shiro Kawai  <shiro@acm.org>
+
+	* adapted to the API change in Gauche 0.8.6_pre2.
+
 2005-08-16  Shiro Kawai  <shiro@acm.org>
 
 	* adapted to the relations framework.

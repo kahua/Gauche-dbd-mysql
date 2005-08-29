@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.h,v 1.2 2005/08/16 21:45:12 shiro Exp $
+ * $Id: dbd_mysql.h,v 1.3 2005/08/29 12:43:25 shiro Exp $
  */
 
 /* Prologue */
@@ -38,17 +38,15 @@ SCM_DECL_BEGIN
 
 extern ScmClass *MysqlHandleClass;
 typedef ScmForeignPointer MysqlHandle;
-#define MYSQL_HANDLE_P(obj)   SCM_XTYPEP(obj, MysqlHandleClass)
-#define MYSQL_HANDLE_UNBOX(obj)  \
-    ((MYSQL*)(SCM_FOREIGN_POINTER_REF(obj)))
+#define MYSQL_HANDLE_P(obj)     SCM_XTYPEP(obj, MysqlHandleClass)
+#define MYSQL_HANDLE_UNBOX(obj) SCM_FOREIGN_POINTER_REF(MYSQL*, obj)
 #define MYSQL_HANDLE_BOX(handle) \
     Scm_MakeForeignPointer(MysqlHandleClass, handle)
 
 extern ScmClass *MysqlResClass;
 typedef ScmForeignPointer ScmMysqlRes;
-#define MYSQL_RES_P(obj)   SCM_XTYPEP(obj, MysqlResClass)
-#define MYSQL_RES_UNBOX(obj) \
-    ((MYSQL_RES*)(SCM_FOREIGN_POINTER_REF(obj)))
+#define MYSQL_RES_P(obj)     SCM_XTYPEP(obj, MysqlResClass)
+#define MYSQL_RES_UNBOX(obj) SCM_FOREIGN_POINTER_REF(MYSQL_RES*, obj)
 #define MYSQL_RES_BOX(res) \
     Scm_MakeForeignPointer(MysqlResClass, res)
 
