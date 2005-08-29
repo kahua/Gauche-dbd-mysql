@@ -23,6 +23,9 @@
          (set! conn c)
          (class-name (class-of c))))
 
+(test* "escape sql" '("abc" "ab\\'c" "ab\\\\c")
+       (map (cut dbi-escape-sql conn <>) '("abc" "ab'c" "ab\\c")))
+
 (test* "dbi-do drop table test" #t
        (begin (dbi-do conn "drop table test") #t))
 

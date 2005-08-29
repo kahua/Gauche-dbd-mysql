@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.4 2005/08/29 12:43:26 shiro Exp $
+;; $Id: mysql.scm,v 1.5 2005/08/29 22:51:10 shiro Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -40,6 +40,7 @@
 	  mysql-fetch-row	; mysql.so
 	  mysql-free-result	; mysql.so
 	  mysql-close		; mysql.so
+          mysql-real-escape-string ; mysql.so
   	  dbd-make-connection
           dbd-execute
 	  dbi-close))
@@ -91,6 +92,9 @@
       (make <mysql-result-set>
         :open #t :connection h :result-set rset
         :field-names (mysql-fetch-field-names rset)))))
+
+(define-method dbi-escape-sql ((c <mysql-connection>) str)
+  (mysql-real-escape-string (slot-ref c '%handle) str))
 
 ;; Relation API
 (define-method call-with-iterator ((r <mysql-result-set>) proc . option)

@@ -18,7 +18,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: dbd_mysqllib.stub,v 1.2 2005/08/16 21:45:12 shiro Exp $
+;; $Id: dbd_mysqllib.stub,v 1.3 2005/08/29 22:51:10 shiro Exp $
 
 "
 #include \"dbd_mysql.h\"
@@ -58,6 +58,16 @@
         "int qlen = SCM_STRING_SIZE(query);"
         "const char *qstr = Scm_GetStringConst(query);"
         "SCM_RESULT = mysql_real_query(connection, qstr, qlen);"))
+
+(define-cproc mysql-real-escape-string (connection::<mysql-handle>
+                                        string::<string>)
+  (body "char *buf; u_long origsize, bufsize, finalsize;"
+        "const char *s = Scm_GetStringConst(string);"
+        "origsize = SCM_STRING_SIZE(string);"
+        "bufsize = origsize*2+2;"
+        "buf = SCM_NEW_ATOMIC2(char*, bufsize);"
+        "finalsize = mysql_real_escape_string(connection, buf, s, origsize);"
+        "SCM_RESULT = Scm_MakeString(buf, finalsize, -1, SCM_MAKSTR_COPYING);"))
 
 (define-cproc mysql-store-result (connection::<mysql-handle>)
   (call <mysql-res> "mysql_store_result"))
