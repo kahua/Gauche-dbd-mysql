@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.6 2005/09/05 02:41:51 shiro Exp $
+;; $Id: mysql.scm,v 1.7 2005/09/05 06:42:12 shiro Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -115,13 +115,13 @@
   (ref result-set 'field-names))
 
 (define-method relation-accessor ((result-set <mysql-result-set>))
-  (lambda (row column . maybe-default)
-    (or (and-let* ((i (find-index (cut string=? <> column)
-                                  (ref result-set 'field-names))))
-          (vector-ref row i))
-        (if (pair? maybe-default)
-          (car maybe-default)
-          (error "invalud column name:" column)))))
+  (let1 columns (ref result-set 'field-names)
+    (lambda (row column . maybe-default)
+      (cond
+       ((find-index (cut string=? <> column) columns)
+        => (cut vector-ref row <>))
+       ((pair? maybe-default) (car maybe-default))
+       (else (error "invalud column name:" column))))))
 
 (define-method relation-coercer ((result-set <mysql-result-set>))
   identity)
