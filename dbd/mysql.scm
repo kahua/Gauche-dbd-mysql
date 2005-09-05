@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.5 2005/08/29 22:51:10 shiro Exp $
+;; $Id: mysql.scm,v 1.6 2005/09/05 02:41:51 shiro Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -114,16 +114,14 @@
 (define-method relation-column-names ((result-set <mysql-result-set>))
   (ref result-set 'field-names))
 
-(define-method relation-column-getter ((result-set <mysql-result-set>) column)
-  (and-let* ((i (find-index (cut string=? <> column)
-                            (ref result-set 'field-names))))
-    (lambda (row . opts)
-      (if (null? opts) (vector-ref row i) (vector-ref row i (car opts))))))
-
-(define-method relation-column-setter ((result-set <mysql-result-set>) column)
-  (and-let* ((i (find-index (cut string=? <> column)
-                            (ref result-set 'field-names))))
-    (lambda (row val) (vector-set! row i val))))
+(define-method relation-accessor ((result-set <mysql-result-set>))
+  (lambda (row column . maybe-default)
+    (or (and-let* ((i (find-index (cut string=? <> column)
+                                  (ref result-set 'field-names))))
+          (vector-ref row i))
+        (if (pair? maybe-default)
+          (car maybe-default)
+          (error "invalud column name:" column)))))
 
 (define-method relation-coercer ((result-set <mysql-result-set>))
   identity)

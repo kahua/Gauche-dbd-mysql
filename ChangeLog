@@ -1,3 +1,11 @@
+2005-09-04  Shiro Kawai  <shiro@acm.org>
+
+	* dbd/mysql.scm: slightly modified to follow the change in
+	  util.relation.  Dropped relation-column-getter and implemented
+	  relation-accessor, for the latter became the fundamental operation.
+	  Dropped relation-column-setter, for it's better to keep the
+	  result set read-only.
+	
 2005-08-29  Shiro Kawai  <shiro@acm.org>
 
 	* dbd_mysqllib.stub (mysql-real-escape-string): added.
