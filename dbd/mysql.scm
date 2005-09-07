@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.7 2005/09/05 06:42:12 shiro Exp $
+;; $Id: mysql.scm,v 1.8 2005/09/07 10:00:40 shiro Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -41,9 +41,7 @@
 	  mysql-free-result	; mysql.so
 	  mysql-close		; mysql.so
           mysql-real-escape-string ; mysql.so
-  	  dbd-make-connection
-          dbd-execute
-	  dbi-close))
+          ))
 (select-module dbd.mysql)
 
 ;; Loads extension
@@ -82,16 +80,21 @@
         (mysql-real-connect host user passwd db port socket flags)
       (make <mysql-connection> :driver-name d :open #t :handle handle))))
 
-(define-method dbd-execute ((c <mysql-connection>) (q <dbi-query>) . params)
-  (let* ((h  (slot-ref c '%handle))
-         (qr (mysql-real-query h (apply (slot-ref q '%prepared) params))))
-    (unless (= qr 0)
-      (errorf <mysql-error> :error-code (mysql-errno h)
-              "Mysql query failed: ~a" (mysql-error h)))
-    (let1 rset (mysql-store-result h)
-      (make <mysql-result-set>
-        :open #t :connection h :result-set rset
-        :field-names (mysql-fetch-field-names rset)))))
+(define-method dbi-prepare ((c <mysql-connection>) (sql <string>) . options)
+  (let-keywords* options ((pass-through #f))
+    (let ((h  (slot-ref c '%handle))
+          (prepared (if pass-through
+                      (lambda () sql)
+                      (dbi-prepare-sql c sql))))
+      (lambda params
+        (let1 qr (mysql-real-query h (apply prepared params))
+          (unless (= qr 0)
+            (errorf <mysql-error> :error-code (mysql-errno h)
+                    "Mysql query failed: ~a" (mysql-error h)))
+          (let1 rset (mysql-store-result h)
+            (make <mysql-result-set>
+              :open #t :connection h :result-set rset
+              :field-names (mysql-fetch-field-names rset))))))))
 
 (define-method dbi-escape-sql ((c <mysql-connection>) str)
   (mysql-real-escape-string (slot-ref c '%handle) str))

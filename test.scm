@@ -49,23 +49,34 @@
               (list (dbi-get-value row 0) (dbi-get-value row 1)))
             result))
 
-(test* "dbi-prepare & dbi-execute" '(("10" "yasuyuki"))
+(test* "dbi-prepare & execute" '(("10" "yasuyuki"))
        (map (lambda (row)
               (list (dbi-get-value row 0) (dbi-get-value row 1)))
-            (dbi-execute (dbi-prepare conn "select * from test where id=?")
-                         "10")))
+            ((dbi-prepare conn "select * from test where id=?")
+             "10")))
 
-(test* "dbi-prepare & dbi-execute" '(("20" "nyama"))
+(test* "dbi-prepare & execute" '(("20" "nyama"))
        (map (lambda (row)
               (list (dbi-get-value row 0) (dbi-get-value row 1)))
-            (dbi-execute (dbi-prepare conn "select * from test where id=?")
-                         "20")))
+            ((dbi-prepare conn "select * from test where id=?")
+             "20")))
 
-(test* "dbi-prepare & dbi-execute" '()
+(test* "dbi-prepare & execute" '()
        (map (lambda (row)
               (list (dbi-get-value row 0) (dbi-get-value row 1)))
-            (dbi-execute (dbi-prepare conn "select * from test where id=?")
-                         "30")))
+            ((dbi-prepare conn "select * from test where id=?")
+             "30")))
+
+(test* "dbi-prepare & execute (pass-through)" '(("20" "nyama"))
+       (map (lambda (row)
+              (list (dbi-get-value row 0) (dbi-get-value row 1)))
+            ((dbi-prepare conn "select * from test where id=20"
+                          :pass-through #t))))
+
+(test* "dbi-prepare & execute (pass-through)" '<mysql-error>
+       (guard (e (else (class-name (class-of e))))
+         ((dbi-prepare conn "select * from test where id=?"
+                       :pass-through #t))))
 
 (test* "dbi-close" #f
        (begin (dbi-close conn)
