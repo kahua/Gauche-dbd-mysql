@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.8 2005/09/07 10:00:40 shiro Exp $
+;; $Id: mysql.scm,v 1.9 2005/09/07 10:53:26 shiro Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -27,20 +27,13 @@
   (use srfi-13)
   (use util.list)
   (use util.match)
-  (export <mysql-driver>
-	  <mysql-connection>
-	  <mysql-result-set>
-	  <mysql-handle>	; mysql.so
-	  <mysql-res>		; mysql.so
-	  mysql-real-connect	; mysql.so
-	  mysql-real-query      ; mysql.so
-	  mysql-store-result    ; mysql.so
-	  mysql-error		; mysql.so
-	  mysql-errno		; mysql.so
-	  mysql-fetch-row	; mysql.so
-	  mysql-free-result	; mysql.so
-	  mysql-close		; mysql.so
-          mysql-real-escape-string ; mysql.so
+  (export <mysql-driver> <mysql-connection> <mysql-result-set>
+          ;; Low-level API
+	  <mysql-handle> <mysql-res>
+	  mysql-real-connect mysql-real-query
+	  mysql-store-result mysql-error mysql-errno
+	  mysql-fetch-row mysql-free-result mysql-close
+          mysql-real-escape-string
           ))
 (select-module dbd.mysql)
 
@@ -63,7 +56,9 @@
    (num-cols    :init-keyword :num-cols)
    (rows        :init-form #f)))
 
-(define-method dbd-make-connection ((d <mysql-driver>) options option-alist
+(define-method dbi-make-connection ((d <mysql-driver>)
+                                    (options <string>)
+                                    (option-alist <list>)
                                     . args)
   (let ((user   (get-keyword* :username args
                               (sys-uid->user-name (sys-getuid))))
@@ -149,5 +144,3 @@
 
 ;; Epilogue
 (provide "dbd/mysql")
-
-
