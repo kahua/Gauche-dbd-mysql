@@ -3,6 +3,8 @@
 	* dbd_mysqllib.scm: use foreign pointer attribute to keep track of
 	  whether a handle is already closed/freed or not.
 	  This adds mysql-handle-closed? and mysql-res-closed? APIs.
+	* dbd_mysql.c: use the above information to prevent finalizers
+	  from freeing mysql structure more than once.
 	* dbd/mysql.scm: drop dependency to <dbi-object> and <dbi-result-set>.
 	  Define dbi-open? method to query the low-level handle about
 	  open/close status.  Fixed some bugs.
