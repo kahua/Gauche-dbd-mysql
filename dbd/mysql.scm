@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.9 2005/09/07 10:53:26 shiro Exp $
+;; $Id: mysql.scm,v 1.10 2005/09/10 11:43:59 shiro Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -33,6 +33,7 @@
 	  mysql-real-connect mysql-real-query
 	  mysql-store-result mysql-error mysql-errno
 	  mysql-fetch-row mysql-free-result mysql-close
+          mysql-handle-closed? mysql-res-closed?
           mysql-real-escape-string
           ))
 (select-module dbd.mysql)
@@ -49,7 +50,7 @@
 (define-class <mysql-connection> (<dbi-connection>)
   ((%handle     :init-keyword :handle :init-value #f)))
 
-(define-class <mysql-result-set> (<dbi-result-set> <relation>)
+(define-class <mysql-result-set> (<relation>)
   ((%handle     :init-keyword :handle :init-value #f)
    (%result-set :init-keyword :result-set :init-value #f)
    (field-names :init-keyword :field-names)
@@ -88,7 +89,7 @@
                     "Mysql query failed: ~a" (mysql-error h)))
           (let1 rset (mysql-store-result h)
             (make <mysql-result-set>
-              :open #t :connection h :result-set rset
+              :open #t :handle h :result-set rset
               :field-names (mysql-fetch-field-names rset))))))))
 
 (define-method dbi-escape-sql ((c <mysql-connection>) str)
@@ -96,7 +97,7 @@
 
 ;; Relation API
 (define-method call-with-iterator ((r <mysql-result-set>) proc . option)
-  (unless (slot-ref r 'open)
+  (unless (dbi-open? r)
     (error <dbi-error> "<mysql-result> already closed:" r))
   (unless (ref r 'rows)
     (set! (ref r 'rows) (get-all-rows (ref r '%result-set))))
@@ -124,23 +125,31 @@
 (define-method relation-coercer ((result-set <mysql-result-set>))
   identity)
 
+(define-method dbi-open? ((result-set <mysql-result-set>))
+  (and (not (mysql-res-closed? (slot-ref result-set '%result-set)))
+       (not (mysql-handle-closed? (slot-ref result-set '%handle)))))
+
 (define-method dbi-close ((result-set <mysql-result-set>))
-  (when (dbi-open? c)
-    (next-method)
-    (mysql-free-result (slot-ref result-set '%result-set))
-    (let* ((errno  (mysql-errno (slot-ref result-set '%handle)))
-           (errmsg (mysql-error (slot-ref result-set '%handle))))
-      (unless (string-null? errmsg)
-        (error <mysql-error> :error-code errno :message errmsg)))))
+  (let ((r (slot-ref result-set '%result-set))
+        (h (slot-ref result-set '%handle)))
+    (unless (mysql-res-closed? r)
+      (mysql-free-result r)
+      (let* ((errno  (mysql-errno h))
+             (errmsg (mysql-error h)))
+        (unless (string-null? errmsg)
+          (error <mysql-error> :error-code errno :message errmsg))))))
+
+(define-method dbi-open? ((c <mysql-connection>))
+  (not (mysql-handle-closed? (slot-ref c '%handle))))
 
 (define-method dbi-close ((c <mysql-connection>))
-  (when (dbi-open? c)
-    (mysql-close (slot-ref c '%handle))
-    (next-method)
-    (let* ((errno  (mysql-errno (slot-ref c '%handle)))
-           (errmsg (mysql-error (slot-ref c '%handle))))
-      (unless (string-null? errmsg)
-        (error <mysql-error> :error-code errno :message errmsg)))))
+  (let1 h (slot-ref c '%handle)
+    (unless (mysql-handle-closed? h)
+      (mysql-close h)
+      (let* ((errno  (mysql-errno h))
+             (errmsg (mysql-error h)))
+        (unless (string-null? errmsg)
+          (error <mysql-error> :error-code errno :message errmsg))))))
 
 ;; Epilogue
 (provide "dbd/mysql")

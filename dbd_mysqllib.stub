@@ -18,7 +18,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: dbd_mysqllib.stub,v 1.3 2005/08/29 22:51:10 shiro Exp $
+;; $Id: dbd_mysqllib.stub,v 1.4 2005/09/10 11:43:58 shiro Exp $
 
 "
 #include \"dbd_mysql.h\"
@@ -28,6 +28,10 @@
   "MYSQL_HANDLE_P" "MYSQL_HANDLE_UNBOX" "MYSQL_HANDLE_BOX")
 (define-type <mysql-res> "MYSQL_RES*" "MySQL result handle"
   "MYSQL_RES_P" "MYSQL_RES_UNBOX" "MYSQL_RES_BOX")
+
+;; key to the foreign pointer attribute to keep track of closed state
+;; of handles.
+(define-symbol closed? "sym_closed")
 
 ;; Constructors
 (define-cproc mysql-real-connect (host::<const-cstring>?
@@ -52,6 +56,9 @@
         "     );"
         "}"
         ))
+
+(define-cproc mysql-handle-closed? (connection::<mysql-handle>)
+  (expr "Scm_ForeignPointerAttrGet(SCM_FOREIGN_POINTER(connection_scm), sym_closed, SCM_FALSE)"))
 
 (define-cproc mysql-real-query (connection::<mysql-handle> query::<string>)
   (body <int>
@@ -78,6 +85,9 @@
 (define-cproc mysql-errno (connection::<mysql-handle>)
   (call <int> "mysql_errno"))
 
+(define-cproc mysql-res-closed? (result::<mysql-res>)
+  (expr "Scm_ForeignPointerAttrGet(SCM_FOREIGN_POINTER(result_scm), sym_closed, SCM_FALSE)"))
+
 (define-cproc mysql-fetch-field-names (result::<mysql-res>)
   (call "MysqlFetchFieldNames"))
 
@@ -85,10 +95,24 @@
   (call "MysqlFetchRow"))
 
 (define-cproc mysql-free-result (result::<mysql-res>)
-  (call <void> "mysql_free_result"))
+  (body <void>
+        "if (SCM_FALSEP(Scm_ForeignPointerAttrGet(SCM_FOREIGN_POINTER(result_scm),"
+        "                                         sym_closed,"
+        "                                         SCM_FALSE))) {"
+        "  mysql_free_result(result);"
+        "  Scm_ForeignPointerAttrSet(SCM_FOREIGN_POINTER(result_scm),"
+        "                            sym_closed, SCM_TRUE);"
+        "}"))
 
 (define-cproc mysql-close (connection::<mysql-handle>)
-  (call <void> "mysql_close"))
+  (body <void>
+        "if (SCM_FALSEP(Scm_ForeignPointerAttrGet(SCM_FOREIGN_POINTER(connection_scm),"
+        "                                         sym_closed,"
+        "                                         SCM_FALSE))) {"
+        "  mysql_close(connection);"
+        "  Scm_ForeignPointerAttrSet(SCM_FOREIGN_POINTER(connection_scm),"
+        "                            sym_closed, SCM_TRUE);"
+        "}"))
 
 ;; from errmsg.h mysql-3.23
 (define-enum CR_MIN_ERROR)

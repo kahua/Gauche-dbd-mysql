@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.h,v 1.3 2005/08/29 12:43:25 shiro Exp $
+ * $Id: dbd_mysql.h,v 1.4 2005/09/10 11:43:58 shiro Exp $
  */
 
 /* Prologue */
@@ -36,6 +36,11 @@ SCM_DECL_BEGIN
  * Internal Classes
  */
 
+/* We use foreign pointer to hold mysql handle (MYSQL*) and
+   mysql result handle (MYSQL_RES*).  Once a handle is closed
+   or freed, we mark the foreing pointer so by setting a
+   foreign-pointer-attribute 'closed to #t. */
+
 extern ScmClass *MysqlHandleClass;
 typedef ScmForeignPointer MysqlHandle;
 #define MYSQL_HANDLE_P(obj)     SCM_XTYPEP(obj, MysqlHandleClass)
@@ -49,7 +54,6 @@ typedef ScmForeignPointer ScmMysqlRes;
 #define MYSQL_RES_UNBOX(obj) SCM_FOREIGN_POINTER_REF(MYSQL_RES*, obj)
 #define MYSQL_RES_BOX(res) \
     Scm_MakeForeignPointer(MysqlResClass, res)
-
 
 /*
  * API
