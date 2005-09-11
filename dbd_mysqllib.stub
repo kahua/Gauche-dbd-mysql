@@ -18,7 +18,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: dbd_mysqllib.stub,v 1.4 2005/09/10 11:43:58 shiro Exp $
+;; $Id: dbd_mysqllib.stub,v 1.5 2005/09/11 12:43:15 shiro Exp $
 
 "
 #include \"dbd_mysql.h\"
@@ -58,7 +58,7 @@
         ))
 
 (define-cproc mysql-handle-closed? (connection::<mysql-handle>)
-  (expr "Scm_ForeignPointerAttrGet(SCM_FOREIGN_POINTER(connection_scm), sym_closed, SCM_FALSE)"))
+  (expr <boolean> "MysqlClosedP(connection_scm)"))
 
 (define-cproc mysql-real-query (connection::<mysql-handle> query::<string>)
   (body <int>
@@ -86,7 +86,7 @@
   (call <int> "mysql_errno"))
 
 (define-cproc mysql-res-closed? (result::<mysql-res>)
-  (expr "Scm_ForeignPointerAttrGet(SCM_FOREIGN_POINTER(result_scm), sym_closed, SCM_FALSE)"))
+  (expr <boolean> "MysqlClosedP(result_scm)"))
 
 (define-cproc mysql-fetch-field-names (result::<mysql-res>)
   (call "MysqlFetchFieldNames"))
@@ -96,22 +96,16 @@
 
 (define-cproc mysql-free-result (result::<mysql-res>)
   (body <void>
-        "if (SCM_FALSEP(Scm_ForeignPointerAttrGet(SCM_FOREIGN_POINTER(result_scm),"
-        "                                         sym_closed,"
-        "                                         SCM_FALSE))) {"
+        "if (!MysqlClosedP(result_scm)) {"
         "  mysql_free_result(result);"
-        "  Scm_ForeignPointerAttrSet(SCM_FOREIGN_POINTER(result_scm),"
-        "                            sym_closed, SCM_TRUE);"
+        "  MysqlMarkClosed(result_scm);"
         "}"))
 
 (define-cproc mysql-close (connection::<mysql-handle>)
   (body <void>
-        "if (SCM_FALSEP(Scm_ForeignPointerAttrGet(SCM_FOREIGN_POINTER(connection_scm),"
-        "                                         sym_closed,"
-        "                                         SCM_FALSE))) {"
+        "if (!MysqlClosedP(connection_scm)) {"
         "  mysql_close(connection);"
-        "  Scm_ForeignPointerAttrSet(SCM_FOREIGN_POINTER(connection_scm),"
-        "                            sym_closed, SCM_TRUE);"
+        "  MysqlMarkClosed(connection_scm);"
         "}"))
 
 ;; from errmsg.h mysql-3.23

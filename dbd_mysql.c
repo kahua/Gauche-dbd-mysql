@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.3 2005/09/10 11:52:15 shiro Exp $
+ * $Id: dbd_mysql.c,v 1.4 2005/09/11 12:43:15 shiro Exp $
  */
 
 #include "dbd_mysql.h"
@@ -29,13 +29,9 @@
 ScmClass *MysqlHandleClass;
 ScmClass *MysqlResClass;
 
-/* Symbol 'closed? */
-static ScmObj sym_closed;
-
 static void mysql_cleanup(ScmObj obj)
 {
-    if (!SCM_FALSEP(Scm_ForeignPointerAttrGet(SCM_FOREIGN_POINTER(obj),
-                                              sym_closed, SCM_FALSE))) {
+    if (!MysqlClosedP(obj)) {
         MYSQL *s = MYSQL_HANDLE_UNBOX(obj);
         mysql_close(s);
     }
@@ -43,8 +39,7 @@ static void mysql_cleanup(ScmObj obj)
 
 static void mysql_res_cleanup(ScmObj obj)
 {
-    if (!SCM_FALSEP(Scm_ForeignPointerAttrGet(SCM_FOREIGN_POINTER(obj),
-                                              sym_closed, SCM_FALSE))) {
+    if (!MysqlClosedP(obj)) {
         MYSQL_RES *r = MYSQL_RES_UNBOX(obj);
         mysql_free_result(r);
     }
@@ -53,6 +48,22 @@ static void mysql_res_cleanup(ScmObj obj)
 /*
  * Auxiliary utilities
  */
+/* Symbol 'closed? */
+static ScmObj sym_closed;
+
+int MysqlClosedP(ScmObj obj)
+{
+    SCM_ASSERT(SCM_FOREIGN_POINTER_P(obj));
+    return !SCM_FALSEP(Scm_ForeignPointerAttrGet(SCM_FOREIGN_POINTER(obj),
+                                                 sym_closed, SCM_FALSE));
+}
+
+void MysqlMarkClosed(ScmObj obj)
+{
+    SCM_ASSERT(SCM_FOREIGN_POINTER_P(obj));
+    Scm_ForeignPointerAttrSet(SCM_FOREIGN_POINTER(obj),
+                              sym_closed, SCM_TRUE);
+}
 
 ScmObj MysqlFetchFieldNames(MYSQL_RES *result)
 {

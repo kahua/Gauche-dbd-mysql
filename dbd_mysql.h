@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.h,v 1.4 2005/09/10 11:43:58 shiro Exp $
+ * $Id: dbd_mysql.h,v 1.5 2005/09/11 12:43:15 shiro Exp $
  */
 
 /* Prologue */
@@ -58,6 +58,9 @@ typedef ScmForeignPointer ScmMysqlRes;
 /*
  * API
  */
+
+extern int MysqlClosedP(ScmObj obj);
+extern void MysqlMarkClosed(ScmObj obj);
 
 extern ScmObj MysqlFetchFieldNames(MYSQL_RES *result);
 extern ScmObj MysqlFetchRow(MYSQL_RES *result);
