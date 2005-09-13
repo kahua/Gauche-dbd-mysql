@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.10 2005/09/10 11:43:59 shiro Exp $
+;; $Id: mysql.scm,v 1.11 2005/09/13 02:46:21 shiro Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -76,21 +76,18 @@
         (mysql-real-connect host user passwd db port socket flags)
       (make <mysql-connection> :driver-name d :open #t :handle handle))))
 
-(define-method dbi-prepare ((c <mysql-connection>) (sql <string>) . options)
-  (let-keywords* options ((pass-through #f))
-    (let ((h  (slot-ref c '%handle))
-          (prepared (if pass-through
-                      (lambda () sql)
-                      (dbi-prepare-sql c sql))))
-      (lambda params
-        (let1 qr (mysql-real-query h (apply prepared params))
-          (unless (= qr 0)
-            (errorf <mysql-error> :error-code (mysql-errno h)
-                    "Mysql query failed: ~a" (mysql-error h)))
-          (let1 rset (mysql-store-result h)
-            (make <mysql-result-set>
-              :open #t :handle h :result-set rset
-              :field-names (mysql-fetch-field-names rset))))))))
+(define-method dbi-execute-using-connection ((c <mysql-connection>)
+                                             (q <dbi-query>) params)
+  (let* ((h (slot-ref c '%handle))
+         (prepared (slot-ref q 'prepared))
+         (qr (mysql-real-query h (apply prepared params))))
+    (unless (= qr 0)
+      (errorf <mysql-error> :error-code (mysql-errno h)
+              "Mysql query failed: ~a" (mysql-error h)))
+    (let1 rset (mysql-store-result h)
+      (make <mysql-result-set>
+        :open #t :handle h :result-set rset
+        :field-names (mysql-fetch-field-names rset)))))
 
 (define-method dbi-escape-sql ((c <mysql-connection>) str)
   (mysql-real-escape-string (slot-ref c '%handle) str))
