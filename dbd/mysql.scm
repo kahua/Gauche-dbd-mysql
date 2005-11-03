@@ -17,11 +17,11 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.11 2005/09/13 02:46:21 shiro Exp $
+;; $Id: mysql.scm,v 1.12 2005/11/03 12:46:18 shiro Exp $
 
 (define-module dbd.mysql
   (use dbi)
-  (use gauche.collection)
+  (use gauche.sequence)
   (use util.relation)
   (use srfi-1)
   (use srfi-13)
@@ -50,7 +50,7 @@
 (define-class <mysql-connection> (<dbi-connection>)
   ((%handle     :init-keyword :handle :init-value #f)))
 
-(define-class <mysql-result-set> (<relation>)
+(define-class <mysql-result-set> (<relation> <sequence>)
   ((%handle     :init-keyword :handle :init-value #f)
    (%result-set :init-keyword :result-set :init-value #f)
    (field-names :init-keyword :field-names)
@@ -106,6 +106,13 @@
       (if row
         (loop (cons row rows))
         (reverse! rows)))))
+
+(define-method referencer ((r <mysql-result-set>))
+  (lambda (r i . fallback)
+    (apply list-ref (slot-ref r 'rows) i fallback)))
+
+(define-method relation-rows ((r <mysql-result-set>))
+  (slot-ref r 'rows))
 
 (define-method relation-column-names ((result-set <mysql-result-set>))
   (ref result-set 'field-names))
