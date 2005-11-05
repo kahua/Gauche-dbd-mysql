@@ -1,11 +1,11 @@
 dnl
 dnl Configuring Gauche-dbd-mysql
 dnl  process this file with autoconf to generate 'configure'.
-dnl $Id: configure.in,v 1.1 2005/07/17 06:43:17 shiro Exp $
+dnl $Id: configure.in,v 1.2 2005/11/05 00:57:12 shiro Exp $
 dnl
 
 AC_PREREQ(2.54)
-AC_INIT(Gauche-dbd-mysql, 0.2_pre1, shiro@acm.org)
+AC_INIT(Gauche-dbd-mysql, 0.2, shiro@acm.org)
 dnl If you want to use the system name (OS, architecture, etc) in the
 dnl configure, uncomment the following line.  In such a case, you need
 dnl to copy config.guess and config.sub from automake distribution.
@@ -27,6 +27,15 @@ EXEEXT=`$GAUCHE_CONFIG --executable-suffix`
 AC_SUBST(SOEXT)
 AC_SUBST(OBJEXT)
 AC_SUBST(EXEEXT)
+
+ac_default_prefix=`$GAUCHE_CONFIG --prefix`
+
+GAUCHE_PKGINCDIR=`$GAUCHE_CONFIG --pkgincdir`
+GAUCHE_PKGLIBDIR=`$GAUCHE_CONFIG --pkglibdir`
+GAUCHE_PKGARCHDIR=`$GAUCHE_CONFIG --pkgarchdir`
+AC_SUBST(GAUCHE_PKGINCDIR)
+AC_SUBST(GAUCHE_PKGLIBDIR)
+AC_SUBST(GAUCHE_PKGARCHDIR)
 
 dnl Check for headers.
 dnl Add your macro calls to check required headers, if you have any.
