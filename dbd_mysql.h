@@ -16,16 +16,16 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.h,v 1.5 2005/09/11 12:43:15 shiro Exp $
+ * $Id: dbd_mysql.h,v 1.6 2005/11/06 02:15:56 cut-sea Exp $
  */
 
 /* Prologue */
 #ifndef DBD_MYSQL_H
 #define DBD_MYSQL_H
 
-#include <mysql/mysql.h>
-#include <mysql/errmsg.h>
-#include <mysql/mysqld_error.h>
+#include <mysql.h>
+#include <errmsg.h>
+#include <mysqld_error.h>
 
 #include <gauche.h>
 #include <gauche/extend.h>
