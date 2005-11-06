@@ -1,3 +1,9 @@
+2005-11-06  Katsutoshi Itoh  <cut-sea@master.email.ne.jp>
+
+	* modify include path of mysql.h.
+	* move drop table test after all test before close db.
+	  because if user environment has no test table, then error occured.
+
 2005-11-04  Shiro Kawai  <shiro@acm.org>
 
 	* release 0.2
