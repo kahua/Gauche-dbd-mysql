@@ -1,3 +1,7 @@
+2005-11-07  Shiro Kawai  <shiro@acm.org>
+
+	* release 0.2.1
+
 2005-11-06  Katsutoshi Itoh  <cut-sea@master.email.ne.jp>
 
 	* modify include path of mysql.h.
