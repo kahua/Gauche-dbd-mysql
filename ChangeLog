@@ -1,3 +1,7 @@
+2006-03-20  ENDO Yasuyuki <yasuyuki@javaopen.org>
+
+	* release 0.2.2
+
 2006-03-03 ENDO Yasuyuki <yasuyuki@javaopen.org>
 
 	* dbd_mysqllib.stub (ER_ERROR_MESSAGES): comment out this entry, it's not exist mysql-5.0. 
