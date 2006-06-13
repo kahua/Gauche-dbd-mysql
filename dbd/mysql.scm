@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.12 2005/11/03 12:46:18 shiro Exp $
+;; $Id: mysql.scm,v 1.13 2006/06/13 00:15:32 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -27,6 +27,7 @@
   (use srfi-13)
   (use util.list)
   (use util.match)
+  (use gauche.mop.singleton)
   (export <mysql-driver> <mysql-connection> <mysql-result-set>
           ;; Low-level API
 	  <mysql-handle> <mysql-res>
@@ -44,7 +45,7 @@
 (define-condition-type <mysql-error> <dbi-error> #f
   (error-code))                         ;mysql error code
 
-(define-class <mysql-driver> (<dbi-driver>)
+(define-class <mysql-driver> (<dbi-driver> <singleton-mixin>)
   ())
 
 (define-class <mysql-connection> (<dbi-connection>)
