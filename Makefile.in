@@ -1,5 +1,5 @@
 #
-# $Id: Makefile.in,v 1.3 2005/11/05 00:57:12 shiro Exp $
+# $Id: Makefile.in,v 1.4 2007/01/16 09:30:55 bizenn Exp $
 #
 
 # General info
@@ -8,6 +8,7 @@ prefix      = @prefix@
 exec_prefix = @exec_prefix@
 bindir      = @bindir@
 libdir      = @libdir@
+datarootdir = @datarootdir@
 datadir     = @datadir@
 srcdir      = @srcdir@
 VPATH       = $(srcdir)
@@ -34,7 +35,7 @@ HEADERS   =
 TARGET    = $(ARCHFILES)
 GENERATED = 
 CONFIG_GENERATED = Makefile config.cache config.log config.status \
-		   configure.lineno autom4te*.cache $(PACKAGE).gpd
+		   configure.lineno autom4te*.cache $(PACKAGE).gpd VERSION
 
 MYSQL_CFLAGS = @MYSQL_CFLAGS@
 MYSQL_LIBS   = @MYSQL_LDFLAGS@

@@ -1,3 +1,8 @@
+2007-01-16  Tatsuya BIZENN  <bizenn@arthub.net>
+
+	* Fix: Makefile.in
+	  Add datarootdir definition.
+
 2006-03-20  ENDO Yasuyuki <yasuyuki@javaopen.org>
 
 	* release 0.2.2
