@@ -1,5 +1,5 @@
 #
-# $Id: Makefile.in,v 1.4 2007/01/16 09:30:55 bizenn Exp $
+# $Id: Makefile.in,v 1.5 2007/01/17 07:10:01 bizenn Exp $
 #
 
 # General info
@@ -35,7 +35,7 @@ HEADERS   =
 TARGET    = $(ARCHFILES)
 GENERATED = 
 CONFIG_GENERATED = Makefile config.cache config.log config.status \
-		   configure.lineno autom4te*.cache $(PACKAGE).gpd VERSION
+		   configure.lineno autom4te*.cache $(PACKAGE).gpd
 
 MYSQL_CFLAGS = @MYSQL_CFLAGS@
 MYSQL_LIBS   = @MYSQL_LDFLAGS@
@@ -78,5 +78,5 @@ distclean : clean
 	rm -rf $(CONFIG_GENERATED)
 
 maintainer-clean : clean
-	rm -rf $(CONFIG_GENERATED) configure
+	rm -rf $(CONFIG_GENERATED) configure VERSION DIST_EXCLUDE_X
 
