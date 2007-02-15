@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.15 2007/02/15 09:26:55 bizenn Exp $
+;; $Id: mysql.scm,v 1.16 2007/02/15 10:56:47 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -40,6 +40,8 @@
 	  <mysql-stmt>
 	  mysql-stmt-init mysql-stmt-prepare
 	  mysql-stmt-param-count mysql-stmt-field-count
+
+	  <mysql-error> <mysql-stmt-error>
           ))
 (select-module dbd.mysql)
 
@@ -86,11 +88,8 @@
 (define-method dbi-execute-using-connection ((c <mysql-connection>)
                                              (q <dbi-query>) params)
   (let* ((h (slot-ref c '%handle))
-         (prepared (slot-ref q 'prepared))
-         (qr (mysql-real-query h (apply prepared params))))
-    (unless (= qr 0)
-      (errorf <mysql-error> :error-code (mysql-errno h)
-              "Mysql query failed: ~a" (mysql-error h)))
+         (prepared (slot-ref q 'prepared)))
+    (mysql-real-query h (apply prepared params))
     (let1 rset (mysql-store-result h)
       (make <mysql-result-set>
         :open #t :handle h :result-set rset

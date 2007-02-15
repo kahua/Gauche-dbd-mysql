@@ -18,7 +18,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: dbd_mysqllib.stub,v 1.9 2007/02/15 09:26:47 bizenn Exp $
+;; $Id: dbd_mysqllib.stub,v 1.10 2007/02/15 10:56:47 bizenn Exp $
 
 "
 #include \"dbd_mysql.h\"
@@ -57,11 +57,13 @@
   (expr <boolean> "MysqlClosedP(connection_scm)"))
 
 (define-cproc mysql-real-query (connection::<mysql-handle> query::<string>)
-  (body <int>
+  (body <void>
 	"const ScmStringBody *body = SCM_STRING_BODY(query);"
 	"const char *q = SCM_STRING_BODY_START(body);"
         "unsigned int qlen = SCM_STRING_BODY_SIZE(body);"
-        "SCM_RESULT = mysql_real_query(connection, q, qlen);"))
+        "if (mysql_real_query(connection, q, qlen) != 0)"
+	"  raise_mysql_error(connection, \"mysql_real_query\");"
+	))
 
 (define-cproc mysql-real-escape-string (connection::<mysql-handle>
                                         string::<string>)

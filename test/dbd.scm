@@ -11,5 +11,20 @@
 (use dbd.mysql)
 (test-module 'dbd.mysql)
 
+(define-constant *db* "test")
+(define *mysql* #f)
+
+(test* "mysql-real-connect/fail" <mysql-error>
+       (guard (e (else (class-of e)))
+	 (mysql-real-connect #f "" "" "nonexistent" 0 #f 0)))
+(test* "mysql-real-connect/success" <mysql-handle>
+       (let1 c (mysql-real-connect #f #f #f *db* 0 #f 0)
+	 (set! *mysql* c)
+	 (class-of c)))
+
+(test* "mysql-handle-closed?/before close" #f (mysql-handle-closed? *mysql*))
+(test* "mysql-close" (undefined) (mysql-close *mysql*))
+(test* "mysql-handle-closed?/after close" #t (mysql-handle-closed? *mysql*))
+
 ;; epilogue
 (test-end)
