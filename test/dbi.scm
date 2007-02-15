@@ -8,9 +8,7 @@
 (use srfi-13)
 (use dbi)
 
-(test-start "dbd.mysql")
-(use dbd.mysql)
-(test-module 'dbd.mysql)
+(test-start "dbd.mysql(via DBI)")
 
 (define conn #f)
 (define result #f)

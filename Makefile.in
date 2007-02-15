@@ -1,5 +1,5 @@
 #
-# $Id: Makefile.in,v 1.5 2007/01/17 07:10:01 bizenn Exp $
+# $Id: Makefile.in,v 1.6 2007/02/15 09:51:39 bizenn Exp $
 #
 
 # General info
@@ -55,8 +55,9 @@ dbd_mysql.$(SOEXT): $(dbd_mysql_SRCS)
 	   dbd_mysql $(dbd_mysql_SRCS) 
 
 check : all
-	@rm -f test.log
-	$(GOSH) -I. test.scm > test.log
+	@rm -f test/test.log
+	$(GOSH) -I. test/dbd.scm >> test/test.log
+	$(GOSH) -I. test/dbi.scm >> test/test.log
 
 install : all
 	$(INSTALL) -m 444 -T $(GAUCHE_PKGINCDIR) $(HEADERS)
@@ -72,7 +73,7 @@ uninstall :
 
 clean :
 	$(GAUCHE_PACKAGE) compile --clean dbd_mysql $(dbd_mysql_SRCS)
-	rm -rf core $(TARGET) $(GENERATED) *~ test.log so_locations
+	rm -rf core $(TARGET) $(GENERATED) *~ test/test.log so_locations
 
 distclean : clean
 	rm -rf $(CONFIG_GENERATED)
