@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.h,v 1.7 2007/02/15 06:04:10 bizenn Exp $
+ * $Id: dbd_mysql.h,v 1.8 2007/02/15 08:45:05 bizenn Exp $
  */
 
 /* Prologue */
@@ -55,7 +55,7 @@ typedef ScmForeignPointer ScmMysqlRes;
 
 extern ScmClass *MysqlStmtClass;
 typedef ScmForeignPointer ScmMysqlStmt;
-#define MYSQL_STMT_P(obj)     SCM_XTYPE(obj, MysqlStmtClass)
+#define MYSQL_STMT_P(obj)     SCM_XTYPEP(obj, MysqlStmtClass)
 #define MYSQL_STMT_UNBOX(obj) SCM_FOREIGN_POINTER_REF(MYSQL_STMT*, obj)
 #define MYSQL_STMT_BOX(stmt)  Scm_MakeForeignPointer(MysqlStmtClass, stmt)
 
