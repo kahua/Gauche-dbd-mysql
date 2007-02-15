@@ -18,7 +18,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: dbd_mysqllib.stub,v 1.6 2006/03/02 21:49:50 yasuyuki Exp $
+;; $Id: dbd_mysqllib.stub,v 1.7 2007/02/15 06:04:10 bizenn Exp $
 
 "
 #include \"dbd_mysql.h\"
@@ -28,6 +28,8 @@
   "MYSQL_HANDLE_P" "MYSQL_HANDLE_UNBOX" "MYSQL_HANDLE_BOX")
 (define-type <mysql-res> "MYSQL_RES*" "MySQL result handle"
   "MYSQL_RES_P" "MYSQL_RES_UNBOX" "MYSQL_RES_BOX")
+(define-type <mysql-stmt> "MYSQL_STMT*" "MySQL statement handle"
+  "MYSQL_STMT_P" "MYSQL_STMT_UNBOX" "MYSQL_STMT_BOX")
 
 ;; key to the foreign pointer attribute to keep track of closed state
 ;; of handles.
@@ -62,19 +64,20 @@
 
 (define-cproc mysql-real-query (connection::<mysql-handle> query::<string>)
   (body <int>
-        "int qlen = SCM_STRING_SIZE(query);"
-        "const char *qstr = Scm_GetStringConst(query);"
-        "SCM_RESULT = mysql_real_query(connection, qstr, qlen);"))
+	"const ScmStringBody *body = SCM_STRING_BODY(query);"
+	"const char *q = SCM_STRING_BODY_START(body);"
+        "unsigned int qlen = SCM_STRING_BODY_SIZE(body);"
+        "SCM_RESULT = mysql_real_query(connection, q, qlen);"))
 
 (define-cproc mysql-real-escape-string (connection::<mysql-handle>
                                         string::<string>)
-  (body "char *buf; u_long origsize, bufsize, finalsize;"
-        "const char *s = Scm_GetStringConst(string);"
-        "origsize = SCM_STRING_SIZE(string);"
-        "bufsize = origsize*2+2;"
-        "buf = SCM_NEW_ATOMIC2(char*, bufsize);"
-        "finalsize = mysql_real_escape_string(connection, buf, s, origsize);"
-        "SCM_RESULT = Scm_MakeString(buf, finalsize, -1, SCM_MAKSTR_COPYING);"))
+  (body "const ScmStringBody *body = SCM_STRING_BODY(string);"
+        "const char *s = SCM_STRING_BODY_START(body);"
+        "unsigned int origsize = SCM_STRING_BODY_SIZE(body);"
+        "unsigned int bufsize = origsize*2+2;"
+        "char *buf = SCM_NEW_ATOMIC2(char*, bufsize);"
+        "unsigned long finalsize = mysql_real_escape_string(connection, buf, s, origsize);"
+        "SCM_RESULT = Scm_MakeString(buf, finalsize, -1, SCM_MAKSTR_COPYING);")) ; buf is now NUL terminated.
 
 (define-cproc mysql-store-result (connection::<mysql-handle>)
   (call <mysql-res> "mysql_store_result"))
@@ -107,6 +110,23 @@
         "  mysql_close(connection);"
         "  MysqlMarkClosed(connection_scm);"
         "}"))
+
+(define-cproc mysql-stmt-init (connection::<mysql-handle>)
+  (body <mysql-stmt>
+	"SCM_RESULT = mysql_stmt_init(connection);"
+	"if (SCM_RESULT != NULL) {"
+	"  Scm_RaiseCondition("
+	"    SCM_SYMBOL_VALUE(\"dbd.mysql\", \"<mysql-error>\"),"
+	"    \"error-code\", SCM_MAKE_INT(mysql_errno(connection)),"
+	"    SCM_RAISE_CONDITION_MESSAGE,"
+	"    \"Couldn't allocate MYSQL_STMT: ~s\", mysql_error(connection)"
+	"    );"
+	"}"
+	))
+
+;;(define-cproc mysql-stmt-prepare (stmt::<mysql-stmt>
+;;				  sql::<string>)
+;;  )
 
 ;; from errmsg.h mysql-3.23
 (define-enum CR_MIN_ERROR)

@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.4 2005/09/11 12:43:15 shiro Exp $
+ * $Id: dbd_mysql.c,v 1.5 2007/02/15 06:04:10 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -28,6 +28,7 @@
 /* Class pointers initialized by Scm_Init_gauche_dbd_mysql */
 ScmClass *MysqlHandleClass;
 ScmClass *MysqlResClass;
+ScmClass *MysqlStmtClass;
 
 static void mysql_cleanup(ScmObj obj)
 {
@@ -43,6 +44,12 @@ static void mysql_res_cleanup(ScmObj obj)
         MYSQL_RES *r = MYSQL_RES_UNBOX(obj);
         mysql_free_result(r);
     }
+}
+
+static void mysql_stmt_cleanup(ScmObj obj)
+{
+    MYSQL_STMT *stmt = MYSQL_STMT_UNBOX(obj);
+    mysql_stmt_close(stmt);
 }
 
 /*
@@ -126,6 +133,9 @@ ScmObj Scm_Init_dbd_mysql(void)
     MysqlResClass =
         Scm_MakeForeignPointerClass(mod, "<mysql-res>",
                                     NULL, mysql_res_cleanup, 0);
+    MysqlStmtClass =
+	Scm_MakeForeignPointerClass(mod, "<mysql-stmt>",
+				    NULL, mysql_stmt_cleanup, 0);
 
     /* Get handle of the symbol 'closed? */
     sym_closed = SCM_INTERN("closed?");

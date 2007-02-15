@@ -1,3 +1,8 @@
+2007-02-15  Tatsuya BIZENN  <bizenn@arthub.net>
+
+	* Fix: dbd_mysqllib.stub
+	  Use SCM_STRING_BODY* API instead of Scm_GetStringConst and SCM_STRING_SIZE.
+
 2007-01-17  Tatsuya BIZENN  <bizenn@arthub.net>
 
 	* Fix: Makefile.in
