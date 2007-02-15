@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.14 2007/02/15 08:45:06 bizenn Exp $
+;; $Id: mysql.scm,v 1.15 2007/02/15 09:26:55 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -48,6 +48,8 @@
 
 (define-condition-type <mysql-error> <dbi-error> #f
   (error-code))                         ;mysql error code
+
+(define-condition-type <mysql-stmt-error> <mysql-error> #f)
 
 (define-class <mysql-driver> (<dbi-driver> <singleton-mixin>)
   ())

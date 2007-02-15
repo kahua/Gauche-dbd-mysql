@@ -1,6 +1,6 @@
 /*
- *  Copyright (c) 2004-2005 Scheme Arts, L.L.C., All rights reserved.
- *  Copyright (c) 2004-2005 Time Intermedia Corporation, All rights reserved.
+ *  Copyright (c) 2004-2007 Scheme Arts, L.L.C., All rights reserved.
+ *  Copyright (c) 2004-2007 Time Intermedia Corporation, All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.5 2007/02/15 06:04:10 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.6 2007/02/15 09:26:46 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -142,4 +142,18 @@ ScmObj Scm_Init_dbd_mysql(void)
 
     /* Register stub-generated procedures */
     Scm_Init_dbd_mysqllib(mod);
+}
+
+void raise_mysql_error(MYSQL *handle, const char *msg)
+{
+    Scm_RaiseCondition(SCM_SYMBOL_VALUE("dbd.mysql", "<mysql-error>"),
+		       "error-code", SCM_MAKE_INT(mysql_errno(handle)),
+		       SCM_RAISE_CONDITION_MESSAGE, "%s: %s", msg, mysql_error(handle));
+}
+
+void raise_mysql_stmt_error(MYSQL_STMT *stmt, const char *msg)
+{
+    Scm_RaiseCondition(SCM_SYMBOL_VALUE("dbd.mysql", "<mysql-stmt-error>"),
+		       "error-code", SCM_MAKE_INT(mysql_stmt_errno(stmt)),
+		       SCM_RAISE_CONDITION_MESSAGE, "%s: %s", msg, mysql_stmt_error(stmt));
 }

@@ -1,6 +1,6 @@
 /*
- *  Copyright (c) 2004-2005 Scheme Arts, L.L.C., All rights reserved.
- *  Copyright (c) 2004-2005 Time Intermedia Corporation, All rights reserved.
+ *  Copyright (c) 2004-2007 Scheme Arts, L.L.C., All rights reserved.
+ *  Copyright (c) 2004-2007 Time Intermedia Corporation, All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.h,v 1.8 2007/02/15 08:45:05 bizenn Exp $
+ * $Id: dbd_mysql.h,v 1.9 2007/02/15 09:26:47 bizenn Exp $
  */
 
 /* Prologue */
@@ -68,6 +68,10 @@ extern void MysqlMarkClosed(ScmObj obj);
 
 extern ScmObj MysqlFetchFieldNames(MYSQL_RES *result);
 extern ScmObj MysqlFetchRow(MYSQL_RES *result);
+
+extern void raise_mysql_error(MYSQL *handle, const char *msg);
+
+extern void raise_mysql_stmt_error(MYSQL_STMT *stmt, const char *msg);
 
 /* Epilogue */
 SCM_DECL_END

@@ -1,8 +1,8 @@
 ;;-*-Scheme-*-
 ;; mysqllib.stub - mysql driver stub
 ;;
-;;  Copyright (c) 2003-2005 Scheme Arts, L.L.C., All rights reserved.
-;;  Copyright (c) 2003-2005 Time Intermedia Corporation, All rights reserved.
+;;  Copyright (c) 2003-2007 Scheme Arts, L.L.C., All rights reserved.
+;;  Copyright (c) 2003-2007 Time Intermedia Corporation, All rights reserved.
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: dbd_mysqllib.stub,v 1.8 2007/02/15 08:45:05 bizenn Exp $
+;; $Id: dbd_mysqllib.stub,v 1.9 2007/02/15 09:26:47 bizenn Exp $
 
 "
 #include \"dbd_mysql.h\"
@@ -49,14 +49,8 @@
         "SCM_RESULT = mysql_real_connect(handle,"
         "                                host, user, password, db,"
         "                                port, unix_socket, client_flag);"
-        "if (SCM_RESULT == NULL) {"
-        "  Scm_RaiseCondition("
-        "     SCM_SYMBOL_VALUE(\"dbd.mysql\", \"<mysql-error>\"),"
-        "     \"error-code\", SCM_MAKE_INT(mysql_errno(handle)),"
-        "     SCM_RAISE_CONDITION_MESSAGE,"
-        "     \"Couldn't make a mysql connection: %s\", mysql_error(handle)"
-        "     );"
-        "}"
+        "if (SCM_RESULT == NULL)"
+	"  raise_mysql_error(handle, \"mysql_real_connect\");"
         ))
 
 (define-cproc mysql-handle-closed? (connection::<mysql-handle>)
@@ -114,14 +108,8 @@
 (define-cproc mysql-stmt-init (connection::<mysql-handle>)
   (body <mysql-stmt>
 	"SCM_RESULT = mysql_stmt_init(connection);"
-	"if (SCM_RESULT != NULL) {"
-	"  Scm_RaiseCondition("
-	"    SCM_SYMBOL_VALUE(\"dbd.mysql\", \"<mysql-error>\"),"
-	"    \"error-code\", SCM_MAKE_INT(mysql_errno(connection)),"
-	"    SCM_RAISE_CONDITION_MESSAGE,"
-	"    \"Couldn't allocate MYSQL_STMT: %s\", mysql_error(connection)"
-	"    );"
-	"}"
+	"if (SCM_RESULT == NULL)"
+	"  raise_mysql_error(connection, \"mysql_stmt_init\");"
 	))
 
 (define-cproc mysql-stmt-prepare (stmt::<mysql-stmt> sql::<string>)
@@ -129,14 +117,8 @@
 	"const ScmStringBody *body = SCM_STRING_BODY(sql);"
 	"const char *q = SCM_STRING_BODY_START(body);"
 	"unsigned int size = SCM_STRING_BODY_SIZE(body);"
-	"if (mysql_stmt_prepare(stmt, q, size) != 0) {"
-	"  Scm_RaiseCondition("
-	"    SCM_SYMBOL_VALUE(\"dbd.mysql\", \"<mysql-error>\"),"
-	"    \"error-code\", SCM_MAKE_INT(mysql_stmt_errno(stmt)),"
-	"    SCM_RAISE_CONDITION_MESSAGE,"
-	"    \"mysql_stmt_prepare error: %s\", mysql_stmt_error(stmt)"
-	"    );"
-	"}"
+	"if (mysql_stmt_prepare(stmt, q, size) != 0)"
+	"  raise_mysql_stmt_error(stmt, \"mysql_stmt_prepare\");"
 	))
 
 (define-cproc mysql-stmt-param-count (stmt::<mysql-stmt>)
