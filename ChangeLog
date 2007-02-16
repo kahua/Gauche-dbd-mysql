@@ -1,5 +1,8 @@
 2007-02-16  Tatsuya BIZENN  <bizenn@arthub.net>
 
+	* Change: dbd/mysql.scm, dbd_mysql.c
+	  Add to <mysql-error> slot "sql-code" that holds SQL state.
+
 	* Change: dbd/mysql.scm
 	  So now dbi-execute-using-connection fits behavior
 	  of mysql-store-result.

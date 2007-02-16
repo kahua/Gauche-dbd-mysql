@@ -5,7 +5,7 @@
 ;;  Copyright (c) 2003-2007 Scheme Arts, L.L.C., All rights reserved.
 ;;  Copyright (c) 2003-2007 Time Intermedia Corporation, All rights reserved.
 ;;
-;; $Id: dbd.scm,v 1.4 2007/02/16 03:04:21 bizenn Exp $
+;; $Id: dbd.scm,v 1.5 2007/02/16 06:57:36 bizenn Exp $
 
 (use gauche.test)
 (use gauche.collection)
@@ -19,6 +19,7 @@
 (define-constant *db* "test")
 (define *mysql* #f)
 (define *result* #f)
+(define *stmt* #f)
 
 (test* "mysql-real-connect/fail" <mysql-error>
        (guard (e (else (class-of e)))
@@ -36,7 +37,8 @@
 
 (dotimes (i 10)
   (test* #`"mysql-real-query/insert record #,|i|" (undefined)
-	 (mysql-real-query *mysql* #`"INSERT INTO DBD_TEST (id, data) values (,|i|,, 'DATA,|i|')")))
+	 (mysql-real-query *mysql* #`"INSERT INTO DBD_TEST (id, data) values (,|i|,, 'DATA,|i|')"))
+  (test* "mysql-affected-rows/insert one record" 1 (mysql-affected-rows *mysql*)))
 (test* "mysql-store-result/insert" #f (mysql-store-result *mysql*))
 
 (test* "mysql-real-query/select all" (undefined)
@@ -45,8 +47,29 @@
        (let1 r (mysql-store-result *mysql*)
 	 (set! *result* r)
 	 (class-of r)))
+(test* "mysql-affected-rows/select 10 records" 10 (mysql-affected-rows *mysql*))
+(dotimes (i 10)
+  (test* #`"mysql-fetch-row record #,|i|" `#(,#`",|i|" ,#`"DATA,|i|") (mysql-fetch-row *result*) equal?))
+(test* "mysql-res-closed?/before close" #f (mysql-res-closed? *result*))
+(test* "mysql-free-result" (undefined) (mysql-free-result *result*))
+(test* "mysql-res-closed?/after close" #t (mysql-res-closed? *result*))
 
 (test* "mysql-real-query/drop table" (undefined) (mysql-real-query *mysql* "DROP TABLE DBD_TEST"))
+
+(test* "mysql-stmt-prepare/create table" <mysql-stmt>
+       (let1 s (mysql-stmt-prepare *mysql* "
+                  CREATE TABLE DBD_TEST (
+                    id integer,
+                    name varchar(20),
+                    data varchar(255),
+                    constraint primary key (id),
+                    constraint unique (name))")
+	 (set! *stmt* s)
+	 (class-of s)))
+
+(test* "mysql-stmt-closed?/before close" #f (mysql-stmt-closed? *stmt*))
+(test* "mysql-stmt-close/create table" (undefined) (mysql-stmt-close *stmt*))
+(test* "mysql-stmt-closed?/after close" #t (mysql-stmt-closed? *stmt*))
 
 (test* "mysql-handle-closed?/before close" #f (mysql-handle-closed? *mysql*))
 (test* "mysql-close" (undefined) (mysql-close *mysql*))

@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.7 2007/02/16 03:04:20 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.8 2007/02/16 06:57:28 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -30,27 +30,30 @@ ScmClass *MysqlHandleClass;
 ScmClass *MysqlResClass;
 ScmClass *MysqlStmtClass;
 
-static void mysql_cleanup(ScmObj obj)
+void mysql_cleanup(ScmObj obj)
 {
     if (!MysqlClosedP(obj)) {
         MYSQL *s = MYSQL_HANDLE_UNBOX(obj);
         mysql_close(s);
+	MysqlMarkClosed(obj);
     }
 }
 
-static void mysql_res_cleanup(ScmObj obj)
+void mysql_res_cleanup(ScmObj obj)
 {
     if (!MysqlClosedP(obj)) {
         MYSQL_RES *r = MYSQL_RES_UNBOX(obj);
         mysql_free_result(r);
+	MysqlMarkClosed(obj);
     }
 }
 
-static void mysql_stmt_cleanup(ScmObj obj)
+void mysql_stmt_cleanup(ScmObj obj)
 {
     if (!MysqlClosedP(obj)) {
         MYSQL_STMT *stmt = MYSQL_STMT_UNBOX(obj);
 	mysql_stmt_close(stmt);
+	MysqlMarkClosed(obj);
     }
 }
 
@@ -74,14 +77,24 @@ void MysqlMarkClosed(ScmObj obj)
                               sym_closed, SCM_TRUE);
 }
 
+ScmObj MysqlAffectedRows(MYSQL *handle)
+{
+    my_ulonglong n;
+
+    SCM_ASSERT(handle != NULL);
+    n = mysql_affected_rows(handle);
+    if (n == ((my_ulonglong)~0))
+	raise_mysql_error(handle, "mysql_affected_rows");
+    return Scm_MakeIntegerU64(n);
+}
+
 ScmObj MysqlFetchFieldNames(MYSQL_RES *result)
 {
     MYSQL_FIELD *fields;
     int nfields, i;
     ScmObj v;
 
-    if (result == NULL) return SCM_FALSE;
-    
+    SCM_ASSERT(result != NULL);
     nfields = mysql_num_fields(result);
     fields = mysql_fetch_fields(result);
     v = Scm_MakeVector(nfields, SCM_FALSE);
@@ -98,7 +111,7 @@ ScmObj MysqlFetchRow(MYSQL_RES *result)
     unsigned long *len;
     ScmObj v;
 
-    if (result == NULL) return SCM_FALSE;
+    SCM_ASSERT(result != NULL);
     row = mysql_fetch_row(result);
     if (row == NULL) return SCM_FALSE;
 
@@ -111,6 +124,23 @@ ScmObj MysqlFetchRow(MYSQL_RES *result)
             Scm_MakeString(row[i], len[i], -1, SCM_MAKSTR_COPYING);
     }
     return v;
+}
+
+
+void raise_mysql_error(MYSQL *handle, const char *msg)
+{
+    Scm_RaiseCondition(SCM_SYMBOL_VALUE("dbd.mysql", "<mysql-error>"),
+		       "error-code", SCM_MAKE_INT(mysql_errno(handle)),
+		       "sql-code", SCM_MAKE_STR_IMMUTABLE(mysql_sqlstate(handle)),
+		       SCM_RAISE_CONDITION_MESSAGE, "%s: %s", msg, mysql_error(handle));
+}
+
+void raise_mysql_stmt_error(MYSQL_STMT *stmt, const char *msg)
+{
+    Scm_RaiseCondition(SCM_SYMBOL_VALUE("dbd.mysql", "<mysql-stmt-error>"),
+		       "error-code", SCM_MAKE_INT(mysql_stmt_errno(stmt)),
+		       "sql-code", SCM_MAKE_STR_IMMUTABLE(mysql_stmt_sqlstate(stmt)),
+		       SCM_RAISE_CONDITION_MESSAGE, "%s: %s", msg, mysql_stmt_error(stmt));
 }
 
 /*
@@ -144,18 +174,4 @@ ScmObj Scm_Init_dbd_mysql(void)
 
     /* Register stub-generated procedures */
     Scm_Init_dbd_mysqllib(mod);
-}
-
-void raise_mysql_error(MYSQL *handle, const char *msg)
-{
-    Scm_RaiseCondition(SCM_SYMBOL_VALUE("dbd.mysql", "<mysql-error>"),
-		       "error-code", SCM_MAKE_INT(mysql_errno(handle)),
-		       SCM_RAISE_CONDITION_MESSAGE, "%s: %s", msg, mysql_error(handle));
-}
-
-void raise_mysql_stmt_error(MYSQL_STMT *stmt, const char *msg)
-{
-    Scm_RaiseCondition(SCM_SYMBOL_VALUE("dbd.mysql", "<mysql-stmt-error>"),
-		       "error-code", SCM_MAKE_INT(mysql_stmt_errno(stmt)),
-		       SCM_RAISE_CONDITION_MESSAGE, "%s: %s", msg, mysql_stmt_error(stmt));
 }

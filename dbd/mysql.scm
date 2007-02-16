@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.17 2007/02/16 03:04:20 bizenn Exp $
+;; $Id: mysql.scm,v 1.18 2007/02/16 06:57:35 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -32,13 +32,14 @@
           ;; Low-level API
 	  <mysql-handle> <mysql-res>
 	  mysql-real-connect mysql-real-query
+	  mysql-affected-rows
 	  mysql-store-result mysql-error mysql-errno
 	  mysql-fetch-row mysql-free-result mysql-close
           mysql-handle-closed? mysql-res-closed?
           mysql-real-escape-string
 
-	  <mysql-stmt>
-	  mysql-stmt-init mysql-stmt-prepare
+	  <mysql-stmt> mysql-stmt-prepare mysql-stmt-close
+	  mysql-stmt-closed?
 	  mysql-stmt-param-count mysql-stmt-field-count
 
 	  <mysql-error> <mysql-stmt-error>
@@ -49,7 +50,8 @@
 (dynamic-load "dbd_mysql")
 
 (define-condition-type <mysql-error> <dbi-error> #f
-  (error-code))                         ;mysql error code
+  (error-code)
+  (sql-code))                         ;mysql error code
 
 (define-condition-type <mysql-stmt-error> <mysql-error> #f)
 
