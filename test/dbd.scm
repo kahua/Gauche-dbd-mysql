@@ -5,7 +5,7 @@
 ;;  Copyright (c) 2003-2007 Scheme Arts, L.L.C., All rights reserved.
 ;;  Copyright (c) 2003-2007 Time Intermedia Corporation, All rights reserved.
 ;;
-;; $Id: dbd.scm,v 1.5 2007/02/16 06:57:36 bizenn Exp $
+;; $Id: dbd.scm,v 1.6 2007/02/16 07:26:33 bizenn Exp $
 
 (use gauche.test)
 (use gauche.collection)
@@ -66,10 +66,16 @@
                     constraint unique (name))")
 	 (set! *stmt* s)
 	 (class-of s)))
-
+(test* "mysql-stmt-param-count/create table" 0 (mysql-stmt-param-count *stmt*))
+(test* "mysql-stmt-field-count/create table" 0 (mysql-stmt-field-count *stmt*))
+(test* "mysql-stmt-execute/create table" (undefined) (mysql-stmt-execute *stmt*))
 (test* "mysql-stmt-closed?/before close" #f (mysql-stmt-closed? *stmt*))
 (test* "mysql-stmt-close/create table" (undefined) (mysql-stmt-close *stmt*))
 (test* "mysql-stmt-closed?/after close" #t (mysql-stmt-closed? *stmt*))
+
+(let1 stmt (mysql-stmt-prepare *mysql* "DROP TABLE DBD_TEST")
+  (mysql-stmt-execute stmt)
+  (mysql-stmt-close stmt))
 
 (test* "mysql-handle-closed?/before close" #f (mysql-handle-closed? *mysql*))
 (test* "mysql-close" (undefined) (mysql-close *mysql*))
