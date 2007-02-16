@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.h,v 1.10 2007/02/16 06:57:28 bizenn Exp $
+ * $Id: dbd_mysql.h,v 1.11 2007/02/16 09:14:26 bizenn Exp $
  */
 
 /* Prologue */
@@ -69,6 +69,8 @@ extern void MysqlMarkClosed(ScmObj obj);
 extern ScmObj MysqlAffectedRows(MYSQL *handle);
 extern ScmObj MysqlFetchFieldNames(MYSQL_RES *result);
 extern ScmObj MysqlFetchRow(MYSQL_RES *result);
+
+extern ScmObj MysqlStmtAffectedRows(MYSQL_STMT *stmt);
 
 extern void raise_mysql_error(MYSQL *handle, const char *msg);
 extern void raise_mysql_stmt_error(MYSQL_STMT *stmt, const char *msg);

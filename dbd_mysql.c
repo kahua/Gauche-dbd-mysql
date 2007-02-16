@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.8 2007/02/16 06:57:28 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.9 2007/02/16 09:14:26 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -83,7 +83,7 @@ ScmObj MysqlAffectedRows(MYSQL *handle)
 
     SCM_ASSERT(handle != NULL);
     n = mysql_affected_rows(handle);
-    if (n == ((my_ulonglong)~0))
+    if (n == (my_ulonglong)~0)
 	raise_mysql_error(handle, "mysql_affected_rows");
     return Scm_MakeIntegerU64(n);
 }
@@ -126,6 +126,16 @@ ScmObj MysqlFetchRow(MYSQL_RES *result)
     return v;
 }
 
+ScmObj MysqlStmtAffectedRows(MYSQL_STMT *stmt)
+{
+    my_ulonglong n;
+
+    SCM_ASSERT(stmt != NULL);
+    n = mysql_stmt_affected_rows(stmt);
+    if (n == (my_ulonglong)~0)
+	raise_mysql_stmt_error(stmt, "mysql_stmt_affected_rows");
+    return Scm_MakeIntegerU64(n);
+}
 
 void raise_mysql_error(MYSQL *handle, const char *msg)
 {
