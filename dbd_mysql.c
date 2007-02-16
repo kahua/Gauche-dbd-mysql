@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.6 2007/02/15 09:26:46 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.7 2007/02/16 03:04:20 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -48,8 +48,10 @@ static void mysql_res_cleanup(ScmObj obj)
 
 static void mysql_stmt_cleanup(ScmObj obj)
 {
-    MYSQL_STMT *stmt = MYSQL_STMT_UNBOX(obj);
-    mysql_stmt_close(stmt);
+    if (!MysqlClosedP(obj)) {
+        MYSQL_STMT *stmt = MYSQL_STMT_UNBOX(obj);
+	mysql_stmt_close(stmt);
+    }
 }
 
 /*

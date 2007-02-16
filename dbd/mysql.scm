@@ -1,7 +1,7 @@
 ;; dbd.mysql - mysql driver
 ;;
-;;  Copyright (c) 2003-2005 Scheme Arts, L.L.C., All rights reserved.
-;;  Copyright (c) 2003-2005 Time Intermedia Corporation, All rights reserved.
+;;  Copyright (c) 2003-2007 Scheme Arts, L.L.C., All rights reserved.
+;;  Copyright (c) 2003-2007 Time Intermedia Corporation, All rights reserved.
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.16 2007/02/15 10:56:47 bizenn Exp $
+;; $Id: mysql.scm,v 1.17 2007/02/16 03:04:20 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -90,7 +90,7 @@
   (let* ((h (slot-ref c '%handle))
          (prepared (slot-ref q 'prepared)))
     (mysql-real-query h (apply prepared params))
-    (let1 rset (mysql-store-result h)
+    (and-let* ((rset (mysql-store-result h)))
       (make <mysql-result-set>
         :open #t :handle h :result-set rset
         :field-names (mysql-fetch-field-names rset)))))

@@ -18,7 +18,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: dbd_mysqllib.stub,v 1.10 2007/02/15 10:56:47 bizenn Exp $
+;; $Id: dbd_mysqllib.stub,v 1.11 2007/02/16 03:04:20 bizenn Exp $
 
 "
 #include \"dbd_mysql.h\"
@@ -76,7 +76,10 @@
         "SCM_RESULT = Scm_MakeString(buf, finalsize, -1, SCM_MAKSTR_COPYING);")) ; buf is now NUL terminated.
 
 (define-cproc mysql-store-result (connection::<mysql-handle>)
-  (call <mysql-res> "mysql_store_result"))
+  (body <mysql-res>?
+	"SCM_RESULT = mysql_store_result(connection);"
+	"if ((SCM_RESULT == NULL) && (mysql_errno(connection) != 0))"
+	"  raise_mysql_error(connection, \"mysql_store_result\");"))
 
 (define-cproc mysql-error (connection::<mysql-handle>)
   (call <const-cstring> "mysql_error"))

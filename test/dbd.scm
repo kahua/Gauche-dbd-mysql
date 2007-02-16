@@ -5,7 +5,7 @@
 ;;  Copyright (c) 2003-2007 Scheme Arts, L.L.C., All rights reserved.
 ;;  Copyright (c) 2003-2007 Time Intermedia Corporation, All rights reserved.
 ;;
-;; $Id: dbd.scm,v 1.3 2007/02/15 22:34:39 bizenn Exp $
+;; $Id: dbd.scm,v 1.4 2007/02/16 03:04:21 bizenn Exp $
 
 (use gauche.test)
 (use gauche.collection)
@@ -18,6 +18,7 @@
 
 (define-constant *db* "test")
 (define *mysql* #f)
+(define *result* #f)
 
 (test* "mysql-real-connect/fail" <mysql-error>
        (guard (e (else (class-of e)))
@@ -31,7 +32,19 @@
        (mysql-real-escape-string *mysql* "\0a\rb\nc\\d'e\"f\x1a"))
 
 (test* "mysql-real-query/create table" (undefined)
-       (mysql-real-query *mysql* "CREATE TABLE DBD_TEST (id integer, data varchar(255))"))
+       (mysql-real-query *mysql* "CREATE TABLE DBD_TEST (id integer, data varchar(255), constraint primary key(id))"))
+
+(dotimes (i 10)
+  (test* #`"mysql-real-query/insert record #,|i|" (undefined)
+	 (mysql-real-query *mysql* #`"INSERT INTO DBD_TEST (id, data) values (,|i|,, 'DATA,|i|')")))
+(test* "mysql-store-result/insert" #f (mysql-store-result *mysql*))
+
+(test* "mysql-real-query/select all" (undefined)
+       (mysql-real-query *mysql* "SELECT id, data FROM DBD_TEST order by id"))
+(test* "mysql-store-result/select" <mysql-res>
+       (let1 r (mysql-store-result *mysql*)
+	 (set! *result* r)
+	 (class-of r)))
 
 (test* "mysql-real-query/drop table" (undefined) (mysql-real-query *mysql* "DROP TABLE DBD_TEST"))
 
