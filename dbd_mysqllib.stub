@@ -18,7 +18,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: dbd_mysqllib.stub,v 1.14 2007/02/16 09:14:26 bizenn Exp $
+;; $Id: dbd_mysqllib.stub,v 1.15 2007/02/18 13:52:29 bizenn Exp $
 
 "
 #include \"dbd_mysql.h\"
@@ -28,8 +28,8 @@
   "MYSQL_HANDLE_P" "MYSQL_HANDLE_UNBOX" "MYSQL_HANDLE_BOX")
 (define-type <mysql-res> "MYSQL_RES*" "MySQL result handle"
   "MYSQL_RES_P" "MYSQL_RES_UNBOX" "MYSQL_RES_BOX")
-(define-type <mysql-stmt> "MYSQL_STMT*" "MySQL statement handle"
-  "MYSQL_STMT_P" "MYSQL_STMT_UNBOX" "MYSQL_STMT_BOX")
+(define-type <mysql-stmt> "MYSQL_STMTX*" "MySQL enhanced statement handle"
+  "MYSQL_STMTX_P" "MYSQL_STMTX_UNBOX" "MYSQL_STMTX_BOX")
 
 ;; key to the foreign pointer attribute to keep track of closed state
 ;; of handles.
@@ -105,37 +105,32 @@
 (define-cproc mysql-free-result (result::<mysql-res>)
   (body <void> "mysql_res_cleanup(result_scm);"))
 
+;;
+;; Prepared Statement Handling
+;;
+
 (define-cproc mysql-stmt-prepare (connection::<mysql-handle> sql::<string>)
-  (body <mysql-stmt>
-	"const ScmStringBody *body = SCM_STRING_BODY(sql);"
-	"const char *q = SCM_STRING_BODY_START(body);"
-	"unsigned int size = SCM_STRING_BODY_SIZE(body);"
-	"SCM_RESULT = mysql_stmt_init(connection);"
-	"if (SCM_RESULT == NULL)"
-	"  raise_mysql_error(connection, \"mysql_stmt_init\");"
-	"if (mysql_stmt_prepare(SCM_RESULT, q, size) != 0)"
-	"  raise_mysql_stmt_error(SCM_RESULT, \"mysql_stmt_prepare\");"
-	))
+  (call <mysql-stmt> "MysqlStmtxPrepare"))
 
-(define-cproc mysql-stmt-close (stmt::<mysql-stmt>)
-  (body <void> "mysql_stmt_cleanup(stmt_scm);"))
+(define-cproc mysql-stmt-close (stmtx::<mysql-stmt>)
+  (body <void> "mysql_stmtx_cleanup(stmtx_scm);"))
 
-(define-cproc mysql-stmt-closed? (stmt::<mysql-stmt>)
-  (expr <boolean> "MysqlClosedP(stmt_scm)"))
+(define-cproc mysql-stmt-closed? (stmtx::<mysql-stmt>)
+  (expr <boolean> "MysqlClosedP(stmtx_scm)"))
 
-(define-cproc mysql-stmt-param-count (stmt::<mysql-stmt>)
-  (call <ulong> "mysql_stmt_param_count"))
+(define-cproc mysql-stmt-param-count (stmtx::<mysql-stmt>)
+  (expr <ulong> "mysql_stmt_param_count(stmtx->stmt)"))
 
-(define-cproc mysql-stmt-field-count (stmt::<mysql-stmt>)
-  (call <ulong> "mysql_stmt_field_count"))
+(define-cproc mysql-stmt-field-count (stmtx::<mysql-stmt>)
+  (expr <ulong> "mysql_stmt_field_count(stmtx->stmt)"))
 
-(define-cproc mysql-stmt-execute (stmt::<mysql-stmt>)
+(define-cproc mysql-stmt-execute (stmtx::<mysql-stmt>)
   (body <void>
-	"if (mysql_stmt_execute(stmt) != 0)"
-	"  raise_mysql_stmt_error(stmt, \"mysql_stmt_execute\");"))
+	"if (mysql_stmt_execute(stmtx->stmt) != 0)"
+	"  raise_mysql_stmt_error(stmtx->stmt, \"mysql_stmt_execute\");"))
 
-(define-cproc mysql-stmt-affected-rows (stmt::<mysql-stmt>)
-  (call "MysqlStmtAffectedRows"))
+(define-cproc mysql-stmt-affected-rows (stmtx::<mysql-stmt>)
+  (expr "MysqlStmtAffectedRows(stmtx->stmt)"))
 
 ;; from errmsg.h mysql-3.23
 (define-enum CR_MIN_ERROR)

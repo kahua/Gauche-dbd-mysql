@@ -16,10 +16,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.9 2007/02/16 09:14:26 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.10 2007/02/18 13:52:29 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
+#include <stdlib.h>
 
 /*
  * Class stuff
@@ -28,7 +29,7 @@
 /* Class pointers initialized by Scm_Init_gauche_dbd_mysql */
 ScmClass *MysqlHandleClass;
 ScmClass *MysqlResClass;
-ScmClass *MysqlStmtClass;
+ScmClass *MysqlStmtxClass;
 
 void mysql_cleanup(ScmObj obj)
 {
@@ -48,11 +49,24 @@ void mysql_res_cleanup(ScmObj obj)
     }
 }
 
-void mysql_stmt_cleanup(ScmObj obj)
+void mysql_stmtx_cleanup(ScmObj obj)
 {
     if (!MysqlClosedP(obj)) {
-        MYSQL_STMT *stmt = MYSQL_STMT_UNBOX(obj);
-	mysql_stmt_close(stmt);
+	MYSQL_STMT *stmt = MYSQL_STMTX_STMT(obj);
+	MYSQL_BIND *params = MYSQL_STMTX_PARAMS(obj);
+	MYSQL_BIND *fields = MYSQL_STMTX_FIELDS(obj);
+	if (stmt != NULL) {
+	    MYSQL_STMTX_STMT(obj) = NULL;
+	    mysql_stmt_close(stmt);
+	}
+	if (params != NULL) {
+	    MYSQL_STMTX_PARAMS(obj) = NULL;
+	    free(params);
+	}
+	if (fields != NULL) {
+	    MYSQL_STMTX_FIELDS(obj) = NULL;
+	    free(fields);
+	}
 	MysqlMarkClosed(obj);
     }
 }
@@ -126,6 +140,32 @@ ScmObj MysqlFetchRow(MYSQL_RES *result)
     return v;
 }
 
+static MYSQL_STMTX *make_mysql_stmtx(void)
+{
+    MYSQL_STMTX *stmtx;
+
+    stmtx = SCM_NEW_ATOMIC2(MYSQL_STMTX*, sizeof(MYSQL_STMTX));
+    stmtx->stmt = NULL;
+    stmtx->params = NULL;
+    stmtx->fields = NULL;
+    return stmtx;
+}
+
+MYSQL_STMTX *MysqlStmtxPrepare(MYSQL *connection, ScmString *sql)
+{
+    MYSQL_STMTX *stmtx = make_mysql_stmtx();
+    const ScmStringBody *sql_body = SCM_STRING_BODY(sql);
+    const char *sql_p = SCM_STRING_BODY_START(sql_body);
+    unsigned int sql_size = SCM_STRING_BODY_SIZE(sql_body);
+    MYSQL_STMT *stmt = mysql_stmt_init(connection);
+    if (stmt == NULL)
+	raise_mysql_error(connection, "mysql_stmt_init");
+    if (mysql_stmt_prepare(stmt, sql_p, sql_size) != 0)
+	raise_mysql_stmt_error(stmt, "mysql_stmt_prepare");
+    stmtx->stmt = stmt;
+    return stmtx;
+}
+
 ScmObj MysqlStmtAffectedRows(MYSQL_STMT *stmt)
 {
     my_ulonglong n;
@@ -175,9 +215,9 @@ ScmObj Scm_Init_dbd_mysql(void)
     MysqlResClass =
         Scm_MakeForeignPointerClass(mod, "<mysql-res>",
                                     NULL, mysql_res_cleanup, 0);
-    MysqlStmtClass =
+    MysqlStmtxClass =
 	Scm_MakeForeignPointerClass(mod, "<mysql-stmt>",
-				    NULL, mysql_stmt_cleanup, 0);
+				    NULL, mysql_stmtx_cleanup, 0);
 
     /* Get handle of the symbol 'closed? */
     sym_closed = SCM_INTERN("closed?");
