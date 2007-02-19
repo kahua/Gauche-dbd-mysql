@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.h,v 1.12 2007/02/18 13:52:29 bizenn Exp $
+ * $Id: dbd_mysql.h,v 1.13 2007/02/19 13:01:17 bizenn Exp $
  */
 
 /* Prologue */
@@ -57,6 +57,7 @@ typedef struct {
     MYSQL_STMT *stmt;
     MYSQL_BIND *params;
     MYSQL_BIND *fields;
+    MYSQL_RES  *metares;
 } MYSQL_STMTX;
 extern ScmClass *MysqlStmtxClass;
 typedef ScmForeignPointer ScmMysqlStmtx;
@@ -66,6 +67,7 @@ typedef ScmForeignPointer ScmMysqlStmtx;
 #define MYSQL_STMTX_STMT(obj)    ((MYSQL_STMTX_UNBOX(obj))->stmt)
 #define MYSQL_STMTX_PARAMS(obj)  ((MYSQL_STMTX_UNBOX(obj))->params)
 #define MYSQL_STMTX_FIELDS(obj)  ((MYSQL_STMTX_UNBOX(obj))->fields)
+#define MYSQL_STMTX_METARES(obj) ((MYSQL_STMTX_UNBOX(obj))->metares)
 
 /*
  * API
@@ -79,6 +81,7 @@ extern ScmObj MysqlFetchFieldNames(MYSQL_RES *result);
 extern ScmObj MysqlFetchRow(MYSQL_RES *result);
 
 extern MYSQL_STMTX *MysqlStmtxPrepare(MYSQL *connection, ScmString *sql);
+extern void MysqlStmtxExecute(MYSQL_STMTX *stmtx, ScmObj args);
 
 extern ScmObj MysqlStmtAffectedRows(MYSQL_STMT *stmt);
 
