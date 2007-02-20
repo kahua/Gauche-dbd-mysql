@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.13 2007/02/20 09:07:58 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.14 2007/02/20 09:36:27 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -61,6 +61,7 @@ void mysql_stmtx_cleanup(ScmObj obj)
 
 	if (stmt != NULL) {
 	    MYSQL_STMTX_STMT(obj) = NULL;
+	    mysql_stmt_free_result(stmt);
 	    mysql_stmt_close(stmt);
 	}
 	if (params != NULL) {
@@ -314,6 +315,7 @@ void MysqlStmtxExecute(MYSQL_STMTX *stmtx, ScmObj args)
 	if ((metares = mysql_stmt_result_metadata(stmt)) == NULL)
 	    if (mysql_stmt_errno(stmt) != 0)
 		raise_mysql_stmt_error(stmt, "mysql_stmt_result_metadata");
+	mysql_free_result(stmtx->metares);
 	stmtx->metares = metares;
     }
     if (field_count > 0) {

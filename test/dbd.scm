@@ -5,7 +5,7 @@
 ;;  Copyright (c) 2003-2007 Scheme Arts, L.L.C., All rights reserved.
 ;;  Copyright (c) 2003-2007 Time Intermedia Corporation, All rights reserved.
 ;;
-;; $Id: dbd.scm,v 1.10 2007/02/20 09:08:04 bizenn Exp $
+;; $Id: dbd.scm,v 1.11 2007/02/20 09:36:27 bizenn Exp $
 
 (use gauche.test)
 (use gauche.collection)
@@ -78,15 +78,20 @@
   (test* "mysql-stmt-field-count/insert" 0 (mysql-stmt-field-count stmt))
   (dotimes (i 10)
     (test* #`"mysql-stmt-execute/insert record #,|i| with parameters" (undefined)
-	   (mysql-stmt-execute stmt i #`"DATA,|i|" "This is test data.")))
+	   (mysql-stmt-execute stmt i #`"DATA,|i|" "This is test data."))
+    (test* "mysql-stmt-affected-rows" 1 (mysql-stmt-affected-rows stmt) =))
   (mysql-stmt-close stmt))
 
-(let1 stmt (mysql-stmt-prepare *mysql* "SELECT id, name, data FROM DBD_TEST where ID = ?")
-  (test* "mysql-stmt-param-count/select" 1 (mysql-stmt-param-count stmt))
+(let1 stmt (mysql-stmt-prepare *mysql* "SELECT id, name, data FROM DBD_TEST where ID in (?,?,?,?)")
+  (test* "mysql-stmt-param-count/select" 4 (mysql-stmt-param-count stmt))
   (test* "mysql-stmt-field-count/select" 3 (mysql-stmt-field-count stmt))
-  (test* "mysql-stmt-execute/select with parameter" (undefined) (mysql-stmt-execute stmt 5))
-  (test* "mysql-stmt-fetch" '#(5 "DATA5" "This is test data.") (mysql-stmt-fetch stmt) equal?)
+  (test* "mysql-stmt-execute/select with parameter" (undefined) (mysql-stmt-execute stmt 2 4 5 9))
+  (test* "mysql-stmt-fetch/record #2" '#(2 "DATA2" "This is test data.") (mysql-stmt-fetch stmt) equal?)
+  (test* "mysql-stmt-fetch/record #4" '#(4 "DATA4" "This is test data.") (mysql-stmt-fetch stmt) equal?)
+  (test* "mysql-stmt-fetch/record #5" '#(5 "DATA5" "This is test data.") (mysql-stmt-fetch stmt) equal?)
+  (test* "mysql-stmt-fetch/record #9" '#(9 "DATA9" "This is test data.") (mysql-stmt-fetch stmt) equal?)
   (test* "mysql-stmt-fetch/eor" #f (mysql-stmt-fetch stmt))
+  (test* "mysql-stmt-affected-rows/after select 4 records" 4 (mysql-stmt-affected-rows stmt) =)
   (mysql-stmt-close stmt))
 
 (let1 stmt (mysql-stmt-prepare *mysql* "DROP TABLE DBD_TEST")
