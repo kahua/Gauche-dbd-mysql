@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.h,v 1.13 2007/02/19 13:01:17 bizenn Exp $
+ * $Id: dbd_mysql.h,v 1.14 2007/02/20 07:16:00 bizenn Exp $
  */
 
 /* Prologue */
@@ -56,7 +56,9 @@ typedef ScmForeignPointer ScmMysqlRes;
 typedef struct {
     MYSQL_STMT *stmt;
     MYSQL_BIND *params;
+    unsigned int param_count;
     MYSQL_BIND *fields;
+    unsigned int field_count;
     MYSQL_RES  *metares;
 } MYSQL_STMTX;
 extern ScmClass *MysqlStmtxClass;
@@ -66,7 +68,9 @@ typedef ScmForeignPointer ScmMysqlStmtx;
 #define MYSQL_STMTX_BOX(stmtx)     Scm_MakeForeignPointer(MysqlStmtxClass, stmtx)
 #define MYSQL_STMTX_STMT(obj)    ((MYSQL_STMTX_UNBOX(obj))->stmt)
 #define MYSQL_STMTX_PARAMS(obj)  ((MYSQL_STMTX_UNBOX(obj))->params)
+#define MYSQL_STMTX_PARAM_COUNT(obj) ((MYSQL_STMTX_UNBOX(obj))->param_count)
 #define MYSQL_STMTX_FIELDS(obj)  ((MYSQL_STMTX_UNBOX(obj))->fields)
+#define MYSQL_STMTX_FIELD_COUNT(obj) ((MYSQL_STMTX_UNBOX(obj))->field_count)
 #define MYSQL_STMTX_METARES(obj) ((MYSQL_STMTX_UNBOX(obj))->metares)
 
 /*

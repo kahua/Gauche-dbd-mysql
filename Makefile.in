@@ -1,5 +1,5 @@
 #
-# $Id: Makefile.in,v 1.6 2007/02/15 09:51:39 bizenn Exp $
+# $Id: Makefile.in,v 1.7 2007/02/20 07:16:00 bizenn Exp $
 #
 
 # General info
@@ -50,7 +50,7 @@ all : $(TARGET)
 
 dbd_mysql.$(SOEXT): $(dbd_mysql_SRCS)
 	$(GAUCHE_PACKAGE) compile --verbose \
-	   --cflags="$(MYSQL_CFLAGS)" \
+	   --cflags="-Wall $(MYSQL_CFLAGS)" \
 	   --libs="$(MYSQL_LIBS)"     \
 	   dbd_mysql $(dbd_mysql_SRCS) 
 

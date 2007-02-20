@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.11 2007/02/19 13:01:17 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.12 2007/02/20 07:16:00 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -54,7 +54,9 @@ void mysql_stmtx_cleanup(ScmObj obj)
     if (!MysqlClosedP(obj)) {
 	MYSQL_STMT *stmt = MYSQL_STMTX_STMT(obj);
 	MYSQL_BIND *params = MYSQL_STMTX_PARAMS(obj);
+	unsigned int param_count = MYSQL_STMTX_PARAM_COUNT(obj);
 	MYSQL_BIND *fields = MYSQL_STMTX_FIELDS(obj);
+	unsigned int field_count = MYSQL_STMTX_FIELD_COUNT(obj);
 	MYSQL_RES  *metares = MYSQL_STMTX_METARES(obj);
 
 	if (stmt != NULL) {
@@ -62,11 +64,24 @@ void mysql_stmtx_cleanup(ScmObj obj)
 	    mysql_stmt_close(stmt);
 	}
 	if (params != NULL) {
+	    int i;
 	    MYSQL_STMTX_PARAMS(obj) = NULL;
+	    for (i = 0; i <param_count; i++) {
+		if (IS_NUM(params[i].buffer_type)) {
+		    if (params[i].buffer != NULL) free(params[i].buffer);
+		    if (params[i].is_null != NULL) free(params[i].is_null);
+		}
+	    }
 	    free(params);
 	}
 	if (fields != NULL) {
+	    int i;
 	    MYSQL_STMTX_FIELDS(obj) = NULL;
+	    for (i = 0; i < field_count; i++) {
+		if (fields[i].buffer != NULL) free(fields[i].buffer);
+		if (fields[i].length != NULL) free(fields[i].length);
+		if (fields[i].is_null != NULL) free(fields[i].is_null);
+	    }
 	    free(fields);
 	}
 	if (metares != NULL) {
@@ -166,7 +181,7 @@ MYSQL_STMTX *MysqlStmtxPrepare(MYSQL *connection, ScmString *sql)
     unsigned int sql_size = SCM_STRING_BODY_SIZE(sql_body);
     MYSQL_STMT *stmt = mysql_stmt_init(connection);
     MYSQL_BIND *params = NULL;
-    my_ulonglong param_count = 0UL;
+    unsigned int param_count = 0;
     MYSQL_RES  *metares = NULL;
 
     if (stmt == NULL)
@@ -175,8 +190,8 @@ MYSQL_STMTX *MysqlStmtxPrepare(MYSQL *connection, ScmString *sql)
 	raise_mysql_stmt_error(stmt, "mysql_stmt_prepare");
     stmtx->stmt = stmt;
 
-    if ((param_count = mysql_stmt_param_count(stmt)) > 0UL)
-	if ((params = (MYSQL_BIND*)malloc(param_count*sizeof(MYSQL_BIND))) == NULL)
+    if ((param_count = mysql_stmt_param_count(stmt)) > 0)
+	if ((params = (MYSQL_BIND*)calloc(param_count, sizeof(MYSQL_BIND))) == NULL)
 	    Scm_SysError("Cannot allocate MYSQL_BIND buffers.");
     stmtx->params = params;
 
@@ -188,12 +203,74 @@ MYSQL_STMTX *MysqlStmtxPrepare(MYSQL *connection, ScmString *sql)
     return stmtx;
 }
 
+static void mysql_init_param(MYSQL_BIND *param, ScmObj obj)
+{
+    if (SCM_STRINGP(obj)) {
+	const ScmStringBody *body = SCM_STRING_BODY(obj);
+	param->buffer_type = SCM_STRING_INCOMPLETE_P(obj) ? MYSQL_TYPE_BLOB : MYSQL_TYPE_STRING;
+	param->buffer = (void*)SCM_STRING_BODY_START(body);
+	param->buffer_length = SCM_STRING_BODY_SIZE(body);
+	param->length = &(param->buffer_length);
+    }
+    else if (SCM_INTEGERP(obj)) {
+	long long int *p = (long long int*)malloc(sizeof(long long int));
+	if (p == NULL)
+	    Scm_SysError("Cannot allocate Integer buffer in mysql-stmt-execute");
+	*p = (long long int)Scm_GetInteger64(obj);
+	param->buffer = p;
+	param->buffer_type = MYSQL_TYPE_LONGLONG;
+    }
+    else if (SCM_FLONUMP(obj)) {
+	double *p = (double*)malloc(sizeof(double));
+	if (p == NULL)
+	    Scm_SysError("Cannt allocate Double buffer in mysql-stmt-execute");
+	*p = (double)Scm_GetDouble(obj);
+	param->buffer = p;
+	param->buffer_type = MYSQL_TYPE_DOUBLE;
+    }
+    else
+	Scm_Error("Parameter is not supported type: %S", obj);
+}
+
+static void mysql_init_field(MYSQL_BIND *bind, MYSQL_FIELD *field)
+{
+    SCM_ASSERT(bind != NULL);
+    SCM_ASSERT(field != NULL);
+
+    switch (field->type) {
+	case MYSQL_TYPE_TINY: case MYSQL_TYPE_SHORT: case MYSQL_TYPE_LONG:
+	case MYSQL_TYPE_INT24: case MYSQL_TYPE_LONGLONG:
+	    bind->buffer_type = MYSQL_TYPE_LONGLONG;
+	    bind->buffer_length = sizeof(long long int);
+	    if ((bind->buffer = malloc(bind->buffer_length)) == NULL)
+		Scm_SysError("Cannot allocate bind buffer.");
+	    bind->length = 0;
+	    if ((bind->is_null = malloc(sizeof(my_bool))) == NULL)
+		Scm_SysError("Cannot allocate is_null buffer.");
+	    break;
+	case MYSQL_TYPE_STRING: case MYSQL_TYPE_VAR_STRING:
+	    bind->buffer_type = field->type;
+	    bind->buffer_length = field->length;
+	    if ((bind->buffer = malloc(bind->buffer_length)) == NULL)
+		Scm_SysError("Cannot allocate bind buffer.");
+	    if ((bind->length = malloc(sizeof(unsigned long))) == NULL)
+		Scm_SysError("Cannot allocate length buffer.");
+	    if ((bind->is_null = malloc(sizeof(my_bool))) == NULL)
+		Scm_SysError("Cannot allocate is_null buffer.");
+	    break;
+	default:
+	    Scm_Error("Unsupported field type: %d", field->type);
+    }
+}
+
 void MysqlStmtxExecute(MYSQL_STMTX *stmtx, ScmObj args)
 {
     MYSQL_STMT *stmt;
     MYSQL_BIND *params, *param;
-    my_ulonglong param_count, i;
+    MYSQL_BIND *fields, *field;
+    unsigned int param_count, field_count, i;
     ScmObj ptr, obj;
+    my_bool fix_metadata = 0;
 
     SCM_ASSERT(stmtx != NULL);
     SCM_ASSERT(args != NULL);
@@ -201,7 +278,7 @@ void MysqlStmtxExecute(MYSQL_STMTX *stmtx, ScmObj args)
 
     stmt = stmtx->stmt;
     params = stmtx->params;
-    param_count = mysql_stmt_param_count(stmt);
+    stmtx->param_count = param_count = mysql_stmt_param_count(stmt);
     memset(params, 0, sizeof(MYSQL_BIND)*param_count);
     for (ptr = args, i = 0, param = params;
 	 !SCM_NULLP(ptr);
@@ -210,38 +287,45 @@ void MysqlStmtxExecute(MYSQL_STMTX *stmtx, ScmObj args)
 	if (i >= param_count)
 	    Scm_Error("mysql-stmt-execute require %d parameters, but got %d parameters",
 		      param_count, Scm_Length(args));
-	if (SCM_STRINGP(obj)) {
-	    const ScmStringBody *body = SCM_STRING_BODY(obj);
-	    param->buffer_type = SCM_STRING_INCOMPLETE_P(obj) ? MYSQL_TYPE_BLOB : MYSQL_TYPE_STRING;
-	    param->buffer = (void*)SCM_STRING_BODY_START(body);
-	    param->buffer_length = SCM_STRING_BODY_SIZE(body);
-	    param->length = &(param->buffer_length);
-	}
-	else if (SCM_INTEGERP(obj)) {
-	    long long int *p = (long long int*)alloca(sizeof(long long int));
-	    if (p == NULL)
-		Scm_SysError("Cannot allocate Integer buffer in mysql-stmt-execute");
-	    *p = (long long int)Scm_GetInteger64(obj);
-	    param->buffer = p;
-	    param->buffer_type = MYSQL_TYPE_LONGLONG;
-	}
-	else if (SCM_FLONUMP(obj)) {
-	    double *p = (double*)alloca(sizeof(double));
-	    if (p == NULL)
-		Scm_SysError("Cannt allocate Double buffer in mysql-stmt-execute");
-	    *p = (double)Scm_GetDouble(obj);
-	    param->buffer = p;
-	    param->buffer_type = MYSQL_TYPE_DOUBLE;
-	}
-	else
-	    Scm_Error("Parameter is not supported type: %S", obj);
+	mysql_init_param(param, obj);
     }
     if (i != param_count)
 	Scm_Error("mysql-stmt-execute require %d parameters, but got %d parameters", param_count, i);
     if (mysql_stmt_bind_param(stmt, params) != 0)
 	raise_mysql_stmt_error(stmt, "mysql_stmt_bind_param");
+    stmtx->field_count = field_count = mysql_stmt_field_count(stmt);
+    if (field_count > 0) {
+	int i;
+	MYSQL_FIELD *field = mysql_fetch_fields(stmtx->metares);
+	for (i = 0; i < field_count; i++, field++) {
+	    if (field->type == MYSQL_TYPE_BLOB) {
+		fix_metadata = 1;
+		mysql_stmt_attr_set(stmt, STMT_ATTR_UPDATE_MAX_LENGTH, &fix_metadata);
+		break;
+	    }
+	}
+    }
     if (mysql_stmt_execute(stmt) != 0)
 	raise_mysql_stmt_error(stmt, "mysql_stmt_execute");
+    if (mysql_stmt_store_result(stmt) != 0)
+	raise_mysql_stmt_error(stmt, "mysql_stmt_store_result");
+    if (fix_metadata) {
+	MYSQL_RES *metares;
+	if ((metares = mysql_stmt_result_metadata(stmt)) == NULL)
+	    if (mysql_stmt_errno(stmt) != 0)
+		raise_mysql_stmt_error(stmt, "mysql_stmt_result_metadata");
+	stmtx->metares = metares;
+    }
+    if (field_count > 0) {
+	int i;
+	if ((fields = (MYSQL_BIND*)calloc(field_count, sizeof(MYSQL_BIND))) == NULL)
+	    Scm_SysError("Cannot allocate MYSQL_BIND buffers");
+	stmtx->fields = fields;
+	for (i = 0, field = fields; i < field_count; i++, field++)
+	    mysql_init_field(field, mysql_fetch_field_direct(stmtx->metares, i));
+	if (mysql_stmt_bind_result(stmt, fields) != 0)
+	    raise_mysql_stmt_error(stmt, "mysql_stmt_bind_result");
+    }
 }
 
 ScmObj MysqlStmtAffectedRows(MYSQL_STMT *stmt)
@@ -276,7 +360,7 @@ void raise_mysql_stmt_error(MYSQL_STMT *stmt, const char *msg)
  */
 extern void Scm_Init_dbd_mysqllib(ScmModule*);
 
-ScmObj Scm_Init_dbd_mysql(void)
+void Scm_Init_dbd_mysql(void)
 {
     ScmModule *mod;
 

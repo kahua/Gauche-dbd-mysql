@@ -5,7 +5,7 @@
 ;;  Copyright (c) 2003-2007 Scheme Arts, L.L.C., All rights reserved.
 ;;  Copyright (c) 2003-2007 Time Intermedia Corporation, All rights reserved.
 ;;
-;; $Id: dbd.scm,v 1.8 2007/02/19 13:01:17 bizenn Exp $
+;; $Id: dbd.scm,v 1.9 2007/02/20 07:16:07 bizenn Exp $
 
 (use gauche.test)
 (use gauche.collection)
@@ -84,6 +84,7 @@
 (let1 stmt (mysql-stmt-prepare *mysql* "SELECT name, data FROM DBD_TEST where ID = ?")
   (test* "mysql-stmt-param-count/select" 1 (mysql-stmt-param-count stmt))
   (test* "mysql-stmt-field-count/select" 2 (mysql-stmt-field-count stmt))
+  (test* "mysql-stmt-execute/select with parameter" (undefined) (mysql-stmt-execute stmt 5))
   (mysql-stmt-close stmt))
 
 (let1 stmt (mysql-stmt-prepare *mysql* "DROP TABLE DBD_TEST")
