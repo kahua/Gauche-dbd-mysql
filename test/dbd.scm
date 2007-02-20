@@ -5,7 +5,7 @@
 ;;  Copyright (c) 2003-2007 Scheme Arts, L.L.C., All rights reserved.
 ;;  Copyright (c) 2003-2007 Time Intermedia Corporation, All rights reserved.
 ;;
-;; $Id: dbd.scm,v 1.9 2007/02/20 07:16:07 bizenn Exp $
+;; $Id: dbd.scm,v 1.10 2007/02/20 09:08:04 bizenn Exp $
 
 (use gauche.test)
 (use gauche.collection)
@@ -81,10 +81,12 @@
 	   (mysql-stmt-execute stmt i #`"DATA,|i|" "This is test data.")))
   (mysql-stmt-close stmt))
 
-(let1 stmt (mysql-stmt-prepare *mysql* "SELECT name, data FROM DBD_TEST where ID = ?")
+(let1 stmt (mysql-stmt-prepare *mysql* "SELECT id, name, data FROM DBD_TEST where ID = ?")
   (test* "mysql-stmt-param-count/select" 1 (mysql-stmt-param-count stmt))
-  (test* "mysql-stmt-field-count/select" 2 (mysql-stmt-field-count stmt))
+  (test* "mysql-stmt-field-count/select" 3 (mysql-stmt-field-count stmt))
   (test* "mysql-stmt-execute/select with parameter" (undefined) (mysql-stmt-execute stmt 5))
+  (test* "mysql-stmt-fetch" '#(5 "DATA5" "This is test data.") (mysql-stmt-fetch stmt) equal?)
+  (test* "mysql-stmt-fetch/eor" #f (mysql-stmt-fetch stmt))
   (mysql-stmt-close stmt))
 
 (let1 stmt (mysql-stmt-prepare *mysql* "DROP TABLE DBD_TEST")

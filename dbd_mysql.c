@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.12 2007/02/20 07:16:00 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.13 2007/02/20 09:07:58 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -326,6 +326,42 @@ void MysqlStmtxExecute(MYSQL_STMTX *stmtx, ScmObj args)
 	if (mysql_stmt_bind_result(stmt, fields) != 0)
 	    raise_mysql_stmt_error(stmt, "mysql_stmt_bind_result");
     }
+}
+
+static ScmObj mysql_bind_to_scm_obj(MYSQL_BIND *bind)
+{
+    switch (bind->buffer_type) {
+	case MYSQL_TYPE_STRING: case MYSQL_TYPE_VAR_STRING:
+	    return Scm_MakeString(bind->buffer, *bind->length, -1, SCM_MAKSTR_COPYING);
+	case MYSQL_TYPE_LONGLONG:
+	    return Scm_MakeInteger64((long long int)(*(long long int*)bind->buffer));
+	default:
+	    Scm_Error("Unsupported type: %d", bind->buffer_type);
+    }
+    return SCM_NIL;		/* NOTREACHED */
+}
+
+ScmObj MysqlStmtxFetch(MYSQL_STMTX *stmtx)
+{
+    unsigned int field_count, i;
+    MYSQL_BIND *field;
+    MYSQL_STMT *stmt;
+    ScmObj v;
+
+    SCM_ASSERT(stmtx != NULL);
+    stmt = stmtx->stmt;
+    field_count = stmtx->field_count;
+    switch (mysql_stmt_fetch(stmt)) {
+	case 0: break;
+	case MYSQL_NO_DATA: return SCM_FALSE;
+	case MYSQL_DATA_TRUNCATED: break; /* FIXME */
+	default: raise_mysql_stmt_error(stmt, "mysql_stmt_fetch"); /* Maybe 1 */
+    }
+    v = Scm_MakeVector(field_count, SCM_FALSE);
+    for (i = 0, field = stmtx->fields; i < field_count; i++, field++)
+	if ((field->is_null == NULL) || (!*field->is_null))
+	    SCM_VECTOR_ELEMENTS(v)[i] = mysql_bind_to_scm_obj(field);
+    return v;
 }
 
 ScmObj MysqlStmtAffectedRows(MYSQL_STMT *stmt)
