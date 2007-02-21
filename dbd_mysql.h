@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.h,v 1.15 2007/02/20 09:07:58 bizenn Exp $
+ * $Id: dbd_mysql.h,v 1.16 2007/02/21 06:58:27 bizenn Exp $
  */
 
 /* Prologue */
@@ -80,6 +80,13 @@ typedef ScmForeignPointer ScmMysqlStmtx;
 extern int MysqlClosedP(ScmObj obj);
 extern void MysqlMarkClosed(ScmObj obj);
 
+extern MYSQL *MysqlRealConnect(const char *host,
+			       const char *user,
+			       const char *password,
+			       const char *db,
+			       unsigned int port,
+			       const char *unix_socket,
+			       unsigned int client_flag);
 extern ScmObj MysqlAffectedRows(MYSQL *handle);
 extern ScmObj MysqlFetchFieldNames(MYSQL_RES *result);
 extern ScmObj MysqlFetchRow(MYSQL_RES *result);

@@ -18,7 +18,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: dbd_mysqllib.stub,v 1.17 2007/02/20 09:07:58 bizenn Exp $
+;; $Id: dbd_mysqllib.stub,v 1.18 2007/02/21 06:58:27 bizenn Exp $
 
 "
 #include \"dbd_mysql.h\"
@@ -43,15 +43,7 @@
 				  port::<uint>
 				  unix_socket::<const-cstring>?
 				  client_flag::<uint>)
-  (body <mysql-handle>
-        "MYSQL *handle = SCM_NEW(MYSQL);"
-        "handle = mysql_init(handle);"
-        "SCM_RESULT = mysql_real_connect(handle,"
-        "                                host, user, password, db,"
-        "                                port, unix_socket, client_flag);"
-        "if (SCM_RESULT == NULL)"
-	"  raise_mysql_error(handle, \"mysql_real_connect\");"
-        ))
+  (call <mysql-handle> "MysqlRealConnect"))
 
 (define-cproc mysql-handle-closed? (connection::<mysql-handle>)
   (expr <boolean> "MysqlClosedP(connection_scm)"))
@@ -104,6 +96,9 @@
 
 (define-cproc mysql-free-result (result::<mysql-res>)
   (body <void> "mysql_res_cleanup(result_scm);"))
+
+(define-cproc mysql-character-set-name (connection::<mysql-handle>)
+  (call <const-cstring> "mysql_character_set_name"))
 
 ;;
 ;; Prepared Statement Handling
@@ -379,3 +374,15 @@
 (define-enum-conditionally ER_NO_REFERENCED_ROW)
 (define-enum-conditionally ER_ROW_IS_REFERENCED)
 (define-enum-conditionally ER_ERROR_MESSAGES)
+
+"#define ulong uint32_t"
+(define-enum-conditionally CLIENT_COMPRESS)
+(define-enum-conditionally CLIENT_FOUND_ROWS)
+(define-enum-conditionally CLIENT_IGNORE_SPACE)
+(define-enum-conditionally CLIENT_INTERACTIVE)
+(define-enum-conditionally CLIENT_LOCAL_FILES)
+(define-enum-conditionally CLIENT_MULTI_RESULTS)
+(define-enum-conditionally CLIENT_MULTI_STATEMENTS)
+(define-enum-conditionally CLIENT_NO_SCHEMA)
+(define-enum-conditionally CLIENT_ODBC)
+(define-enum-conditionally CLIENT_SSL)

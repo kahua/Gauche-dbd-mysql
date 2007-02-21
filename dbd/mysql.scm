@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.21 2007/02/20 09:08:03 bizenn Exp $
+;; $Id: mysql.scm,v 1.22 2007/02/21 06:58:32 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -37,6 +37,7 @@
 	  mysql-fetch-row mysql-free-result mysql-close
           mysql-handle-closed? mysql-res-closed?
           mysql-real-escape-string
+	  mysql-character-set-name
 
 	  <mysql-stmt> mysql-stmt-prepare mysql-stmt-close
 	  mysql-stmt-closed? mysql-stmt-execute mysql-stmt-fetch

@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.16 2007/02/21 02:43:47 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.17 2007/02/21 06:58:27 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -111,6 +111,41 @@ void MysqlMarkClosed(ScmObj obj)
     SCM_ASSERT(SCM_FOREIGN_POINTER_P(obj));
     Scm_ForeignPointerAttrSet(SCM_FOREIGN_POINTER(obj),
                               sym_closed, SCM_TRUE);
+}
+
+#if   defined(GAUCHE_CHAR_ENCODING_EUC_JP)
+static const char *default_character_encoding = "ujis";
+static const char setnames[] = "SET NAMES ujis";
+#elif defined(GAUCHE_CHAR_ENCODING_UTF_8)
+static const char *default_character_encoding = "utf8";
+static const char setnames[] = "SET NAMES utf8";
+#elif defined(GAUCHE_CHAR_ENCODING_SJIS)
+static const char *default_character_encoding = "sjis";
+static const char setnames[] = "SET NAMES sjis";
+#else  /* NONE */
+static const char *default_character_encoding = "binary"; /* FIXME!! */
+static const char setnames[] = "SET NAMES binary";
+#endif
+
+
+MYSQL *MysqlRealConnect(const char *host,
+			const char *user,
+			const char *password,
+			const char *db,
+			unsigned int port,
+			const char *unix_socket,
+			unsigned int client_flag)
+{
+    MYSQL *conn, *handle = SCM_NEW(MYSQL);
+    if ((handle = mysql_init(handle)) == NULL)
+	Scm_SysError("Cannot initialize MYSQL structure.");
+    if (mysql_options(handle, MYSQL_SET_CHARSET_NAME, default_character_encoding) != 0)
+	raise_mysql_error(handle, "mysql_option w/ MYSQL_SET_CHARSET_NAME");
+    if ((conn = mysql_real_connect(handle, host, user, password, db, port, unix_socket, client_flag)) == NULL)
+	raise_mysql_error(handle, "mysql_real_connect");
+    if (mysql_get_server_version(conn) >= 40100)
+	mysql_real_query(handle, setnames, sizeof(setnames)-1);
+    return conn;
 }
 
 ScmObj MysqlAffectedRows(MYSQL *handle)

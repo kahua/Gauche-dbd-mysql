@@ -5,7 +5,7 @@
 ;;  Copyright (c) 2003-2007 Scheme Arts, L.L.C., All rights reserved.
 ;;  Copyright (c) 2003-2007 Time Intermedia Corporation, All rights reserved.
 ;;
-;; $Id: dbd.scm,v 1.12 2007/02/21 02:43:54 bizenn Exp $
+;; $Id: dbd.scm,v 1.13 2007/02/21 06:58:32 bizenn Exp $
 
 (use gauche.test)
 (use gauche.collection)
@@ -28,6 +28,8 @@
        (let1 c (mysql-real-connect #f #f #f *db* 0 #f 0)
 	 (set! *mysql* c)
 	 (class-of c)))
+(test* "mysql-character-set-name" "utf8"
+       (mysql-character-set-name *mysql*) string=?)
 
 (test* "mysql-real-escape-string" "\\0a\\rb\\nc\\\\d\\'e\\\"f\\Z"
        (mysql-real-escape-string *mysql* "\0a\rb\nc\\d'e\"f\x1a"))
@@ -108,6 +110,15 @@
   (test* "mysql-stmt-execute/select" (undefined) (mysql-stmt-execute stmt))
   (test* "mysql-stmt-affected-rows/select" 1 (mysql-stmt-affected-rows stmt) =)
   (test* "mysql-stmt-fetch/select" '#(#f 3) (mysql-stmt-fetch stmt) equal?)
+  (mysql-stmt-close stmt))
+
+(let1 stmt (mysql-stmt-prepare *mysql* "UPDATE DBD_TEST set data = ? where ID = ?")
+  (test* "mysql-stmt-execute/update with Japanese data" (undefined) (mysql-stmt-execute stmt "テストデータ" 1))
+  (mysql-stmt-close stmt))
+
+(let1 stmt (mysql-stmt-prepare *mysql* "SELECT DATA from DBD_TEST where ID = 1")
+  (mysql-stmt-execute stmt)
+  (test* "mysql-stmt-fetch/select of Japanese data" #("テストデータ") (mysql-stmt-fetch stmt) equal?)
   (mysql-stmt-close stmt))
 
 (let1 stmt (mysql-stmt-prepare *mysql* "DROP TABLE DBD_TEST")
