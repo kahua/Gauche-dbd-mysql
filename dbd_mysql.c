@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.15 2007/02/20 23:35:05 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.16 2007/02/21 02:43:47 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -221,8 +221,13 @@ static void mysql_init_param(MYSQL_BIND *param, ScmObj obj)
 	param->buffer = p;
 	param->buffer_type = MYSQL_TYPE_LONGLONG;
     }
-    else if (SCM_FALSEP(obj))
+    else if (SCM_FALSEP(obj)) {
 	param->buffer_type = MYSQL_TYPE_NULL;
+	if ((param->is_null = malloc(sizeof(my_bool))) == NULL)
+	    Scm_SysError("Cannot allocate is_null buffer.");
+	else
+	    *(my_bool*)param->is_null = 1;
+    }
     else if (SCM_FLONUMP(obj)) {
 	double *p = (double*)malloc(sizeof(double));
 	if (p == NULL)
@@ -358,7 +363,7 @@ static ScmObj mysql_bind_to_scm_obj(MYSQL_BIND *bind)
 	case MYSQL_TYPE_STRING: case MYSQL_TYPE_VAR_STRING:
 	    return Scm_MakeString(bind->buffer, *bind->length, -1, SCM_MAKSTR_COPYING);
 	case MYSQL_TYPE_LONGLONG:
-	    return Scm_MakeInteger64((long long int)(*(long long int*)bind->buffer));
+	    return Scm_MakeInteger64(*(long long int*)bind->buffer);
 	default:
 	    Scm_Error("Unsupported type: %d", bind->buffer_type);
     }

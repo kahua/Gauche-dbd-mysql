@@ -5,7 +5,7 @@
 ;;  Copyright (c) 2003-2007 Scheme Arts, L.L.C., All rights reserved.
 ;;  Copyright (c) 2003-2007 Time Intermedia Corporation, All rights reserved.
 ;;
-;; $Id: dbd.scm,v 1.11 2007/02/20 09:36:27 bizenn Exp $
+;; $Id: dbd.scm,v 1.12 2007/02/21 02:43:54 bizenn Exp $
 
 (use gauche.test)
 (use gauche.collection)
@@ -74,8 +74,8 @@
 (test* "mysql-stmt-closed?/after close" #t (mysql-stmt-closed? *stmt*))
 
 (let1 stmt (mysql-stmt-prepare *mysql* "INSERT INTO DBD_TEST (id, name, data) values (?, ?, ?)")
-  (test* "mysql-stmt-param-count/insert" 3 (mysql-stmt-param-count stmt))
-  (test* "mysql-stmt-field-count/insert" 0 (mysql-stmt-field-count stmt))
+  (test* "mysql-stmt-param-count/insert" 3 (mysql-stmt-param-count stmt) =)
+  (test* "mysql-stmt-field-count/insert" 0 (mysql-stmt-field-count stmt) =)
   (dotimes (i 10)
     (test* #`"mysql-stmt-execute/insert record #,|i| with parameters" (undefined)
 	   (mysql-stmt-execute stmt i #`"DATA,|i|" "This is test data."))
@@ -83,15 +83,31 @@
   (mysql-stmt-close stmt))
 
 (let1 stmt (mysql-stmt-prepare *mysql* "SELECT id, name, data FROM DBD_TEST where ID in (?,?,?,?)")
-  (test* "mysql-stmt-param-count/select" 4 (mysql-stmt-param-count stmt))
-  (test* "mysql-stmt-field-count/select" 3 (mysql-stmt-field-count stmt))
+  (test* "mysql-stmt-param-count/select" 4 (mysql-stmt-param-count stmt) =)
+  (test* "mysql-stmt-field-count/select" 3 (mysql-stmt-field-count stmt) =)
   (test* "mysql-stmt-execute/select with parameter" (undefined) (mysql-stmt-execute stmt 2 4 5 9))
-  (test* "mysql-stmt-fetch/record #2" '#(2 "DATA2" "This is test data.") (mysql-stmt-fetch stmt) equal?)
-  (test* "mysql-stmt-fetch/record #4" '#(4 "DATA4" "This is test data.") (mysql-stmt-fetch stmt) equal?)
-  (test* "mysql-stmt-fetch/record #5" '#(5 "DATA5" "This is test data.") (mysql-stmt-fetch stmt) equal?)
-  (test* "mysql-stmt-fetch/record #9" '#(9 "DATA9" "This is test data.") (mysql-stmt-fetch stmt) equal?)
-  (test* "mysql-stmt-fetch/eor" #f (mysql-stmt-fetch stmt))
   (test* "mysql-stmt-affected-rows/after select 4 records" 4 (mysql-stmt-affected-rows stmt) =)
+  (for-each (lambda (r) (test* "mysql-stmt-fetch" r (mysql-stmt-fetch stmt) equal?))
+	    '(#(2 "DATA2" "This is test data.")
+	      #(4 "DATA4" "This is test data.")
+	      #(5 "DATA5" "This is test data.")
+	      #(9 "DATA9" "This is test data.")
+	      #f))
+  (mysql-stmt-close stmt))
+
+(let1 stmt (mysql-stmt-prepare *mysql* "UPDATE DBD_TEST set data=? where ID between ? and ?")
+  (test* "mysql-stmt-param-count/update" 3 (mysql-stmt-param-count stmt) =)
+  (test* "mysql-stmt-field-count/update" 0 (mysql-stmt-field-count stmt) =)
+  (test* "mysql-stmt-execute/update" (undefined) (mysql-stmt-execute stmt #f 5 7))
+  (test* "mysql-stmt-affected-rows/update" 3 (mysql-stmt-affected-rows stmt) =)
+  (mysql-stmt-close stmt))
+
+(let1 stmt (mysql-stmt-prepare *mysql* "SELECT DATA, count(*) from DBD_TEST where DATA is NULL group by DATA")
+  (test* "mysql-stmt-param-count/select" 0 (mysql-stmt-param-count stmt) =)
+  (test* "mysql-stmt-field-count/select" 2 (mysql-stmt-field-count stmt) =)
+  (test* "mysql-stmt-execute/select" (undefined) (mysql-stmt-execute stmt))
+  (test* "mysql-stmt-affected-rows/select" 1 (mysql-stmt-affected-rows stmt) =)
+  (test* "mysql-stmt-fetch/select" '#(#f 3) (mysql-stmt-fetch stmt) equal?)
   (mysql-stmt-close stmt))
 
 (let1 stmt (mysql-stmt-prepare *mysql* "DROP TABLE DBD_TEST")
