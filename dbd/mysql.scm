@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.23 2007/02/21 08:18:58 bizenn Exp $
+;; $Id: mysql.scm,v 1.24 2007/02/22 02:36:22 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -43,7 +43,7 @@
 	  <mysql-stmt> mysql-stmt-prepare mysql-stmt-close
 	  mysql-stmt-closed? mysql-stmt-execute mysql-stmt-fetch
 	  mysql-stmt-param-count mysql-stmt-field-count
-	  mysql-stmt-affected-rows
+	  mysql-stmt-affected-rows mysql-stmt-data-seek
 	  <mysql-error> <mysql-stmt-error>
           ))
 (select-module dbd.mysql)

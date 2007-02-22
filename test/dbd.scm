@@ -5,7 +5,7 @@
 ;;  Copyright (c) 2003-2007 Scheme Arts, L.L.C., All rights reserved.
 ;;  Copyright (c) 2003-2007 Time Intermedia Corporation, All rights reserved.
 ;;
-;; $Id: dbd.scm,v 1.13 2007/02/21 06:58:32 bizenn Exp $
+;; $Id: dbd.scm,v 1.14 2007/02/22 02:36:22 bizenn Exp $
 
 (use gauche.test)
 (use gauche.collection)
@@ -119,6 +119,18 @@
 (let1 stmt (mysql-stmt-prepare *mysql* "SELECT DATA from DBD_TEST where ID = 1")
   (mysql-stmt-execute stmt)
   (test* "mysql-stmt-fetch/select of Japanese data" #("テストデータ") (mysql-stmt-fetch stmt) equal?)
+  (mysql-stmt-close stmt))
+
+(let1 stmt (mysql-stmt-prepare *mysql* "SELECT ID, NAME from DBD_TEST order by ID")
+  (mysql-stmt-execute stmt)
+  (test* "mysql-stmt-data-seek" (undefined) (mysql-stmt-data-seek stmt 5))
+  (for-each (lambda (r)
+	      (test* "mysql-stmt-fetch/seeked" r (mysql-stmt-fetch stmt) equal?))
+	    '(#(5 "DATA5") #(6 "DATA6") #(7 "DATA7") #(8 "DATA8") #(9 "DATA9") #f))
+  (test* "mysql-stmt-data-seek" (undefined) (mysql-stmt-data-seek stmt 0))
+  (dotimes (i 10)
+    (test* #`"mysql-stmt-fetch/record #,|i|" `#(,i ,#`"DATA,|i|") (mysql-stmt-fetch stmt) equal?))
+  (test* "mysql-stmt-fetch/eor" #f (mysql-stmt-fetch stmt))
   (mysql-stmt-close stmt))
 
 (let1 stmt (mysql-stmt-prepare *mysql* "DROP TABLE DBD_TEST")

@@ -18,7 +18,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: dbd_mysqllib.stub,v 1.19 2007/02/21 08:18:57 bizenn Exp $
+;; $Id: dbd_mysqllib.stub,v 1.20 2007/02/22 02:36:21 bizenn Exp $
 
 "
 #include \"dbd_mysql.h\"
@@ -133,6 +133,9 @@
 
 (define-cproc mysql-stmt-affected-rows (stmtx::<mysql-stmt>)
   (expr "MysqlStmtAffectedRows(stmtx->stmt)"))
+
+(define-cproc mysql-stmt-data-seek (stmtx::<mysql-stmt> offset::<integer>)
+  (body <void> "mysql_stmt_data_seek(stmtx->stmt, Scm_GetIntegerU64(offset));"))
 
 ;; from errmsg.h mysql-3.23
 (define-enum-conditionally CR_MIN_ERROR)
