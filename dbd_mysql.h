@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.h,v 1.16 2007/02/21 06:58:27 bizenn Exp $
+ * $Id: dbd_mysql.h,v 1.17 2007/02/23 08:43:25 bizenn Exp $
  */
 
 /* Prologue */
@@ -95,6 +95,7 @@ extern MYSQL_STMTX *MysqlStmtxPrepare(MYSQL *connection, ScmString *sql);
 extern void MysqlStmtxExecute(MYSQL_STMTX *stmtx, ScmObj args);
 extern ScmObj MysqlStmtxFetch(MYSQL_STMTX *stmtx);
 extern ScmObj MysqlStmtAffectedRows(MYSQL_STMT *stmt);
+extern ScmObj MysqlStmtxFetchFieldNames(MYSQL_STMTX *stmtx);
 
 extern void raise_mysql_error(MYSQL *handle, const char *msg);
 extern void raise_mysql_stmt_error(MYSQL_STMT *stmt, const char *msg);

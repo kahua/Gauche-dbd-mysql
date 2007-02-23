@@ -16,11 +16,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.17 2007/02/21 06:58:27 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.18 2007/02/23 08:43:25 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
 #include <stdlib.h>
+
+#define MYSQL_ERROR      SCM_SYMBOL_VALUE("dbd.mysql", "<mysql-error>")
+#define MYSQL_STMT_ERROR SCM_SYMBOL_VALUE("dbd.mysql", "<mysql-stmt-error>")
 
 /*
  * Class stuff
@@ -161,13 +164,14 @@ ScmObj MysqlAffectedRows(MYSQL *handle)
 
 ScmObj MysqlFetchFieldNames(MYSQL_RES *result)
 {
-    MYSQL_FIELD *fields;
-    int nfields, i;
+    MYSQL_FIELD *fields = NULL;
+    int nfields = 0, i;
     ScmObj v;
 
-    SCM_ASSERT(result != NULL);
-    nfields = mysql_num_fields(result);
-    fields = mysql_fetch_fields(result);
+    if (result != NULL) {
+	nfields = mysql_num_fields(result);
+	fields = mysql_fetch_fields(result);
+    }
     v = Scm_MakeVector(nfields, SCM_FALSE);
     for (i=0; i<nfields; i++) {
         SCM_VECTOR_ELEMENTS(v)[i] = SCM_MAKE_STR_COPYING(fields[i].name);
@@ -239,15 +243,21 @@ MYSQL_STMTX *MysqlStmtxPrepare(MYSQL *connection, ScmString *sql)
     return stmtx;
 }
 
+static void mysql_init_param_string(MYSQL_BIND *param, ScmObj obj)
+{
+    const ScmStringBody *body = SCM_STRING_BODY(obj);
+    param->buffer_type = SCM_STRING_INCOMPLETE_P(obj) ? MYSQL_TYPE_BLOB : MYSQL_TYPE_STRING;
+    param->buffer = (void*)SCM_STRING_BODY_START(body);
+    param->buffer_length = SCM_STRING_BODY_SIZE(body);
+    param->length = &(param->buffer_length);
+}
+
 static void mysql_init_param(MYSQL_BIND *param, ScmObj obj)
 {
-    if (SCM_STRINGP(obj)) {
-	const ScmStringBody *body = SCM_STRING_BODY(obj);
-	param->buffer_type = SCM_STRING_INCOMPLETE_P(obj) ? MYSQL_TYPE_BLOB : MYSQL_TYPE_STRING;
-	param->buffer = (void*)SCM_STRING_BODY_START(body);
-	param->buffer_length = SCM_STRING_BODY_SIZE(body);
-	param->length = &(param->buffer_length);
-    }
+    if (SCM_STRINGP(obj))
+	mysql_init_param_string(param, obj);
+    else if (SCM_SYMBOLP(obj))
+	mysql_init_param_string(param, SCM_OBJ(SCM_SYMBOL_NAME(obj)));
     else if (SCM_INTEGERP(obj)) {
 	long long int *p = (long long int*)malloc(sizeof(long long int));
 	if (p == NULL)
@@ -272,7 +282,8 @@ static void mysql_init_param(MYSQL_BIND *param, ScmObj obj)
 	param->buffer_type = MYSQL_TYPE_DOUBLE;
     }
     else
-	Scm_Error("Parameter is not supported type: %S", obj);
+	Scm_RaiseCondition(MYSQL_ERROR, "error-code", SCM_MAKE_INT(0), "sql-code", SCM_MAKE_STR_IMMUTABLE(""),
+			   SCM_RAISE_CONDITION_MESSAGE, "Parameter is not supported type: %S", obj);
 }
 
 static void mysql_init_field(MYSQL_BIND *bind, MYSQL_FIELD *field)
@@ -322,7 +333,8 @@ static void mysql_init_field(MYSQL_BIND *bind, MYSQL_FIELD *field)
 		Scm_SysError("Cannot allocate is_null buffer.");
 	    break;
 	default:
-	    Scm_Error("Unsupported field type: %d", field->type);
+	    Scm_RaiseCondition(MYSQL_ERROR, "error-code", SCM_MAKE_INT(0), "sql-code", SCM_MAKE_STR_IMMUTABLE(""),
+			       SCM_RAISE_CONDITION_MESSAGE, "Unsupported field type: %d", field->type);
     }
 }
 
@@ -348,12 +360,15 @@ void MysqlStmtxExecute(MYSQL_STMTX *stmtx, ScmObj args)
 	 ptr = Scm_Cdr(ptr), i++, param++) {
 	obj = Scm_Car(ptr);
 	if (i >= param_count)
-	    Scm_Error("mysql-stmt-execute require %d parameters, but got %d parameters",
-		      param_count, Scm_Length(args));
+	    Scm_RaiseCondition(MYSQL_ERROR, "error-code", SCM_MAKE_INT(0), "sql-code", SCM_MAKE_STR_IMMUTABLE(""),
+			       SCM_RAISE_CONDITION_MESSAGE, "mysql-stmt-execute require %d parameters, but got %d parameters",
+			       param_count, Scm_Length(args));
 	mysql_init_param(param, obj);
     }
     if (i != param_count)
-	Scm_Error("mysql-stmt-execute require %d parameters, but got %d parameters", param_count, i);
+	Scm_RaiseCondition(MYSQL_ERROR, "error-code", SCM_MAKE_INT(0), "sql-code", SCM_MAKE_STR_IMMUTABLE(""),
+			   SCM_RAISE_CONDITION_MESSAGE, "mysql-stmt-execute require %d parameters, but got %d parameters",
+			   param_count, i);
     if (mysql_stmt_bind_param(stmt, params) != 0)
 	raise_mysql_stmt_error(stmt, "mysql_stmt_bind_param");
     stmtx->field_count = field_count = mysql_stmt_field_count(stmt);
@@ -396,11 +411,14 @@ static ScmObj mysql_bind_to_scm_obj(MYSQL_BIND *bind)
 {
     switch (bind->buffer_type) {
 	case MYSQL_TYPE_STRING: case MYSQL_TYPE_VAR_STRING:
+	case MYSQL_TYPE_TINY_BLOB: case MYSQL_TYPE_BLOB:
+	case MYSQL_TYPE_MEDIUM_BLOB: case MYSQL_TYPE_LONG_BLOB:
 	    return Scm_MakeString(bind->buffer, *bind->length, -1, SCM_MAKSTR_COPYING);
 	case MYSQL_TYPE_LONGLONG:
 	    return Scm_MakeInteger64(*(long long int*)bind->buffer);
 	default:
-	    Scm_Error("Unsupported type: %d", bind->buffer_type);
+	    Scm_RaiseCondition(MYSQL_ERROR, "error-code", SCM_MAKE_INT(0), "sql-code", SCM_MAKE_STR_IMMUTABLE(""),
+			       SCM_RAISE_CONDITION_MESSAGE, "Unsupported type: %d", bind->buffer_type);
     }
     return SCM_NIL;		/* NOTREACHED */
 }
@@ -439,9 +457,15 @@ ScmObj MysqlStmtAffectedRows(MYSQL_STMT *stmt)
     return Scm_MakeIntegerU64(n);
 }
 
+ScmObj MysqlStmtxFetchFieldNames(MYSQL_STMTX *stmtx)
+{
+    SCM_ASSERT(stmtx != NULL);
+    return MysqlFetchFieldNames(stmtx->metares);
+}
+
 void raise_mysql_error(MYSQL *handle, const char *msg)
 {
-    Scm_RaiseCondition(SCM_SYMBOL_VALUE("dbd.mysql", "<mysql-error>"),
+    Scm_RaiseCondition(MYSQL_ERROR,
 		       "error-code", SCM_MAKE_INT(mysql_errno(handle)),
 		       "sql-code", SCM_MAKE_STR_IMMUTABLE(mysql_sqlstate(handle)),
 		       SCM_RAISE_CONDITION_MESSAGE, "%s: %s", msg, mysql_error(handle));
@@ -449,7 +473,7 @@ void raise_mysql_error(MYSQL *handle, const char *msg)
 
 void raise_mysql_stmt_error(MYSQL_STMT *stmt, const char *msg)
 {
-    Scm_RaiseCondition(SCM_SYMBOL_VALUE("dbd.mysql", "<mysql-stmt-error>"),
+    Scm_RaiseCondition(MYSQL_STMT_ERROR,
 		       "error-code", SCM_MAKE_INT(mysql_stmt_errno(stmt)),
 		       "sql-code", SCM_MAKE_STR_IMMUTABLE(mysql_stmt_sqlstate(stmt)),
 		       SCM_RAISE_CONDITION_MESSAGE, "%s: %s", msg, mysql_stmt_error(stmt));

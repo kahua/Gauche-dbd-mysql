@@ -5,7 +5,7 @@
 ;;  Copyright (c) 2003-2007 Scheme Arts, L.L.C., All rights reserved.
 ;;  Copyright (c) 2003-2007 Time Intermedia Corporation, All rights reserved.
 ;;
-;; $Id: dbd.scm,v 1.14 2007/02/22 02:36:22 bizenn Exp $
+;; $Id: dbd.scm,v 1.15 2007/02/23 08:43:25 bizenn Exp $
 
 (use gauche.test)
 (use gauche.collection)
@@ -113,23 +113,27 @@
   (mysql-stmt-close stmt))
 
 (let1 stmt (mysql-stmt-prepare *mysql* "UPDATE DBD_TEST set data = ? where ID = ?")
+  (test* "mysql-stmt-fetch-field-names/update" '#() (mysql-stmt-fetch-field-names stmt) equal?)
   (test* "mysql-stmt-execute/update with Japanese data" (undefined) (mysql-stmt-execute stmt "テストデータ" 1))
   (mysql-stmt-close stmt))
 
 (let1 stmt (mysql-stmt-prepare *mysql* "SELECT DATA from DBD_TEST where ID = 1")
+  (test* "mysql-stmt-fetch-field-names/select" '#("DATA") (mysql-stmt-fetch-field-names stmt) equal?)
   (mysql-stmt-execute stmt)
   (test* "mysql-stmt-fetch/select of Japanese data" #("テストデータ") (mysql-stmt-fetch stmt) equal?)
   (mysql-stmt-close stmt))
 
 (let1 stmt (mysql-stmt-prepare *mysql* "SELECT ID, NAME from DBD_TEST order by ID")
+  (test* "mysql-stmt-fetch-field-names/select" '#("ID" "NAME") (mysql-stmt-fetch-field-names stmt) equal?)
   (mysql-stmt-execute stmt)
   (test* "mysql-stmt-data-seek" (undefined) (mysql-stmt-data-seek stmt 5))
   (for-each (lambda (r)
 	      (test* "mysql-stmt-fetch/seeked" r (mysql-stmt-fetch stmt) equal?))
 	    '(#(5 "DATA5") #(6 "DATA6") #(7 "DATA7") #(8 "DATA8") #(9 "DATA9") #f))
   (test* "mysql-stmt-data-seek" (undefined) (mysql-stmt-data-seek stmt 0))
-  (dotimes (i 10)
+  (dotimes (i 7)
     (test* #`"mysql-stmt-fetch/record #,|i|" `#(,i ,#`"DATA,|i|") (mysql-stmt-fetch stmt) equal?))
+  (test* "mysql-stmt-data-seek/overflow" (undefined) (mysql-stmt-data-seek stmt 15))
   (test* "mysql-stmt-fetch/eor" #f (mysql-stmt-fetch stmt))
   (mysql-stmt-close stmt))
 

@@ -18,7 +18,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: dbd_mysqllib.stub,v 1.20 2007/02/22 02:36:21 bizenn Exp $
+;; $Id: dbd_mysqllib.stub,v 1.21 2007/02/23 08:43:25 bizenn Exp $
 
 "
 #include \"dbd_mysql.h\"
@@ -30,6 +30,13 @@
   "MYSQL_RES_P" "MYSQL_RES_UNBOX" "MYSQL_RES_BOX")
 (define-type <mysql-stmt> "MYSQL_STMTX*" "MySQL enhanced statement handle"
   "MYSQL_STMTX_P" "MYSQL_STMTX_UNBOX" "MYSQL_STMTX_BOX")
+
+(define-cproc mysql-handle? (obj)
+  (call <boolean> "MYSQL_HANDLE_P"))
+(define-cproc mysql-res? (obj)
+  (call <boolean> "MYSQL_RES_P"))
+(define-cproc mysql-stmt? (obj)
+  (call <boolean> "MYSQL_STMTX_P"))
 
 ;; key to the foreign pointer attribute to keep track of closed state
 ;; of handles.
@@ -57,9 +64,6 @@
 	"  raise_mysql_error(connection, \"mysql_real_query\");"
 	))
 
-(define-cproc mysql-affected-rows (connection::<mysql-handle>)
-  (call "MysqlAffectedRows"))
-
 (define-cproc mysql-real-escape-string (connection::<mysql-handle>
                                         string::<string>)
   (body "const ScmStringBody *body = SCM_STRING_BODY(string);"
@@ -85,11 +89,23 @@
 (define-cproc mysql-res-closed? (result::<mysql-res>)
   (expr <boolean> "MysqlClosedP(result_scm)"))
 
-(define-cproc mysql-fetch-field-names (result::<mysql-res>)
+(define-cproc mysql-field-count (handle::<mysql-handle>)
+  (call <uint> "mysql_field_count"))
+
+(define-cproc mysql-num-fields (result::<mysql-res>)
+  (call <uint> "mysql_num_fields"))
+
+(define-cproc mysql-fetch-field-names (result::<mysql-res>?)
   (call "MysqlFetchFieldNames"))
+
+(define-cproc mysql-affected-rows (connection::<mysql-handle>)
+  (call "MysqlAffectedRows"))
 
 (define-cproc mysql-fetch-row (result::<mysql-res>)
   (call "MysqlFetchRow"))
+
+(define-cproc mysql-data-seek (result::<mysql-res> offset::<integer>)
+  (body <void> "mysql_data_seek(result, Scm_GetInteger64(offset));"))
 
 (define-cproc mysql-close (connection::<mysql-handle>)
   (body <void> "mysql_cleanup(connection_scm);"))
@@ -120,10 +136,10 @@
   (expr <boolean> "MysqlClosedP(stmtx_scm)"))
 
 (define-cproc mysql-stmt-param-count (stmtx::<mysql-stmt>)
-  (expr <ulong> "mysql_stmt_param_count(stmtx->stmt)"))
+  (expr <uint> "mysql_stmt_param_count(stmtx->stmt)"))
 
 (define-cproc mysql-stmt-field-count (stmtx::<mysql-stmt>)
-  (expr <ulong> "mysql_stmt_field_count(stmtx->stmt)"))
+  (expr <uint> "mysql_stmt_field_count(stmtx->stmt)"))
 
 (define-cproc mysql-stmt-execute (stmtx::<mysql-stmt> &rest args)
   (body <void> "MysqlStmtxExecute(stmtx, args);"))
@@ -133,6 +149,9 @@
 
 (define-cproc mysql-stmt-affected-rows (stmtx::<mysql-stmt>)
   (expr "MysqlStmtAffectedRows(stmtx->stmt)"))
+
+(define-cproc mysql-stmt-fetch-field-names (stmtx::<mysql-stmt>)
+  (call "MysqlStmtxFetchFieldNames"))
 
 (define-cproc mysql-stmt-data-seek (stmtx::<mysql-stmt> offset::<integer>)
   (body <void> "mysql_stmt_data_seek(stmtx->stmt, Scm_GetIntegerU64(offset));"))
