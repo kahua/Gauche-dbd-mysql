@@ -18,7 +18,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: dbd_mysqllib.stub,v 1.21 2007/02/23 08:43:25 bizenn Exp $
+;; $Id: dbd_mysqllib.stub,v 1.22 2007/02/25 14:34:11 bizenn Exp $
 
 "
 #include \"dbd_mysql.h\"
@@ -28,21 +28,194 @@
   "MYSQL_HANDLE_P" "MYSQL_HANDLE_UNBOX" "MYSQL_HANDLE_BOX")
 (define-type <mysql-res> "MYSQL_RES*" "MySQL result handle"
   "MYSQL_RES_P" "MYSQL_RES_UNBOX" "MYSQL_RES_BOX")
-(define-type <mysql-stmt> "MYSQL_STMTX*" "MySQL enhanced statement handle"
-  "MYSQL_STMTX_P" "MYSQL_STMTX_UNBOX" "MYSQL_STMTX_BOX")
 
 (define-cproc mysql-handle? (obj)
   (call <boolean> "MYSQL_HANDLE_P"))
 (define-cproc mysql-res? (obj)
   (call <boolean> "MYSQL_RES_P"))
-(define-cproc mysql-stmt? (obj)
-  (call <boolean> "MYSQL_STMTX_P"))
 
 ;; key to the foreign pointer attribute to keep track of closed state
 ;; of handles.
 (define-symbol closed? "sym_closed")
 
-;; Constructors
+;; mysql_affected_rows
+(define-cproc mysql-affected-rows (connection::<mysql-handle>)
+  (call "MysqlAffectedRows"))
+
+;; mysql_autocommit
+(define-cproc mysql-autocommit (handle::<mysql-handle> flag::<boolean>)
+  (body <void>
+	"if (mysql_autocommit(handle, flag) != 0)"
+	"  raise_mysql_error(handle, \"mysql_autocommit\");"))
+
+;; mysql_change_user
+(define-cproc mysql-change-user (handle::<mysql-handle>
+				 user::<const-cstring>?
+				 password::<const-cstring>?
+				 db::<const-cstring>?)
+  (body <void>
+	"if (mysql_change_user(handle, user, password, db) != 0)"
+	"  raise_mysql_error(handle, \"mysql_change_user\");"))
+
+;; mysql_character_set_name
+(define-cproc mysql-character-set-name (connection::<mysql-handle>)
+  (call <const-cstring> "mysql_character_set_name"))
+
+;; mysql_close
+(define-cproc mysql-close (connection::<mysql-handle>)
+  (body <void> "mysql_cleanup(connection_scm);"))
+
+;; mysql_commit
+(define-cproc mysql-commit (connection::<mysql-handle>)
+  (body <void>
+	"if (mysql_commit(connection) != 0)"
+	" raise_mysql_error(connection, \"mysql_commit\");"))
+
+;; mysql_connect(deprecated)
+;; mysql_create_db(deprecated)
+
+;; mysql_data_seek
+(define-cproc mysql-data-seek (result::<mysql-res> offset::<integer>)
+  (body <void> "mysql_data_seek(result, Scm_GetInteger64(offset));"))
+
+;; mysql_debug
+(define-cproc mysql-debug (debug::<const-cstring>)
+  (call <void> "mysql_debug"))
+
+;; mysql_drop_db(deprecated)
+
+;; mysql_dump_debug_info
+(define-cproc mysql-dump-debug-info (handle::<mysql-handle>)
+  (body <void>
+	"if (mysql_dump_debug_info(handle))"
+	"  raise_mysql_error(handle, \"mysql_dump_debug_info\");"))
+
+;; mysql_eof(deprecated)
+
+;; mysql_errno
+(define-cproc mysql-errno (connection::<mysql-handle>)
+  (call <int> "mysql_errno"))
+
+;; mysql_error
+(define-cproc mysql-error (connection::<mysql-handle>)
+  (call <const-cstring> "mysql_error"))
+
+;; mysql_escape_string(OMITTED)
+
+;; MYSQL_FIELD
+;; mysql_fetch_field
+;; mysql_fetch_field_direct
+;; mysql_fetch_fields
+;; mysql_fetch_lengths
+
+(define-cproc mysql-fetch-field-names (result::<mysql-res>?)
+  (call "MysqlFetchFieldNames"))
+
+;; mysql_fetch_row
+(define-cproc mysql-fetch-row (result::<mysql-res>)
+  (call "MysqlFetchRow"))
+
+;; mysql_field_count
+(define-cproc mysql-field-count (handle::<mysql-handle>)
+  (call <uint> "mysql_field_count"))
+
+;; mysql_field_seek
+;; mysql_field_tell
+
+;; mysql_free_result
+(define-cproc mysql-free-result (result::<mysql-res>)
+  (body <void> "mysql_res_cleanup(result_scm);"))
+
+;; mysql_get_character_set_info
+
+;; mysql_get_client_info
+(define-cproc mysql-get-client-info ()
+  (call <const-cstring> "mysql_get_client_info"))
+
+;; mysql_get_client_version
+(define-cproc mysql-get-client-version ()
+  (call <ulong> "mysql_get_client_version"))
+
+;; mysql_get_host_info
+(define-cproc mysql-get-host-info (handle::<mysql-handle>)
+  (call <const-cstring> "mysql_get_host_info"))
+
+;; mysql_get_proto_info
+(define-cproc mysql-get-proto-info (handle::<mysql-handle>)
+  (call <uint> "mysql_get_proto_info"))
+
+;; mysql_get_server_info
+(define-cproc mysql-get-server-info (handle::<mysql-handle>)
+  (call <const-cstring> "mysql_get_server_info"))
+
+;; mysql_get_server_version
+(define-cproc mysql-get-server-version (handle::<mysql-handle>)
+  (call <ulong> "mysql_get_server_version"))
+
+;; mysql_get_ssl_cipher
+;; mysql_hex_string
+
+;; mysql_info
+(define-cproc mysql-info (handle::<mysql-handle>)
+  (call <const-cstring>? "mysql_info"))
+
+;; mysql_init(integrated into mysql-real-connect)
+
+;; mysql_insert_id
+(define-cproc mysql-insert-id (handle::<mysql-handle>)
+  (expr <integer> "(Scm_MakeIntegerU64(mysql_insert_id(handle)))"))
+
+;; mysql_kill
+;; mysql_library_end
+
+;; mysql_list_dbs
+(define-cproc mysql-list-dbs (handle::<mysql-handle> wild::<const-cstring>?)
+  (body <mysql-res>
+	"if ((SCM_RESULT = mysql_list_dbs(handle, wild)) == NULL)"
+	"  raise_mysql_error(handle, \"mysql_list_dbs\");"))
+
+;; mysql_list_fields
+(define-cproc mysql-list-fields (handle::<mysql-handle>
+				 table::<const-cstring>
+				 wild::<const-cstring>?)
+  (body <mysql-res>
+	"if ((SCM_RESULT = mysql_list_fields(handle, table, wild)) == NULL)"
+	"  raise_mysql_error(handle, \"mysql_list_fields\");"))
+
+;; mysql_list_processes
+(define-cproc mysql-list-processes (handle::<mysql-handle>)
+  (body <mysql-res>
+	"if ((SCM_RESULT = mysql_list_processes(handle)) == NULL)"
+	"  raise_mysql_error(handle, \"mysql_list_processes\");"))
+
+;; mysql_list_tables
+(define-cproc mysql-list-tables (handle::<mysql-handle> wild::<const-cstring>?)
+  (body <mysql-res>
+	"if ((SCM_RESULT = mysql_list_tables(handle, wild)) == NULL)"
+	"  raise_mysql_error(handle, \"mysql_list_tables\");"))
+
+;; mysql_more_results
+;; mysql_next_result
+
+;; mysql_num_fields
+(define-cproc mysql-num-fields (result::<mysql-res>)
+  (call <uint> "mysql_num_fields"))
+
+;; mysql_num_rows
+(define-cproc mysql-num-rows (result::<mysql-res>)
+  (expr <integer> "Scm_MakeIntegerU64(mysql_num_rows(result))"))
+
+;; mysql_options
+
+;; mysql_ping
+(define-cproc mysql-ping (handle::<mysql-handle>)
+  (body <void>
+	"if (mysql_ping(handle) != 0)"
+	"  raise_mysql_error(handle, \"mysql_ping\");"))
+
+;; mysql_query(OMITTED)
+
+;; mysql_real_connect
 (define-cproc mysql-real-connect (host::<const-cstring>?
 				  user::<const-cstring>?
 				  password::<const-cstring>?
@@ -52,18 +225,7 @@
 				  client_flag::<uint>)
   (call <mysql-handle> "MysqlRealConnect"))
 
-(define-cproc mysql-handle-closed? (connection::<mysql-handle>)
-  (expr <boolean> "MysqlClosedP(connection_scm)"))
-
-(define-cproc mysql-real-query (connection::<mysql-handle> query::<string>)
-  (body <void>
-	"const ScmStringBody *body = SCM_STRING_BODY(query);"
-	"const char *q = SCM_STRING_BODY_START(body);"
-        "unsigned int qlen = SCM_STRING_BODY_SIZE(body);"
-        "if (mysql_real_query(connection, q, qlen) != 0)"
-	"  raise_mysql_error(connection, \"mysql_real_query\");"
-	))
-
+;; mysql_real_escape_string
 (define-cproc mysql-real-escape-string (connection::<mysql-handle>
                                         string::<string>)
   (body "const ScmStringBody *body = SCM_STRING_BODY(string);"
@@ -74,57 +236,112 @@
         "unsigned long finalsize = mysql_real_escape_string(connection, buf, s, origsize);"
         "SCM_RESULT = Scm_MakeString(buf, finalsize, -1, SCM_MAKSTR_COPYING);")) ; buf is now NUL terminated.
 
-(define-cproc mysql-store-result (connection::<mysql-handle>)
-  (body <mysql-res>?
-	"SCM_RESULT = mysql_store_result(connection);"
-	"if ((SCM_RESULT == NULL) && (mysql_errno(connection) != 0))"
-	"  raise_mysql_error(connection, \"mysql_store_result\");"))
+;; mysql_real_query
+(define-cproc mysql-real-query (connection::<mysql-handle> query::<string>)
+  (body <void>
+	"const ScmStringBody *body = SCM_STRING_BODY(query);"
+	"const char *q = SCM_STRING_BODY_START(body);"
+        "unsigned int qlen = SCM_STRING_BODY_SIZE(body);"
+        "if (mysql_real_query(connection, q, qlen) != 0)"
+	"  raise_mysql_error(connection, \"mysql_real_query\");"
+	))
 
-(define-cproc mysql-error (connection::<mysql-handle>)
-  (call <const-cstring> "mysql_error"))
+;; mysql_refresh
+(define-cproc mysql-refresh (handle::<mysql-handle> &rest options)
+  (body <void>
+	"unsigned int accum = 0;"
+	"ScmObj obj;"
+	"for (obj = options; SCM_NULLP(obj); obj = Scm_Cdr(obj))"
+	"  accum |= Scm_GetIntegerU(obj);"
+	"if (mysql_refresh(handle, accum) != 0)"
+	"  raise_mysql_error(handle, \"mysql_refresh\");"))
 
-(define-cproc mysql-errno (connection::<mysql-handle>)
-  (call <int> "mysql_errno"))
+(define-enum-conditionally REFRESH_GRANT)
+(define-enum-conditionally REFRESH_LOG)
+(define-enum-conditionally REFRESH_TABLES)
+(define-enum-conditionally REFRESH_HOSTS)
+(define-enum-conditionally REFRESH_STATUS)
+(define-enum-conditionally REFRESH_THREADS)
+(define-enum-conditionally REFRESH_SLAVE)
+(define-enum-conditionally REFRESH_MASTER)
 
-(define-cproc mysql-res-closed? (result::<mysql-res>)
-  (expr <boolean> "MysqlClosedP(result_scm)"))
+;; mysql_reload(deprecated)
 
-(define-cproc mysql-field-count (handle::<mysql-handle>)
-  (call <uint> "mysql_field_count"))
+;; mysql_rollback
+(define-cproc mysql-rollback (handle::<mysql-handle>)
+  (body <void>
+	"if (mysql_rollback(handle) != 0)"
+	"  raise_mysql_error(handle, \"mysql_rollback\");"))
 
-(define-cproc mysql-num-fields (result::<mysql-res>)
-  (call <uint> "mysql_num_fields"))
+;; mysql_row_seek
+;; mysql_row_tell
 
-(define-cproc mysql-fetch-field-names (result::<mysql-res>?)
-  (call "MysqlFetchFieldNames"))
+;; mysql_select_db
+(define-cproc mysql-select-db (handle::<mysql-handle> db::<const-cstring>)
+  (body <void>
+	"if (mysql_select_db(handle, db) != 0)"
+	"  raise_mysql_error(handle, \"mysql_select_db\");"))
 
-(define-cproc mysql-affected-rows (connection::<mysql-handle>)
-  (call "MysqlAffectedRows"))
-
-(define-cproc mysql-fetch-row (result::<mysql-res>)
-  (call "MysqlFetchRow"))
-
-(define-cproc mysql-data-seek (result::<mysql-res> offset::<integer>)
-  (body <void> "mysql_data_seek(result, Scm_GetInteger64(offset));"))
-
-(define-cproc mysql-close (connection::<mysql-handle>)
-  (body <void> "mysql_cleanup(connection_scm);"))
-
-(define-cproc mysql-free-result (result::<mysql-res>)
-  (body <void> "mysql_res_cleanup(result_scm);"))
-
-(define-cproc mysql-character-set-name (connection::<mysql-handle>)
-  (call <const-cstring> "mysql_character_set_name"))
-
+;; mysql_set_character_set
 (define-cproc mysql-set-character-set (connection::<mysql-handle>
 				       charset::<const-cstring>)
   (body <void>
 	"if (mysql_set_character_set(connection, charset) != 0)"
 	"  raise_mysql_error(connection, \"mysql_set_character_set\");"))
 
+;; mysql_set_local_infile_default
+;; mysql_set_local_infile_handler
+;; mysql_set_server_option
+
+;; mysql_shutdown
+(define-cproc mysql-shutdown (handle::<mysql-handle> &optional (level::<int> (c "SHUTDOWN_DEFAULT")))
+  (body <void>
+	"if (mysql_shutdown(handle, level) != 0)"
+	"  raise_mysql_error(handle, \"mysql_shutdown\");"))
+
+;; mysql_sqlstate
+(define-cproc mysql-sqlstate (handle::<mysql-handle>)
+  (call <const-cstring> "mysql_sqlstate"))
+
+;; mysql_ssl_set
+
+;; mysql-stat
+(define-cproc mysql-stat (handle::<mysql-handle>)
+  (body <const-cstring>
+	"if ((SCM_RESULT = mysql_stat(handle)) == NULL)"
+	"  raise_mysql_error(handle, \"mysql_stat\");"))
+
+;; mysql_store_result
+(define-cproc mysql-store-result (connection::<mysql-handle>)
+  (body <mysql-res>?
+	"SCM_RESULT = mysql_store_result(connection);"
+	"if ((SCM_RESULT == NULL) && (mysql_errno(connection) != 0))"
+	"  raise_mysql_error(connection, \"mysql_store_result\");"))
+
+;; mysql_thread_id
+(define-cproc mysql-thread-id (handle::<mysql-handle>)
+  (call <ulong> "mysql_thread_id"))
+
+;; mysql_use_result(OMITTED)
+
+;; mysql_warning_count
+(define-cproc mysql-warning-count (handle::<mysql-handle>)
+  (call <uint> "mysql_warning_count"))
+
+(define-cproc mysql-handle-closed? (connection::<mysql-handle>)
+  (expr <boolean> "MysqlClosedP(connection_scm)"))
+
+(define-cproc mysql-res-closed? (result::<mysql-res>)
+  (expr <boolean> "MysqlClosedP(result_scm)"))
+
 ;;
-;; Prepared Statement Handling
+;; Native Prepared Statement API
 ;;
+
+(define-type <mysql-stmt> "MYSQL_STMTX*" "MySQL enhanced statement handle"
+  "MYSQL_STMTX_P" "MYSQL_STMTX_UNBOX" "MYSQL_STMTX_BOX")
+(define-cproc mysql-stmt? (obj)
+  (call <boolean> "MYSQL_STMTX_P"))
 
 (define-cproc mysql-stmt-prepare (connection::<mysql-handle> sql::<string>)
   (call <mysql-stmt> "MysqlStmtxPrepare"))

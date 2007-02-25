@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.25 2007/02/23 08:45:45 bizenn Exp $
+;; $Id: mysql.scm,v 1.26 2007/02/25 14:34:11 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -33,15 +33,21 @@
           ;; Low-level API
 	  <mysql-handle> <mysql-res>
 	  mysql-handle? mysql-res?
-	  mysql-real-connect mysql-real-query
-	  mysql-affected-rows mysql-data-seek
-	  mysql-field-count mysql-num-fields
-	  mysql-store-result mysql-error mysql-errno
-	  mysql-fetch-row mysql-free-result mysql-close
+	  mysql-affected-rows mysql-autocommit
+	  mysql-change-user mysql-character-set-name
+	  mysql-close mysql-commit mysql-debug mysql-data-seek
+	  mysql-dump-debug-info mysql-error mysql-errno
+	  mysql-fetch-field-names mysql-fetch-row mysql-field-count
+	  mysql-free-result mysql-get-client-info mysql-get-client-version
+	  mysql-get-host-info mysql-get-proto-info mysql-get-server-info
+	  mysql-get-server-version mysql-info mysql-insert-id
+	  mysql-list-dbs mysql-list-fields mysql-list-processes
+	  mysql-list-tables mysql-num-fields mysql-num-rows
+	  mysql-real-connect mysql-real-escape-string mysql-real-query
+	  mysql-refresh mysql-rollback mysql-select-db mysql-set-character-set
+	  mysql-shutdown mysql-sqlstate mysql-stat mysql-store-result
+	  mysql-thread-id mysql-warning-count
           mysql-handle-closed? mysql-res-closed?
-          mysql-real-escape-string
-	  mysql-character-set-name
-	  mysql-set-character-set
 
 	  ;; Native Prepared Statement API
 	  <mysql-stmt> mysql-stmt? mysql-stmt-prepare mysql-stmt-close
@@ -55,6 +61,9 @@
 
 ;; Loads extension
 (dynamic-load "dbd_mysql")
+
+(export-if-defined REFRESH_GRANT REFRESH_LOG REFRESH_TABLES REFRESH_HOSTS
+		   REFRESH_STATUS REFRESH_THREADS REFRESH_SLAVE REFRESH_MASTER)
 
 (define-condition-type <mysql-error> <dbi-error> mysql-error?
   (error-code)
