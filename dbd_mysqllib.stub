@@ -18,7 +18,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: dbd_mysqllib.stub,v 1.22 2007/02/25 14:34:11 bizenn Exp $
+;; $Id: dbd_mysqllib.stub,v 1.23 2007/02/25 22:52:16 bizenn Exp $
 
 "
 #include \"dbd_mysql.h\"
@@ -107,9 +107,6 @@
 ;; mysql_fetch_field_direct
 ;; mysql_fetch_fields
 ;; mysql_fetch_lengths
-
-(define-cproc mysql-fetch-field-names (result::<mysql-res>?)
-  (call "MysqlFetchFieldNames"))
 
 ;; mysql_fetch_row
 (define-cproc mysql-fetch-row (result::<mysql-res>)
@@ -334,6 +331,9 @@
 (define-cproc mysql-res-closed? (result::<mysql-res>)
   (expr <boolean> "MysqlClosedP(result_scm)"))
 
+(define-cproc mysql-fetch-field-names (result::<mysql-res>?)
+  (call "MysqlFetchFieldNames"))
+
 ;;
 ;; Native Prepared Statement API
 ;;
@@ -343,35 +343,93 @@
 (define-cproc mysql-stmt? (obj)
   (call <boolean> "MYSQL_STMTX_P"))
 
+;; mysql_stmt_affected_rows
+(define-cproc mysql-stmt-affected-rows (stmtx::<mysql-stmt>)
+  (expr "MysqlStmtAffectedRows(stmtx->stmt)"))
+
+;; mysql_stmt_attr_get
+;; mysql_stmt_attr_set
+;; mysql_stmt_bind_param(integrated into mysql-stmt-prepare)
+;; mysql_stmt_bind_result(integrated into mysql-stmt-execute)
+
+;; mysql_stmt_close
+(define-cproc mysql-stmt-close (stmtx::<mysql-stmt>)
+  (body <void> "mysql_stmtx_cleanup(stmtx_scm);"))
+
+;; mysql_stmt_data_seek
+(define-cproc mysql-stmt-data-seek (stmtx::<mysql-stmt> offset::<integer>)
+  (body <void> "mysql_stmt_data_seek(stmtx->stmt, Scm_GetIntegerU64(offset));"))
+
+;; mysql_stmt_errno
+(define-cproc mysql-stmt-errno (stmtx::<mysql-stmt>)
+  (expr <uint> "mysql_stmt_errno(stmtx->stmt)"))
+
+;; mysql_stmt_error
+(define-cproc mysql-stmt-error (stmtx::<mysql-stmt>)
+  (expr <const-cstring> "mysql_stmt_error(stmtx->stmt)"))
+
+;; mysql_stmt_execute
+(define-cproc mysql-stmt-execute (stmtx::<mysql-stmt> &rest args)
+  (body <void> "MysqlStmtxExecute(stmtx, args);"))
+
+;; mysql_stmt_fetch
+(define-cproc mysql-stmt-fetch (stmtx::<mysql-stmt>)
+  (call "MysqlStmtxFetch"))
+
+;; mysql_stmt_fetch_column
+
+;; mysql_stmt_field_count
+(define-cproc mysql-stmt-field-count (stmtx::<mysql-stmt>)
+  (expr <uint> "mysql_stmt_field_count(stmtx->stmt)"))
+
+;; mysql_stmt_free_result
+(define-cproc mysql-stmt-free-result (stmtx::<mysql-stmt>)
+  (body <void>
+	"if (mysql_stmt_free_result(stmtx->stmt))"
+	"  raise_mysql_stmt_error(stmtx->stmt, \"mysql_stmt_free_result\");"))
+
+;; mysql_stmt_init(integrate into mysql-stmt-prepare)
+
+;; mysql_stmt_insert_id
+(define-cproc mysql-stmt-insert-id (stmtx::<mysql-stmt>)
+  (expr <integer> "Scm_MakeIntegerU64(mysql_stmt_insert_id(stmtx->stmt))"))
+
+;; mysql_stmt_num_rows
+(define-cproc mysql-stmt-num-rows (stmtx::<mysql-stmt>)
+  (expr <integer> "Scm_MakeIntegerU64(mysql_stmt_num_rows(stmtx->stmt))"))
+
+;; mysql_stmt_param_count
+(define-cproc mysql-stmt-param-count (stmtx::<mysql-stmt>)
+  (expr <uint> "mysql_stmt_param_count(stmtx->stmt)"))
+
+;; mysql_stmt_param_metadata
+
+;; mysql_stmt_prepare
 (define-cproc mysql-stmt-prepare (connection::<mysql-handle> sql::<string>)
   (call <mysql-stmt> "MysqlStmtxPrepare"))
 
-(define-cproc mysql-stmt-close (stmtx::<mysql-stmt>)
-  (body <void> "mysql_stmtx_cleanup(stmtx_scm);"))
+;; mysql_stmt_reset
+(define-cproc mysql-stmt-reset (stmtx::<mysql-stmt>)
+  (body <void>
+	"if (mysql_stmt_reset(stmtx->stmt) != 0)"
+	"  raise_mysql_stmt_error(stmtx->stmt, \"mysql_stmt_reset\");"))
+
+;; mysql_stmt_result_metadata
+;; mysql_stmt_row_seek
+;; mysql_stmt_row_tell
+;; mysql_stmt_send_long_data
+
+(define-cproc mysql-stmt-sqlstate (stmtx::<mysql-stmt>)
+  (expr <const-cstring> "mysql_stmt_sqlstate(stmtx->stmt)"))
+
+;; mysql_stmt_store_result(integrated into mysql-stmt-execute)
 
 (define-cproc mysql-stmt-closed? (stmtx::<mysql-stmt>)
   (expr <boolean> "MysqlClosedP(stmtx_scm)"))
 
-(define-cproc mysql-stmt-param-count (stmtx::<mysql-stmt>)
-  (expr <uint> "mysql_stmt_param_count(stmtx->stmt)"))
-
-(define-cproc mysql-stmt-field-count (stmtx::<mysql-stmt>)
-  (expr <uint> "mysql_stmt_field_count(stmtx->stmt)"))
-
-(define-cproc mysql-stmt-execute (stmtx::<mysql-stmt> &rest args)
-  (body <void> "MysqlStmtxExecute(stmtx, args);"))
-
-(define-cproc mysql-stmt-fetch (stmtx::<mysql-stmt>)
-  (call "MysqlStmtxFetch"))
-
-(define-cproc mysql-stmt-affected-rows (stmtx::<mysql-stmt>)
-  (expr "MysqlStmtAffectedRows(stmtx->stmt)"))
-
 (define-cproc mysql-stmt-fetch-field-names (stmtx::<mysql-stmt>)
   (call "MysqlStmtxFetchFieldNames"))
 
-(define-cproc mysql-stmt-data-seek (stmtx::<mysql-stmt> offset::<integer>)
-  (body <void> "mysql_stmt_data_seek(stmtx->stmt, Scm_GetIntegerU64(offset));"))
 
 ;; from errmsg.h mysql-3.23
 (define-enum-conditionally CR_MIN_ERROR)

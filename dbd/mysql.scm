@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.26 2007/02/25 14:34:11 bizenn Exp $
+;; $Id: mysql.scm,v 1.27 2007/02/25 22:52:16 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -29,6 +29,7 @@
   (use util.match)
   (use gauche.mop.singleton)
   (export <mysql-driver> <mysql-connection> <mysql-result-set>
+	  <mysql-error> <mysql-stmt-error>
 
           ;; Low-level API
 	  <mysql-handle> <mysql-res>
@@ -49,13 +50,15 @@
 	  mysql-thread-id mysql-warning-count
           mysql-handle-closed? mysql-res-closed?
 
-	  ;; Native Prepared Statement API
-	  <mysql-stmt> mysql-stmt? mysql-stmt-prepare mysql-stmt-close
-	  mysql-stmt-closed? mysql-stmt-execute mysql-stmt-fetch
-	  mysql-stmt-param-count mysql-stmt-field-count
-	  mysql-stmt-affected-rows mysql-stmt-data-seek
+	  ;; Low-level Prepared Statement API
+	  <mysql-stmt> mysql-stmt? mysql-stmt-affected-rows mysql-stmt-close
+	  mysql-stmt-data-seek mysql-stmt-errno mysql-stmt-error
+	  mysql-stmt-execute mysql-stmt-fetch mysql-stmt-field-count
+	  mysql-stmt-free-result mysql-stmt-insert-id mysql-stmt-num-rows
+	  mysql-stmt-param-count mysql-stmt-prepare mysql-stmt-reset
+	  mysql-stmt-sqlstate
+	  mysql-stmt-closed?
 	  mysql-stmt-fetch-field-names
-	  <mysql-error> <mysql-stmt-error>
           ))
 (select-module dbd.mysql)
 
