@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.27 2007/02/25 22:52:16 bizenn Exp $
+;; $Id: mysql.scm,v 1.28 2007/02/27 06:22:58 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -32,13 +32,13 @@
 	  <mysql-error> <mysql-stmt-error>
 
           ;; Low-level API
-	  <mysql-handle> <mysql-res>
+	  <mysql-handle> <mysql-res> <mysql-field>
 	  mysql-handle? mysql-res?
 	  mysql-affected-rows mysql-autocommit
 	  mysql-change-user mysql-character-set-name
 	  mysql-close mysql-commit mysql-debug mysql-data-seek
 	  mysql-dump-debug-info mysql-error mysql-errno
-	  mysql-fetch-field-names mysql-fetch-row mysql-field-count
+	  mysql-fetch-field-direct mysql-fetch-field-names mysql-fetch-row mysql-field-count
 	  mysql-free-result mysql-get-client-info mysql-get-client-version
 	  mysql-get-host-info mysql-get-proto-info mysql-get-server-info
 	  mysql-get-server-version mysql-info mysql-insert-id
@@ -67,6 +67,13 @@
 
 (export-if-defined REFRESH_GRANT REFRESH_LOG REFRESH_TABLES REFRESH_HOSTS
 		   REFRESH_STATUS REFRESH_THREADS REFRESH_SLAVE REFRESH_MASTER)
+
+(export-if-defined MYSQL_TYPE_TINY MYSQL_TYPE_SHORT MYSQL_TYPE_LONG MYSQL_TYPE_INT24
+		   MYSQL_TYPE_LONGLONG MYSQL_TYPE_DECIMAL MYSQL_TYPE_NEWDECIMAL
+		   MYSQL_TYPE_FLOAT MYSQL_TYPE_DOUBLE MYSQL_TYPE_BIT MYSQL_TYPE_TIMESTAMP
+		   MYSQL_TYPE_DATE MYSQL_TYPE_TIME MYSQL_TYPE_DATETIME MYSQL_TYPE_YEAR
+		   MYSQL_TYPE_STRING MYSQL_TYPE_VAR_STRING MYSQL_TYPE_BLOB MYSQL_TYPE_SET
+		   MYSQL_TYPE_ENUM MYSQL_TYPE_GEOMETRY MYSQL_TYPE_NULL)
 
 (define-condition-type <mysql-error> <dbi-error> mysql-error?
   (error-code)

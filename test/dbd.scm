@@ -5,7 +5,7 @@
 ;;  Copyright (c) 2003-2007 Scheme Arts, L.L.C., All rights reserved.
 ;;  Copyright (c) 2003-2007 Time Intermedia Corporation, All rights reserved.
 ;;
-;; $Id: dbd.scm,v 1.15 2007/02/23 08:43:25 bizenn Exp $
+;; $Id: dbd.scm,v 1.16 2007/02/27 06:22:58 bizenn Exp $
 
 (use gauche.test)
 (use gauche.collection)
@@ -53,6 +53,37 @@
 (dotimes (i 10)
   (test* #`"mysql-fetch-row record #,|i|" `#(,#`",|i|" ,#`"DATA,|i|") (mysql-fetch-row *result*) equal?))
 (test* "mysql-res-closed?/before close" #f (mysql-res-closed? *result*))
+(test* "mysql-fetch-field-direct" <mysql-field> (let1 field (mysql-fetch-field-direct *result* 0)
+						  (class-of field)))
+(let ((field0 (mysql-fetch-field-direct *result* 0))
+      (field1 (mysql-fetch-field-direct *result* 1)))
+  (for-each (lambda (args)
+	      (apply (lambda (sname comp value0 value1)
+		       (test* (format "Field #0 Information: ~a" sname) value0 (slot-ref field0 sname) comp)
+		       (test* (format "Field #1 Information: ~a" sname) value1 (slot-ref field1 sname) comp))
+		     args))
+	    `((name ,string-ci=? "ID" "DATA")
+	      (original-name ,string-ci=? "ID" "DATA")
+	      (table ,string-ci=? "DBD_TEST" "DBD_TEST")
+	      (original-table ,string-ci=? "DBD_TEST" "DBD_TEST")
+	      (db ,string-ci=? "test" "test")
+	      (catalog ,string=? "def" "def")
+	      (default-value ,eqv? #f #f)
+	      (length ,= 11 765)
+	      (max-length ,= 1 5)
+	      (not-null? ,eqv? #t #f)
+	      (primary-key? ,eqv? #t #f)
+	      (unique-key? ,eqv? #f #f)
+	      (multiple-key? ,eqv? #f #f)
+	      (unsigned? ,eqv? #f #f)
+	      (zerofill? ,eqv? #f #f)
+	      (binary? ,eqv? #f #f)
+	      (auto-increment? ,eqv? #f #f)
+	      (decimals ,= 0 0)
+	      (charset-number ,= 63 33)
+	      (type ,= ,MYSQL_TYPE_LONG ,MYSQL_TYPE_VAR_STRING)
+	      )))
+
 (test* "mysql-free-result" (undefined) (mysql-free-result *result*))
 (test* "mysql-res-closed?/after close" #t (mysql-res-closed? *result*))
 

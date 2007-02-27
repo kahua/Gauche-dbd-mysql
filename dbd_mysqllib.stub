@@ -18,7 +18,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: dbd_mysqllib.stub,v 1.23 2007/02/25 22:52:16 bizenn Exp $
+;; $Id: dbd_mysqllib.stub,v 1.24 2007/02/27 06:22:58 bizenn Exp $
 
 "
 #include \"dbd_mysql.h\"
@@ -71,8 +71,8 @@
 	"if (mysql_commit(connection) != 0)"
 	" raise_mysql_error(connection, \"mysql_commit\");"))
 
-;; mysql_connect(deprecated)
-;; mysql_create_db(deprecated)
+;; mysql_connect(): OMITTED(deprecated)
+;; mysql_create_db(): OMITTED(deprecated)
 
 ;; mysql_data_seek
 (define-cproc mysql-data-seek (result::<mysql-res> offset::<integer>)
@@ -100,11 +100,72 @@
 (define-cproc mysql-error (connection::<mysql-handle>)
   (call <const-cstring> "mysql_error"))
 
-;; mysql_escape_string(OMITTED)
+;; mysql_escape_string(): OMITTED
 
 ;; MYSQL_FIELD
+(define-type <mysql-field> "ScmMysqlField*" "MySQL field information"
+  "MYSQL_FIELD_P" "SCM_MYSQL_FIELD")
+(define-cclass <mysql-field>
+  "ScmMysqlField*" "Scm_MysqlFieldClass"
+  ()
+  ((name          :type <const-cstring> :setter #f :getter
+		  "return Scm_MakeString(MYSQL_FIELD_NAME(obj), MYSQL_FIELD_NAME_LENGTH(obj), -1, SCM_STRING_COPYING);")
+   (original-name :type <const-cstring> :setter #f :getter
+		  "return Scm_MakeString(MYSQL_FIELD_ORG_NAME(obj), MYSQL_FIELD_ORG_NAME_LENGTH(obj), -1, SCM_STRING_COPYING);")
+   (table         :type <const-cstring> :setter #f :getter
+		  "return Scm_MakeString(MYSQL_FIELD_TABLE(obj), MYSQL_FIELD_TABLE_LENGTH(obj), -1, SCM_STRING_COPYING);")
+   (original-table :type <const-cstring> :setter #f :getter
+		   "return Scm_MakeString(MYSQL_FIELD_ORG_TABLE(obj), MYSQL_FIELD_ORG_TABLE_LENGTH(obj), -1, SCM_STRING_COPYING);")
+   (db            :type <const-cstring> :setter #f :getter
+		  "return Scm_MakeString(MYSQL_FIELD_DB(obj), MYSQL_FIELD_DB_LENGTH(obj), -1, SCM_STRING_COPYING);")
+   (catalog       :type <const-cstring> :setter #f :getter
+		  "return Scm_MakeString(MYSQL_FIELD_CATALOG(obj), MYSQL_FIELD_CATALOG_LENGTH(obj), -1, SCM_STRING_COPYING);")
+   (default-value :type <const-cstring>? :setter #f :getter
+                  "return MYSQL_FIELD_UNBOX(obj)->def==NULL?SCM_FALSE:Scm_MakeString(MYSQL_FIELD_DEF(obj), MYSQL_FIELD_DEF_LENGTH(obj), -1, SCM_STRING_COPYING);")
+   (length        :type <ulong> :setter #f :getter "return Scm_MakeIntegerU64(MYSQL_FIELD_LENGTH(obj));")
+   (max-length    :type <ulong> :setter #f :getter "return Scm_MakeIntegerU64(MYSQL_FIELD_MAX_LENGTH(obj));")
+   (not-null?     :type <boolean> :setter #f :getter "return MYSQL_FIELD_NOT_NULL_P(obj);")
+   (primary-key?  :type <boolean> :setter #f :getter "return MYSQL_FIELD_PRIMARY_KEY_P(obj);")
+   (unique-key?   :type <boolean> :setter #f :getter "return MYSQL_FIELD_UNIQUE_KEY_P(obj);")
+   (multiple-key? :type <boolean> :setter #f :getter "return MYSQL_FIELD_MULTIPLE_KEY_P(obj);")
+   (unsigned?     :type <boolean> :setter #f :getter "return MYSQL_FIELD_UNSIGNED_P(obj);")
+   (zerofill?     :type <boolean> :setter #f :getter "return MYSQL_FIELD_ZEROFILL_P(obj);")
+   (binary?       :type <boolean> :setter #f :getter "return MYSQL_FIELD_BINARY_P(obj);")
+   (auto-increment? :type <boolean> :setter #f :getter "return MYSQL_FIELD_AUTO_INCREMENT_P(obj);")
+   (decimals      :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_FIELD_DECIMALS(obj));")
+   (charset-number :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_FIELD_CHARSETNR(obj));")
+   (type          :type <int> :setter #f :getter "return Scm_MakeInteger(MYSQL_FIELD_TYPE(obj));")
+   ))
+
+(define-enum MYSQL_TYPE_TINY)
+(define-enum MYSQL_TYPE_SHORT)
+(define-enum MYSQL_TYPE_LONG)
+(define-enum MYSQL_TYPE_INT24)
+(define-enum MYSQL_TYPE_LONGLONG)
+(define-enum MYSQL_TYPE_DECIMAL)
+(define-enum MYSQL_TYPE_NEWDECIMAL)	; 5.0.3 or later
+(define-enum MYSQL_TYPE_FLOAT)
+(define-enum MYSQL_TYPE_DOUBLE)
+(define-enum MYSQL_TYPE_BIT)		; 5.0.3 or later
+(define-enum MYSQL_TYPE_TIMESTAMP)
+(define-enum MYSQL_TYPE_DATE)
+(define-enum MYSQL_TYPE_TIME)
+(define-enum MYSQL_TYPE_DATETIME)
+(define-enum MYSQL_TYPE_YEAR)
+(define-enum MYSQL_TYPE_STRING)
+(define-enum MYSQL_TYPE_VAR_STRING)
+(define-enum MYSQL_TYPE_BLOB)
+(define-enum MYSQL_TYPE_SET)
+(define-enum MYSQL_TYPE_ENUM)
+(define-enum MYSQL_TYPE_GEOMETRY)
+(define-enum MYSQL_TYPE_NULL)
+
 ;; mysql_fetch_field
+
 ;; mysql_fetch_field_direct
+(define-cproc mysql-fetch-field-direct (result::<mysql-res> offset::<uint>)
+  (body "SCM_RETURN(Scm_MakeMysqlField(mysql_fetch_field_direct(result, offset)));"))
+
 ;; mysql_fetch_fields
 ;; mysql_fetch_lengths
 

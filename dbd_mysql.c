@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.18 2007/02/23 08:43:25 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.19 2007/02/27 06:22:58 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -199,6 +199,16 @@ ScmObj MysqlFetchRow(MYSQL_RES *result)
             Scm_MakeString(row[i], len[i], -1, SCM_MAKSTR_COPYING);
     }
     return v;
+}
+
+ScmObj Scm_MakeMysqlField(const MYSQL_FIELD *field)
+{
+    ScmMysqlField *obj = SCM_NEW_ATOMIC2(ScmMysqlField*, sizeof(ScmMysqlField));
+
+    SCM_ASSERT(field != NULL);
+    SCM_SET_CLASS(obj, SCM_CLASS_MYSQL_FIELD);
+    obj->field = field;
+    SCM_RETURN(SCM_OBJ(obj));
 }
 
 static MYSQL_STMTX *make_mysql_stmtx(void)

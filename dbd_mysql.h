@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.h,v 1.17 2007/02/23 08:43:25 bizenn Exp $
+ * $Id: dbd_mysql.h,v 1.18 2007/02/27 06:22:58 bizenn Exp $
  */
 
 /* Prologue */
@@ -29,6 +29,7 @@
 
 #include <gauche.h>
 #include <gauche/extend.h>
+#include <gauche/class.h>
 
 SCM_DECL_BEGIN
 
@@ -73,6 +74,44 @@ typedef ScmForeignPointer ScmMysqlStmtx;
 #define MYSQL_STMTX_FIELD_COUNT(obj) ((MYSQL_STMTX_UNBOX(obj))->field_count)
 #define MYSQL_STMTX_METARES(obj) ((MYSQL_STMTX_UNBOX(obj))->metares)
 
+typedef struct {
+    SCM_HEADER;
+    MYSQL_FIELD *field;
+} ScmMysqlField;
+SCM_CLASS_DECL(Scm_MysqlFieldClass);
+#define SCM_CLASS_MYSQL_FIELD     (&Scm_MysqlFieldClass)
+#define SCM_MYSQL_FIELD(obj)      ((ScmMysqlField*)obj)
+#define MYSQL_FIELD_P(obj)        SCM_XTYPEP(obj, SCM_CLASS_MYSQL_FIELD)
+#define MYSQL_FIELD_UNBOX(obj)    (SCM_MYSQL_FIELD(obj)->field)
+#define MYSQL_FIELD_BOX(field)    Scm_MakeMysqlField(SCM_CLASS_MYSQL_FIELD, field)
+#define MYSQL_FIELD_NAME(obj)     (MYSQL_FIELD_UNBOX(obj)->name)
+#define MYSQL_FIELD_NAME_LENGTH(obj) (MYSQL_FIELD_UNBOX(obj)->name_length)
+#define MYSQL_FIELD_ORG_NAME(obj) (MYSQL_FIELD_UNBOX(obj)->org_name)
+#define MYSQL_FIELD_ORG_NAME_LENGTH(obj) (MYSQL_FIELD_UNBOX(obj)->org_name_length)
+#define MYSQL_FIELD_TABLE(obj)    (MYSQL_FIELD_UNBOX(obj)->table)
+#define MYSQL_FIELD_TABLE_LENGTH(obj) (MYSQL_FIELD_UNBOX(obj)->table_length)
+#define MYSQL_FIELD_ORG_TABLE(obj) (MYSQL_FIELD_UNBOX(obj)->org_table)
+#define MYSQL_FIELD_ORG_TABLE_LENGTH(obj) (MYSQL_FIELD_UNBOX(obj)->org_table_length)
+#define MYSQL_FIELD_DB(obj)       (MYSQL_FIELD_UNBOX(obj)->db)
+#define MYSQL_FIELD_DB_LENGTH(obj) (MYSQL_FIELD_UNBOX(obj)->db_length)
+#define MYSQL_FIELD_CATALOG(obj)  (MYSQL_FIELD_UNBOX(obj)->catalog)
+#define MYSQL_FIELD_CATALOG_LENGTH(obj) (MYSQL_FIELD_UNBOX(obj)->catalog_length)
+#define MYSQL_FIELD_DEF(obj)      (MYSQL_FIELD_UNBOX(obj)->def)
+#define MYSQL_FIELD_DEF_LENGTH(obj) (MYSQL_FIELD_UNBOX(obj)->def_length)
+#define MYSQL_FIELD_LENGTH(obj)   (MYSQL_FIELD_UNBOX(obj)->length)
+#define MYSQL_FIELD_MAX_LENGTH(obj) (MYSQL_FIELD_UNBOX(obj)->max_length)
+#define MYSQL_FIELD_NOT_NULL_P(obj) (SCM_MAKE_BOOL(MYSQL_FIELD_UNBOX(obj)->flags&NOT_NULL_FLAG))
+#define MYSQL_FIELD_PRIMARY_KEY_P(obj) (SCM_MAKE_BOOL(MYSQL_FIELD_UNBOX(obj)->flags&PRI_KEY_FLAG))
+#define MYSQL_FIELD_UNIQUE_KEY_P(obj) (SCM_MAKE_BOOL(MYSQL_FIELD_UNBOX(obj)->flags&UNIQUE_KEY_FLAG))
+#define MYSQL_FIELD_MULTIPLE_KEY_P(obj) (SCM_MAKE_BOOL(MYSQL_FIELD_UNBOX(obj)->flags&MULTIPLE_KEY_FLAG))
+#define MYSQL_FIELD_UNSIGNED_P(obj) (SCM_MAKE_BOOL(MYSQL_FIELD_UNBOX(obj)->flags&UNSIGNED_FLAG))
+#define MYSQL_FIELD_ZEROFILL_P(obj) (SCM_MAKE_BOOL(MYSQL_FIELD_UNBOX(obj)->flags&ZEROFILL_FLAG))
+#define MYSQL_FIELD_BINARY_P(obj) (SCM_MAKE_BOOL(MYSQL_FIELD_UNBOX(obj)->flags&BINARY_FLAG))
+#define MYSQL_FIELD_AUTO_INCREMENT_P(obj) (SCM_MAKE_BOOL(MYSQL_FIELD_UNBOX(obj)->flags&AUTO_INCREMENT_FLAG))
+#define MYSQL_FIELD_DECIMALS(obj) (MYSQL_FIELD_UNBOX(obj)->decimals)
+#define MYSQL_FIELD_CHARSETNR(obj) (MYSQL_FIELD_UNBOX(obj)->charsetnr)
+#define MYSQL_FIELD_TYPE(obj) (MYSQL_FIELD_UNBOX(obj)->type)
+
 /*
  * API
  */
@@ -90,6 +129,8 @@ extern MYSQL *MysqlRealConnect(const char *host,
 extern ScmObj MysqlAffectedRows(MYSQL *handle);
 extern ScmObj MysqlFetchFieldNames(MYSQL_RES *result);
 extern ScmObj MysqlFetchRow(MYSQL_RES *result);
+
+extern ScmObj Scm_MakeMysqlField(const MYSQL_FIELD *field);
 
 extern MYSQL_STMTX *MysqlStmtxPrepare(MYSQL *connection, ScmString *sql);
 extern void MysqlStmtxExecute(MYSQL_STMTX *stmtx, ScmObj args);
