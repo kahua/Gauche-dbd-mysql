@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.h,v 1.18 2007/02/27 06:22:58 bizenn Exp $
+ * $Id: dbd_mysql.h,v 1.19 2007/02/27 07:42:56 bizenn Exp $
  */
 
 /* Prologue */
@@ -111,6 +111,24 @@ SCM_CLASS_DECL(Scm_MysqlFieldClass);
 #define MYSQL_FIELD_DECIMALS(obj) (MYSQL_FIELD_UNBOX(obj)->decimals)
 #define MYSQL_FIELD_CHARSETNR(obj) (MYSQL_FIELD_UNBOX(obj)->charsetnr)
 #define MYSQL_FIELD_TYPE(obj) (MYSQL_FIELD_UNBOX(obj)->type)
+
+typedef struct {
+    SCM_HEADER;
+    MY_CHARSET_INFO info;
+} ScmMysqlCharsetInfo;
+SCM_CLASS_DECL(Scm_MysqlCharsetInfoClass);
+#define SCM_CLASS_MYSQL_CHARSET_INFO  (&Scm_MysqlCharsetInfoClass)
+#define SCM_MYSQL_CHARSET_INFO(obj)   ((ScmMysqlCharsetInfo*)obj)
+#define MYSQL_CHARSET_INFO_P(obj) SCM_XTYPEP(obj, SCM_CLASS_MYSQL_CHARSET_INFO)
+#define MYSQL_CHARSET_INFO_UNBOX(obj)  (SCM_MYSQL_CHARSET_INFO(obj)->info)
+#define MYSQL_CHARSET_INFO_NUMBER(obj) (MYSQL_CHARSET_INFO_UNBOX(obj).number)
+#define MYSQL_CHARSET_INFO_STATE(obj)  (MYSQL_CHARSET_INFO_UNBOX(obj).state)
+#define MYSQL_CHARSET_INFO_CSNAME(obj) (MYSQL_CHARSET_INFO_UNBOX(obj).csname)
+#define MYSQL_CHARSET_INFO_NAME(obj)   (MYSQL_CHARSET_INFO_UNBOX(obj).name)
+#define MYSQL_CHARSET_INFO_COMMENT(obj) (MYSQL_CHARSET_INFO_UNBOX(obj).comment)
+#define MYSQL_CHARSET_INFO_DIR(obj)    (MYSQL_CHARSET_INFO_UNBOX(obj).dir)
+#define MYSQL_CHARSET_INFO_MBMINLEN(obj) (MYSQL_CHARSET_INFO_UNBOX(obj).mbminlen)
+#define MYSQL_CHARSET_INFO_MBMAXLEN(obj) (MYSQL_CHARSET_INFO_UNBOX(obj).mbmaxlen)
 
 /*
  * API

@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.19 2007/02/27 06:22:58 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.20 2007/02/27 07:42:56 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -207,7 +207,7 @@ ScmObj Scm_MakeMysqlField(const MYSQL_FIELD *field)
 
     SCM_ASSERT(field != NULL);
     SCM_SET_CLASS(obj, SCM_CLASS_MYSQL_FIELD);
-    obj->field = field;
+    MYSQL_FIELD_UNBOX(obj) = (MYSQL_FIELD*)field;
     SCM_RETURN(SCM_OBJ(obj));
 }
 

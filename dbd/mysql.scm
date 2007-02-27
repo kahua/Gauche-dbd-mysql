@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.28 2007/02/27 06:22:58 bizenn Exp $
+;; $Id: mysql.scm,v 1.29 2007/02/27 07:42:56 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -32,15 +32,15 @@
 	  <mysql-error> <mysql-stmt-error>
 
           ;; Low-level API
-	  <mysql-handle> <mysql-res> <mysql-field>
+	  <mysql-handle> <mysql-res> <mysql-field> <mysql-charset>
 	  mysql-handle? mysql-res?
 	  mysql-affected-rows mysql-autocommit
 	  mysql-change-user mysql-character-set-name
 	  mysql-close mysql-commit mysql-debug mysql-data-seek
 	  mysql-dump-debug-info mysql-error mysql-errno
 	  mysql-fetch-field-direct mysql-fetch-field-names mysql-fetch-row mysql-field-count
-	  mysql-free-result mysql-get-client-info mysql-get-client-version
-	  mysql-get-host-info mysql-get-proto-info mysql-get-server-info
+	  mysql-free-result mysql-get-character-set-info mysql-get-client-info
+	  mysql-get-client-version mysql-get-host-info mysql-get-proto-info mysql-get-server-info
 	  mysql-get-server-version mysql-info mysql-insert-id
 	  mysql-list-dbs mysql-list-fields mysql-list-processes
 	  mysql-list-tables mysql-num-fields mysql-num-rows

@@ -1,5 +1,9 @@
 2007-02-27  Tatsuya BIZENN  <bizenn@arthub.net>
 
+	* Change: dbd/mysql.scm, dbd_mysqllib.stub, dbd_mysql.h
+	  Add support of MY_CHARSET_INFO structure and
+	  mysql_get_character_set_info.
+
 	* Change: dbd/mysql.scm, dbd_mysqllib.stub, dbd_mysql.c, dbd_mysql.h
 	  Add support of MYSQL_FIELD structure handling and
 	  mysql-fetch-field-direct.  But working in progress.

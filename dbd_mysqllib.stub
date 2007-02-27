@@ -18,7 +18,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: dbd_mysqllib.stub,v 1.24 2007/02/27 06:22:58 bizenn Exp $
+;; $Id: dbd_mysqllib.stub,v 1.25 2007/02/27 07:42:56 bizenn Exp $
 
 "
 #include \"dbd_mysql.h\"
@@ -137,6 +137,7 @@
    (type          :type <int> :setter #f :getter "return Scm_MakeInteger(MYSQL_FIELD_TYPE(obj));")
    ))
 
+;; Field Types
 (define-enum MYSQL_TYPE_TINY)
 (define-enum MYSQL_TYPE_SHORT)
 (define-enum MYSQL_TYPE_LONG)
@@ -160,14 +161,14 @@
 (define-enum MYSQL_TYPE_GEOMETRY)
 (define-enum MYSQL_TYPE_NULL)
 
-;; mysql_fetch_field
+;; mysql_fetch_field(): OMITTED
 
 ;; mysql_fetch_field_direct
 (define-cproc mysql-fetch-field-direct (result::<mysql-res> offset::<uint>)
-  (body "SCM_RETURN(Scm_MakeMysqlField(mysql_fetch_field_direct(result, offset)));"))
+  (body "SCM_RESULT = Scm_MakeMysqlField(mysql_fetch_field_direct(result, offset));"))
 
-;; mysql_fetch_fields
-;; mysql_fetch_lengths
+;; mysql_fetch_fields(): OMITTED
+;; mysql_fetch_lengths(): OMITTED
 
 ;; mysql_fetch_row
 (define-cproc mysql-fetch-row (result::<mysql-res>)
@@ -177,14 +178,35 @@
 (define-cproc mysql-field-count (handle::<mysql-handle>)
   (call <uint> "mysql_field_count"))
 
-;; mysql_field_seek
-;; mysql_field_tell
+;; mysql_field_seek(): OMITTED
+;; mysql_field_tell(): OMITTED
 
 ;; mysql_free_result
 (define-cproc mysql-free-result (result::<mysql-res>)
   (body <void> "mysql_res_cleanup(result_scm);"))
 
-;; mysql_get_character_set_info
+;; MY_CHARSET_INFO
+(define-type <mysql-charset> "ScmMysqlCharsetInfo*" "MySQL character set information"
+  "MYSQL_CHARSET_INFO_P" "SCM_MYSQL_CHARSET_INFO")
+(define-cclass <mysql-charset>
+  "ScmMysqlCharsetInfo*" "Scm_MysqlCharsetInfoClass"
+  ()
+  ((number :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_CHARSET_INFO_NUMBER(obj));")
+   (state  :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_CHARSET_INFO_STATE(obj));")
+   (csname :type <const-cstring> :setter #f :getter "SCM_RETURN(SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_CSNAME(obj)));")
+   (name   :type <const-cstring> :setter #f :getter "SCM_RETURN(SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_NAME(obj)));")
+   (comment :type <const-cstring> :setter #f :getter "SCM_RETURN(SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_COMMENT(obj)));")
+   (dir    :type <const-cstring>? :setter #f :getter
+	   "SCM_RETURN(MYSQL_CHARSET_INFO_DIR(obj)==NULL?SCM_FALSE:SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_DIR(obj)));")
+   (mbminlen :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_CHARSET_INFO_MBMINLEN(obj));")
+   (mbmaxlen :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_CHARSET_INFO_MBMAXLEN(obj));")))
+
+;; mysql_get_character_set_info(5.0.10 or later)
+(define-cproc mysql-get-character-set-info (handle::<mysql-handle>)
+  (body <mysql-charset>
+	"SCM_RESULT = SCM_NEW_ATOMIC2(ScmMysqlCharsetInfo*, sizeof(ScmMysqlCharsetInfo));"
+	"SCM_SET_CLASS(SCM_RESULT, SCM_CLASS_MYSQL_CHARSET_INFO);"
+	"mysql_get_character_set_info(handle, &MYSQL_CHARSET_INFO_UNBOX(SCM_RESULT));"))
 
 ;; mysql_get_client_info
 (define-cproc mysql-get-client-info ()
