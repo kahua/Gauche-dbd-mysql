@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.20 2007/02/27 07:42:56 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.21 2007/02/28 07:11:05 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -291,6 +291,13 @@ static void mysql_init_param(MYSQL_BIND *param, ScmObj obj)
 	param->buffer = p;
 	param->buffer_type = MYSQL_TYPE_DOUBLE;
     }
+    else if (MYSQL_TIME_P(obj)) {
+	param->buffer_type = MYSQL_TYPE_TIMESTAMP;
+	param->buffer = malloc(sizeof(MYSQL_TIME));
+	if (param->buffer == NULL)
+	    Scm_SysError("Cannot allocate MYSQL_TIME buffer in mysql-stmt-execute");
+	*(MYSQL_TIME*)param->buffer = MYSQL_TIME_UNBOX(obj);
+    }
     else
 	Scm_RaiseCondition(MYSQL_ERROR, "error-code", SCM_MAKE_INT(0), "sql-code", SCM_MAKE_STR_IMMUTABLE(""),
 			   SCM_RAISE_CONDITION_MESSAGE, "Parameter is not supported type: %S", obj);
@@ -341,6 +348,17 @@ static void mysql_init_field(MYSQL_BIND *bind, MYSQL_FIELD *field)
 		Scm_SysError("Cannot allocate length buffer.");
 	    if ((bind->is_null = malloc(sizeof(my_bool))) == NULL)
 		Scm_SysError("Cannot allocate is_null buffer.");
+	    break;
+	case MYSQL_TYPE_DATE: case MYSQL_TYPE_TIME:
+	case MYSQL_TYPE_DATETIME: case MYSQL_TYPE_TIMESTAMP:
+	    bind->buffer_type = field->type;
+	    bind->buffer_length = sizeof(MYSQL_TIME);
+	    if ((bind->buffer = calloc(1, bind->buffer_length)) == NULL)
+		Scm_SysError("Cannot allocate bind buffer.");
+	    if ((bind->length = malloc(sizeof(unsigned long))) == NULL)
+		Scm_SysError("Cannot allocate bind buffer.");
+	    if ((bind->is_null = malloc(sizeof(my_bool))) == NULL)
+		Scm_SysError("Cannot allocate bind buffer.");
 	    break;
 	default:
 	    Scm_RaiseCondition(MYSQL_ERROR, "error-code", SCM_MAKE_INT(0), "sql-code", SCM_MAKE_STR_IMMUTABLE(""),
@@ -426,6 +444,10 @@ static ScmObj mysql_bind_to_scm_obj(MYSQL_BIND *bind)
 	    return Scm_MakeString(bind->buffer, *bind->length, -1, SCM_MAKSTR_COPYING);
 	case MYSQL_TYPE_LONGLONG:
 	    return Scm_MakeInteger64(*(long long int*)bind->buffer);
+	case MYSQL_TYPE_DOUBLE:
+	    return Scm_MakeFlonum(*(double*)bind->buffer);
+	case MYSQL_TYPE_TIMESTAMP:
+	    return Scm_MakeMysqlTime((MYSQL_TIME*)bind->buffer);
 	default:
 	    Scm_RaiseCondition(MYSQL_ERROR, "error-code", SCM_MAKE_INT(0), "sql-code", SCM_MAKE_STR_IMMUTABLE(""),
 			       SCM_RAISE_CONDITION_MESSAGE, "Unsupported type: %d", bind->buffer_type);
@@ -471,6 +493,20 @@ ScmObj MysqlStmtxFetchFieldNames(MYSQL_STMTX *stmtx)
 {
     SCM_ASSERT(stmtx != NULL);
     return MysqlFetchFieldNames(stmtx->metares);
+}
+
+ScmObj mysql_time_allocate(ScmClass *klass, ScmObj initargs)
+{
+    ScmMysqlTime *t = SCM_NEW_ATOMIC2(ScmMysqlTime*, sizeof(ScmMysqlTime));
+    SCM_SET_CLASS(t, klass);
+    return SCM_OBJ(t);
+}
+
+ScmObj Scm_MakeMysqlTime(MYSQL_TIME *time)
+{
+    ScmObj t = mysql_time_allocate(SCM_CLASS_MYSQL_TIME, SCM_NIL);
+    MYSQL_TIME_UNBOX(t) = *time;
+    SCM_RETURN(t);
 }
 
 void raise_mysql_error(MYSQL *handle, const char *msg)

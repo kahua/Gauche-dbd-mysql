@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.29 2007/02/27 07:42:56 bizenn Exp $
+;; $Id: mysql.scm,v 1.30 2007/02/28 07:11:05 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -25,6 +25,7 @@
   (use util.relation)
   (use srfi-1)
   (use srfi-13)
+  (use srfi-19)
   (use util.list)
   (use util.match)
   (use gauche.mop.singleton)
@@ -33,7 +34,7 @@
 
           ;; Low-level API
 	  <mysql-handle> <mysql-res> <mysql-field> <mysql-charset>
-	  mysql-handle? mysql-res?
+	  mysql-handle? mysql-res? mysql-field? mysql-charset?
 	  mysql-affected-rows mysql-autocommit
 	  mysql-change-user mysql-character-set-name
 	  mysql-close mysql-commit mysql-debug mysql-data-seek
@@ -51,7 +52,8 @@
           mysql-handle-closed? mysql-res-closed?
 
 	  ;; Low-level Prepared Statement API
-	  <mysql-stmt> mysql-stmt? mysql-stmt-affected-rows mysql-stmt-close
+	  <mysql-stmt> <mysql-time>
+	  mysql-stmt? mysql-time? mysql-stmt-affected-rows mysql-stmt-close
 	  mysql-stmt-data-seek mysql-stmt-errno mysql-stmt-error
 	  mysql-stmt-execute mysql-stmt-fetch mysql-stmt-field-count
 	  mysql-stmt-free-result mysql-stmt-insert-id mysql-stmt-num-rows
@@ -59,6 +61,7 @@
 	  mysql-stmt-sqlstate
 	  mysql-stmt-closed?
 	  mysql-stmt-fetch-field-names
+	  mysql-time->string
           ))
 (select-module dbd.mysql)
 
@@ -222,6 +225,51 @@
 
 (define-method dbi-close ((c <mysql-connection>))
   (mysql-close (slot-ref c '%handle)))
+
+;; <mysql-time> handling
+
+(define (mysql-time->string t)
+  (format #f "~d-~2,'0d-~2,'0d ~2,'0d:~2,'0d:~2,'0d.~6,'0d"
+	  (slot-ref t 'year) (slot-ref t 'month) (slot-ref t 'day)
+	  (slot-ref t 'hour) (slot-ref t 'minute) (slot-ref t 'second)
+	  (slot-ref t 'second-part)))
+(define-method x->string ((t <mysql-time>))
+  (mysql-time->string t))
+
+(define (sys-tm->mysql-time tm)
+  (make <mysql-time>
+    :year (+ 1900 (slot-ref tm 'year))
+    :month (+ 1 (slot-ref tm 'mon))
+    :day (slot-ref tm 'mday)
+    :hour (slot-ref tm 'hour)
+    :minute (slot-ref tm 'min)
+    :second (slot-ref tm 'sec)
+    :second-part 0))
+(define (mysql-time->sys-tm mtime)
+  (make <sys-tm>
+    :year (- (slot-ref mtime 'year) 1900)
+    :mon (- (slot-ref mtime 'month) 1)
+    :mday (slot-ref mtime 'day)
+    :hour (slot-ref mtime 'hour)
+    :min (slot-ref mtime 'minute)
+    :sec (slot-ref mtime 'second)))
+
+(define (date->mysql-time d)
+  (make <mysql-time>
+    :year (slot-ref d 'year)
+    :month (slot-ref d 'month)
+    :day (slot-ref d 'day)
+    :hour (slot-ref d 'hour)
+    :minute (slot-ref d 'minute)
+    :second (slot-ref d 'second)
+    :second-part (quotient (slot-ref d 'nanosecond) 1000)))
+(define (mysql-time->date t)
+  (let1 d (current-date)
+    (for-each (lambda (sname)
+		(slot-set! d sname (slot-ref t sname)))
+	      '(year month day hour minute second))
+    (slot-set! d 'nanosecond (* 1000 (slot-ref t 'second-part)))
+    d))
 
 ;; Epilogue
 (provide "dbd/mysql")

@@ -18,7 +18,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: dbd_mysqllib.stub,v 1.25 2007/02/27 07:42:56 bizenn Exp $
+;; $Id: dbd_mysqllib.stub,v 1.26 2007/02/28 07:11:05 bizenn Exp $
 
 "
 #include \"dbd_mysql.h\"
@@ -82,7 +82,7 @@
 (define-cproc mysql-debug (debug::<const-cstring>)
   (call <void> "mysql_debug"))
 
-;; mysql_drop_db(deprecated)
+;; mysql_drop_db(): OMITTED(deprecated)
 
 ;; mysql_dump_debug_info
 (define-cproc mysql-dump-debug-info (handle::<mysql-handle>)
@@ -90,7 +90,7 @@
 	"if (mysql_dump_debug_info(handle))"
 	"  raise_mysql_error(handle, \"mysql_dump_debug_info\");"))
 
-;; mysql_eof(deprecated)
+;; mysql_eof(): OMITTED(deprecated)
 
 ;; mysql_errno
 (define-cproc mysql-errno (connection::<mysql-handle>)
@@ -136,6 +136,8 @@
    (charset-number :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_FIELD_CHARSETNR(obj));")
    (type          :type <int> :setter #f :getter "return Scm_MakeInteger(MYSQL_FIELD_TYPE(obj));")
    ))
+(define-cproc mysql-field? (obj)
+  (call <boolean> "MYSQL_FIELD_P"))
 
 ;; Field Types
 (define-enum MYSQL_TYPE_TINY)
@@ -200,6 +202,8 @@
 	   "SCM_RETURN(MYSQL_CHARSET_INFO_DIR(obj)==NULL?SCM_FALSE:SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_DIR(obj)));")
    (mbminlen :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_CHARSET_INFO_MBMINLEN(obj));")
    (mbmaxlen :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_CHARSET_INFO_MBMAXLEN(obj));")))
+(define-cproc mysql-charset? (obj)
+  (call <boolean> "MYSQL_CHARSET_INFO_P"))
 
 ;; mysql_get_character_set_info(5.0.10 or later)
 (define-cproc mysql-get-character-set-info (handle::<mysql-handle>)
@@ -232,8 +236,8 @@
 (define-cproc mysql-get-server-version (handle::<mysql-handle>)
   (call <ulong> "mysql_get_server_version"))
 
-;; mysql_get_ssl_cipher
-;; mysql_hex_string
+;; mysql_get_ssl_cipher(): OMITTED
+;; mysql_hex_string(): OMITTED
 
 ;; mysql_info
 (define-cproc mysql-info (handle::<mysql-handle>)
@@ -293,7 +297,7 @@
 	"if (mysql_ping(handle) != 0)"
 	"  raise_mysql_error(handle, \"mysql_ping\");"))
 
-;; mysql_query(OMITTED)
+;; mysql_query(): OMITTED
 
 ;; mysql_real_connect
 (define-cproc mysql-real-connect (host::<const-cstring>?
@@ -345,7 +349,7 @@
 (define-enum-conditionally REFRESH_SLAVE)
 (define-enum-conditionally REFRESH_MASTER)
 
-;; mysql_reload(deprecated)
+;; mysql_reload(): OMITTED(deprecated)
 
 ;; mysql_rollback
 (define-cproc mysql-rollback (handle::<mysql-handle>)
@@ -353,8 +357,8 @@
 	"if (mysql_rollback(handle) != 0)"
 	"  raise_mysql_error(handle, \"mysql_rollback\");"))
 
-;; mysql_row_seek
-;; mysql_row_tell
+;; mysql_row_seek(): OMITTED
+;; mysql_row_tell(): OMITTED
 
 ;; mysql_select_db
 (define-cproc mysql-select-db (handle::<mysql-handle> db::<const-cstring>)
@@ -383,7 +387,7 @@
 (define-cproc mysql-sqlstate (handle::<mysql-handle>)
   (call <const-cstring> "mysql_sqlstate"))
 
-;; mysql_ssl_set
+;; mysql_ssl_set(): OMITTED
 
 ;; mysql-stat
 (define-cproc mysql-stat (handle::<mysql-handle>)
@@ -402,7 +406,7 @@
 (define-cproc mysql-thread-id (handle::<mysql-handle>)
   (call <ulong> "mysql_thread_id"))
 
-;; mysql_use_result(OMITTED)
+;; mysql_use_result(): OMITTED
 
 ;; mysql_warning_count
 (define-cproc mysql-warning-count (handle::<mysql-handle>)
@@ -425,6 +429,23 @@
   "MYSQL_STMTX_P" "MYSQL_STMTX_UNBOX" "MYSQL_STMTX_BOX")
 (define-cproc mysql-stmt? (obj)
   (call <boolean> "MYSQL_STMTX_P"))
+
+(define-type <mysql-time> "ScmMysqlTime*" "MySQL DATE/TIME/TIMESTAMP structure"
+  "MYSQL_TIME_P" "SCM_MYSQL_TIME")
+(define-cclass <mysql-time>
+  "ScmMysqlTime*" "Scm_MysqlTimeClass"
+  ()
+  ((year :type <uint> :c-spec "MYSQL_TIME_YEAR(obj)")
+   (month :type <uint> :c-spec "MYSQL_TIME_MONTH(obj)")
+   (day :type <uint> :c-spec "MYSQL_TIME_DAY(obj)")
+   (hour :type <uint> :c-spec "MYSQL_TIME_HOUR(obj)")
+   (minute :type <uint> :c-spec "MYSQL_TIME_MINUTE(obj)")
+   (second :type <uint> :c-spec "MYSQL_TIME_SECOND(obj)")
+   (second-part :type <uint> :c-spec "MYSQL_TIME_SECOND_PART(obj)") ; microsecond/unused
+   (nagative? :type <boolean> :c-spec "MYSQL_TIME_NEGATIVE_P(obj)"))
+  (allocator (c "mysql_time_allocate")))
+(define-cproc mysql-time? (obj)
+  (call <boolean> "MYSQL_TIME_P"))
 
 ;; mysql_stmt_affected_rows
 (define-cproc mysql-stmt-affected-rows (stmtx::<mysql-stmt>)

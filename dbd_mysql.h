@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.h,v 1.19 2007/02/27 07:42:56 bizenn Exp $
+ * $Id: dbd_mysql.h,v 1.20 2007/02/28 07:11:05 bizenn Exp $
  */
 
 /* Prologue */
@@ -130,10 +130,27 @@ SCM_CLASS_DECL(Scm_MysqlCharsetInfoClass);
 #define MYSQL_CHARSET_INFO_MBMINLEN(obj) (MYSQL_CHARSET_INFO_UNBOX(obj).mbminlen)
 #define MYSQL_CHARSET_INFO_MBMAXLEN(obj) (MYSQL_CHARSET_INFO_UNBOX(obj).mbmaxlen)
 
+typedef struct {
+    SCM_HEADER;
+    MYSQL_TIME time;
+} ScmMysqlTime;
+SCM_CLASS_DECL(Scm_MysqlTimeClass);
+#define SCM_CLASS_MYSQL_TIME     (&Scm_MysqlTimeClass)
+#define SCM_MYSQL_TIME(obj)      ((ScmMysqlTime*)obj)
+#define MYSQL_TIME_P(obj)        SCM_XTYPEP(obj, SCM_CLASS_MYSQL_TIME)
+#define MYSQL_TIME_UNBOX(obj)    (SCM_MYSQL_TIME(obj)->time)
+#define MYSQL_TIME_YEAR(obj)     (MYSQL_TIME_UNBOX(obj).year)
+#define MYSQL_TIME_MONTH(obj)    (MYSQL_TIME_UNBOX(obj).month)
+#define MYSQL_TIME_DAY(obj)      (MYSQL_TIME_UNBOX(obj).day)
+#define MYSQL_TIME_HOUR(obj)     (MYSQL_TIME_UNBOX(obj).hour)
+#define MYSQL_TIME_MINUTE(obj)   (MYSQL_TIME_UNBOX(obj).minute)
+#define MYSQL_TIME_SECOND(obj)   (MYSQL_TIME_UNBOX(obj).second)
+#define MYSQL_TIME_NEGATIVE_P(obj) (MYSQL_TIME_UNBOX(obj).neg)
+#define MYSQL_TIME_SECOND_PART(obj) (MYSQL_TIME_UNBOX(obj).second_part)
+
 /*
  * API
  */
-
 extern int MysqlClosedP(ScmObj obj);
 extern void MysqlMarkClosed(ScmObj obj);
 
@@ -155,6 +172,9 @@ extern void MysqlStmtxExecute(MYSQL_STMTX *stmtx, ScmObj args);
 extern ScmObj MysqlStmtxFetch(MYSQL_STMTX *stmtx);
 extern ScmObj MysqlStmtAffectedRows(MYSQL_STMT *stmt);
 extern ScmObj MysqlStmtxFetchFieldNames(MYSQL_STMTX *stmtx);
+
+extern ScmObj mysql_time_allocate(ScmClass *klass, ScmObj initargs);
+extern ScmObj Scm_MakeMysqlTime(MYSQL_TIME *time);
 
 extern void raise_mysql_error(MYSQL *handle, const char *msg);
 extern void raise_mysql_stmt_error(MYSQL_STMT *stmt, const char *msg);

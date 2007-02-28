@@ -1,8 +1,13 @@
+2007-02-28  Tatsuya BIZENN  <bizenn@arthub.net>
+
+	* Change: dbd/mysql.scm, dbd_mysqllib.stub, dbd_mysql.c, dbd_mysql.h
+	  Add <mysql-time> class.  Now we can use <mysql-time> instance as
+	  parameter or field value of prepared statements.
+
 2007-02-27  Tatsuya BIZENN  <bizenn@arthub.net>
 
 	* Change: dbd/mysql.scm, dbd_mysqllib.stub, dbd_mysql.h
-	  Add support of MY_CHARSET_INFO structure and
-	  mysql_get_character_set_info.
+	  Add <mysql-charset> class and mysql-get-character-set-info.
 
 	* Change: dbd/mysql.scm, dbd_mysqllib.stub, dbd_mysql.c, dbd_mysql.h
 	  Add support of MYSQL_FIELD structure handling and
