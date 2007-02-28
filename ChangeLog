@@ -1,5 +1,7 @@
 2007-02-28  Tatsuya BIZENN  <bizenn@arthub.net>
 
+	* Rename: configure.in -> configure.ac
+
 	* Change: dbd/mysql.scm, dbd_mysqllib.stub, dbd_mysql.c, dbd_mysql.h
 	  Add <mysql-time> class.  Now we can use <mysql-time> instance as
 	  parameter or field value of prepared statements.
