@@ -1,7 +1,7 @@
 dnl
 dnl Configuring Gauche-dbd-mysql
 dnl  process this file with autoconf to generate 'configure'.
-dnl $Id: configure.in,v 1.7 2007/02/23 08:45:39 bizenn Exp $
+dnl $Id: configure.ac,v 1.1 2007/02/28 07:25:06 bizenn Exp $
 dnl
 
 AC_PREREQ(2.59)
