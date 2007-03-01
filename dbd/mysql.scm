@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.31 2007/03/01 07:30:58 bizenn Exp $
+;; $Id: mysql.scm,v 1.32 2007/03/01 12:50:13 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -229,48 +229,51 @@
 
 ;; <mysql-time> handling
 
-(define (mysql-time->string t)
-  (format #f "~d-~2,'0d-~2,'0d ~2,'0d:~2,'0d:~2,'0d.~6,'0d"
-	  (slot-ref t 'year) (slot-ref t 'month) (slot-ref t 'day)
-	  (slot-ref t 'hour) (slot-ref t 'minute) (slot-ref t 'second)
-	  (slot-ref t 'second-part)))
-(define-method x->string ((t <mysql-time>))
-  (mysql-time->string t))
+(if (global-variable-bound? (current-module) '<mysql-time>)
+    (begin
+      (define (mysql-time->string t)
+	(format #f "~d-~2,'0d-~2,'0d ~2,'0d:~2,'0d:~2,'0d.~6,'0d"
+		(slot-ref t 'year) (slot-ref t 'month) (slot-ref t 'day)
+		(slot-ref t 'hour) (slot-ref t 'minute) (slot-ref t 'second)
+		(slot-ref t 'second-part)))
+      (define-method x->string ((t <mysql-time>))
+	(mysql-time->string t))
 
-(define (sys-tm->mysql-time tm)
-  (make <mysql-time>
-    :year (+ 1900 (slot-ref tm 'year))
-    :month (+ 1 (slot-ref tm 'mon))
-    :day (slot-ref tm 'mday)
-    :hour (slot-ref tm 'hour)
-    :minute (slot-ref tm 'min)
-    :second (slot-ref tm 'sec)
-    :second-part 0))
-(define (mysql-time->sys-tm mtime)
-  (make <sys-tm>
-    :year (- (slot-ref mtime 'year) 1900)
-    :mon (- (slot-ref mtime 'month) 1)
-    :mday (slot-ref mtime 'day)
-    :hour (slot-ref mtime 'hour)
-    :min (slot-ref mtime 'minute)
-    :sec (slot-ref mtime 'second)))
+      (define (sys-tm->mysql-time tm)
+	(make <mysql-time>
+	 :year (+ 1900 (slot-ref tm 'year))
+	 :month (+ 1 (slot-ref tm 'mon))
+	 :day (slot-ref tm 'mday)
+	 :hour (slot-ref tm 'hour)
+	 :minute (slot-ref tm 'min)
+	 :second (slot-ref tm 'sec)
+	 :second-part 0))
+      (define (mysql-time->sys-tm mtime)
+	(make <sys-tm>
+	 :year (- (slot-ref mtime 'year) 1900)
+	 :mon (- (slot-ref mtime 'month) 1)
+	 :mday (slot-ref mtime 'day)
+	 :hour (slot-ref mtime 'hour)
+	 :min (slot-ref mtime 'minute)
+	 :sec (slot-ref mtime 'second)))
 
-(define (date->mysql-time d)
-  (make <mysql-time>
-    :year (slot-ref d 'year)
-    :month (slot-ref d 'month)
-    :day (slot-ref d 'day)
-    :hour (slot-ref d 'hour)
-    :minute (slot-ref d 'minute)
-    :second (slot-ref d 'second)
-    :second-part (quotient (slot-ref d 'nanosecond) 1000)))
-(define (mysql-time->date t)
-  (let1 d (current-date)
-    (for-each (lambda (sname)
-		(slot-set! d sname (slot-ref t sname)))
-	      '(year month day hour minute second))
-    (slot-set! d 'nanosecond (* 1000 (slot-ref t 'second-part)))
-    d))
+      (define (date->mysql-time d)
+	(make <mysql-time>
+	 :year (slot-ref d 'year)
+	 :month (slot-ref d 'month)
+	 :day (slot-ref d 'day)
+	 :hour (slot-ref d 'hour)
+	 :minute (slot-ref d 'minute)
+	 :second (slot-ref d 'second)
+	 :second-part (quotient (slot-ref d 'nanosecond) 1000)))
+      (define (mysql-time->date t)
+	(let1 d (current-date)
+	  (for-each (lambda (sname)
+		      (slot-set! d sname (slot-ref t sname)))
+		    '(year month day hour minute second))
+	  (slot-set! d 'nanosecond (* 1000 (slot-ref t 'second-part)))
+	  d))
+      ))
 
 ;; Epilogue
 (provide "dbd/mysql")

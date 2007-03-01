@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.22 2007/03/01 07:30:58 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.23 2007/03/01 12:50:13 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -312,7 +312,7 @@ static void mysql_init_param(MYSQL_BIND *param, ScmObj obj)
 	param->buffer_type = MYSQL_TYPE_DOUBLE;
     }
     else if (MYSQL_TIME_P(obj)) {
-	param->buffer_type = MYSQL_TYPE_TIMESTAMP;
+	param->buffer_type = MYSQL_TYPE_DATETIME;
 	param->buffer = malloc(sizeof(MYSQL_TIME));
 	if (param->buffer == NULL)
 	    Scm_SysError("Cannot allocate MYSQL_TIME buffer in mysql-stmt-execute");
@@ -469,7 +469,7 @@ static ScmObj mysql_bind_to_scm_obj(MYSQL_BIND *bind)
 	    return Scm_MakeInteger64(*(long long int*)bind->buffer);
 	case MYSQL_TYPE_DOUBLE:
 	    return Scm_MakeFlonum(*(double*)bind->buffer);
-	case MYSQL_TYPE_TIMESTAMP:
+	case MYSQL_TYPE_DATETIME:
 	    return Scm_MakeMysqlTime((MYSQL_TIME*)bind->buffer);
 	default:
 	    Scm_RaiseCondition(MYSQL_ERROR, "error-code", SCM_MAKE_INT(0), "sql-code", SCM_MAKE_STR_IMMUTABLE(""),
