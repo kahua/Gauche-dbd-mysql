@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.30 2007/02/28 07:11:05 bizenn Exp $
+;; $Id: mysql.scm,v 1.31 2007/03/01 07:30:58 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -31,42 +31,43 @@
   (use gauche.mop.singleton)
   (export <mysql-driver> <mysql-connection> <mysql-result-set>
 	  <mysql-error> <mysql-stmt-error>
-
-          ;; Low-level API
-	  <mysql-handle> <mysql-res> <mysql-field> <mysql-charset>
-	  mysql-handle? mysql-res? mysql-field? mysql-charset?
-	  mysql-affected-rows mysql-autocommit
-	  mysql-change-user mysql-character-set-name
-	  mysql-close mysql-commit mysql-debug mysql-data-seek
-	  mysql-dump-debug-info mysql-error mysql-errno
-	  mysql-fetch-field-direct mysql-fetch-field-names mysql-fetch-row mysql-field-count
-	  mysql-free-result mysql-get-character-set-info mysql-get-client-info
-	  mysql-get-client-version mysql-get-host-info mysql-get-proto-info mysql-get-server-info
-	  mysql-get-server-version mysql-info mysql-insert-id
-	  mysql-list-dbs mysql-list-fields mysql-list-processes
-	  mysql-list-tables mysql-num-fields mysql-num-rows
-	  mysql-real-connect mysql-real-escape-string mysql-real-query
-	  mysql-refresh mysql-rollback mysql-select-db mysql-set-character-set
-	  mysql-shutdown mysql-sqlstate mysql-stat mysql-store-result
-	  mysql-thread-id mysql-warning-count
-          mysql-handle-closed? mysql-res-closed?
-
-	  ;; Low-level Prepared Statement API
-	  <mysql-stmt> <mysql-time>
-	  mysql-stmt? mysql-time? mysql-stmt-affected-rows mysql-stmt-close
-	  mysql-stmt-data-seek mysql-stmt-errno mysql-stmt-error
-	  mysql-stmt-execute mysql-stmt-fetch mysql-stmt-field-count
-	  mysql-stmt-free-result mysql-stmt-insert-id mysql-stmt-num-rows
-	  mysql-stmt-param-count mysql-stmt-prepare mysql-stmt-reset
-	  mysql-stmt-sqlstate
-	  mysql-stmt-closed?
-	  mysql-stmt-fetch-field-names
-	  mysql-time->string
+	  mysql-dbd-version
           ))
 (select-module dbd.mysql)
 
 ;; Loads extension
 (dynamic-load "dbd_mysql")
+
+;; Low-level API
+(export-if-defined <mysql-handle> <mysql-res> <mysql-field> <mysql-charset>
+		   mysql-handle? mysql-res? mysql-field? mysql-charset?
+		   mysql-affected-rows mysql-autocommit
+		   mysql-change-user mysql-character-set-name
+		   mysql-close mysql-commit mysql-debug mysql-data-seek
+		   mysql-dump-debug-info mysql-error mysql-errno
+		   mysql-fetch-field-direct mysql-fetch-field-names mysql-fetch-row mysql-field-count
+		   mysql-free-result mysql-get-character-set-info mysql-get-client-info
+		   mysql-get-client-version mysql-get-host-info mysql-get-proto-info mysql-get-server-info
+		   mysql-get-server-version mysql-info mysql-insert-id
+		   mysql-list-dbs mysql-list-fields mysql-list-processes
+		   mysql-list-tables mysql-num-fields mysql-num-rows
+		   mysql-real-connect mysql-real-escape-string mysql-real-query
+		   mysql-refresh mysql-rollback mysql-select-db mysql-set-character-set
+		   mysql-shutdown mysql-sqlstate mysql-stat mysql-store-result
+		   mysql-thread-id mysql-warning-count
+		   mysql-handle-closed? mysql-res-closed?
+
+		   ;; Low-level Prepared Statement API
+		   <mysql-stmt> <mysql-time>
+		   mysql-stmt? mysql-time? mysql-stmt-affected-rows mysql-stmt-close
+		   mysql-stmt-data-seek mysql-stmt-errno mysql-stmt-error
+		   mysql-stmt-execute mysql-stmt-fetch mysql-stmt-field-count
+		   mysql-stmt-free-result mysql-stmt-insert-id mysql-stmt-num-rows
+		   mysql-stmt-param-count mysql-stmt-prepare mysql-stmt-reset
+		   mysql-stmt-sqlstate
+		   mysql-stmt-closed?
+		   mysql-stmt-fetch-field-names
+		   mysql-time->string)
 
 (export-if-defined REFRESH_GRANT REFRESH_LOG REFRESH_TABLES REFRESH_HOSTS
 		   REFRESH_STATUS REFRESH_THREADS REFRESH_SLAVE REFRESH_MASTER)

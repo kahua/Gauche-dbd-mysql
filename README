@@ -1,6 +1,7 @@
-DBI/DBD - database interface and database driver
+Gauche-dbd-mysql: MySQL native driver and DBD interface module.
 
-see <http://www.kahua.org/cgi-bin/kahua.cgi/kahua-web/show/dev/DBI/dbd.mysql>
+See <http://www.kahua.org/cgi-bin/kahua.cgi/kahua-web/show/dev/DBI/dbd.mysql>
+but it's a bit out of date, sorry.
 
 -- 
-ENDO Yasuyuki <yasuyuki@javaopen.org>
+Kahua Project <info@kahua.org>

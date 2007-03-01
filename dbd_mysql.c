@@ -16,14 +16,25 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.21 2007/02/28 07:11:05 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.22 2007/03/01 07:30:58 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
 #include <stdlib.h>
 
 #define MYSQL_ERROR      SCM_SYMBOL_VALUE("dbd.mysql", "<mysql-error>")
-#define MYSQL_STMT_ERROR SCM_SYMBOL_VALUE("dbd.mysql", "<mysql-stmt-error>")
+void raise_mysql_error(MYSQL *handle, const char *msg)
+{
+    Scm_RaiseCondition(MYSQL_ERROR,
+		       "error-code", SCM_MAKE_INT(mysql_errno(handle)),
+		       "sql-code",
+#if HAVE_DECL_MYSQL_SQLSTATE
+		       SCM_MAKE_STR_IMMUTABLE(mysql_sqlstate(handle)),
+#else
+		       "HY000",
+#endif	/* HAVE_DECL_MYSQL_SQLSTATE */
+		       SCM_RAISE_CONDITION_MESSAGE, "%s: %s", msg, mysql_error(handle));
+}
 
 /*
  * Class stuff
@@ -32,7 +43,6 @@
 /* Class pointers initialized by Scm_Init_gauche_dbd_mysql */
 ScmClass *MysqlHandleClass;
 ScmClass *MysqlResClass;
-ScmClass *MysqlStmtxClass;
 
 void mysql_cleanup(ScmObj obj)
 {
@@ -48,50 +58,6 @@ void mysql_res_cleanup(ScmObj obj)
     if (!MysqlClosedP(obj)) {
         MYSQL_RES *r = MYSQL_RES_UNBOX(obj);
         mysql_free_result(r);
-	MysqlMarkClosed(obj);
-    }
-}
-
-void mysql_stmtx_cleanup(ScmObj obj)
-{
-    if (!MysqlClosedP(obj)) {
-	MYSQL_STMT *stmt = MYSQL_STMTX_STMT(obj);
-	MYSQL_BIND *params = MYSQL_STMTX_PARAMS(obj);
-	unsigned int param_count = MYSQL_STMTX_PARAM_COUNT(obj);
-	MYSQL_BIND *fields = MYSQL_STMTX_FIELDS(obj);
-	unsigned int field_count = MYSQL_STMTX_FIELD_COUNT(obj);
-	MYSQL_RES  *metares = MYSQL_STMTX_METARES(obj);
-
-	if (stmt != NULL) {
-	    MYSQL_STMTX_STMT(obj) = NULL;
-	    mysql_stmt_free_result(stmt);
-	    mysql_stmt_close(stmt);
-	}
-	if (params != NULL) {
-	    int i;
-	    MYSQL_STMTX_PARAMS(obj) = NULL;
-	    for (i = 0; i <param_count; i++) {
-		if (IS_NUM(params[i].buffer_type)) {
-		    if (params[i].buffer != NULL) free(params[i].buffer);
-		    if (params[i].is_null != NULL) free(params[i].is_null);
-		}
-	    }
-	    free(params);
-	}
-	if (fields != NULL) {
-	    int i;
-	    MYSQL_STMTX_FIELDS(obj) = NULL;
-	    for (i = 0; i < field_count; i++) {
-		if (fields[i].buffer != NULL) free(fields[i].buffer);
-		if (fields[i].length != NULL) free(fields[i].length);
-		if (fields[i].is_null != NULL) free(fields[i].is_null);
-	    }
-	    free(fields);
-	}
-	if (metares != NULL) {
-	    MYSQL_STMTX_METARES(obj) = NULL;
-	    mysql_free_result(metares);
-	}
 	MysqlMarkClosed(obj);
     }
 }
@@ -146,8 +112,10 @@ MYSQL *MysqlRealConnect(const char *host,
 	raise_mysql_error(handle, "mysql_option w/ MYSQL_SET_CHARSET_NAME");
     if ((conn = mysql_real_connect(handle, host, user, password, db, port, unix_socket, client_flag)) == NULL)
 	raise_mysql_error(handle, "mysql_real_connect");
+#if HAVE_DECL_MYSQL_GET_SERVER_VERSION
     if (mysql_get_server_version(conn) >= 40100)
 	mysql_real_query(handle, setnames, sizeof(setnames)-1);
+#endif	/* HAVE_DECL_MYSQL_GET_SERVER_VERSION */
     return conn;
 }
 
@@ -201,6 +169,8 @@ ScmObj MysqlFetchRow(MYSQL_RES *result)
     return v;
 }
 
+#if HAVE_MYSQL_FIELD
+
 ScmObj Scm_MakeMysqlField(const MYSQL_FIELD *field)
 {
     ScmMysqlField *obj = SCM_NEW_ATOMIC2(ScmMysqlField*, sizeof(ScmMysqlField));
@@ -209,6 +179,56 @@ ScmObj Scm_MakeMysqlField(const MYSQL_FIELD *field)
     SCM_SET_CLASS(obj, SCM_CLASS_MYSQL_FIELD);
     MYSQL_FIELD_UNBOX(obj) = (MYSQL_FIELD*)field;
     SCM_RETURN(SCM_OBJ(obj));
+}
+
+#endif	/* HAVE_MYSQL_FIELD */
+
+#if HAVE_MYSQL_STMT
+
+ScmClass *MysqlStmtxClass;
+
+void mysql_stmtx_cleanup(ScmObj obj)
+{
+    if (!MysqlClosedP(obj)) {
+	MYSQL_STMT *stmt = MYSQL_STMTX_STMT(obj);
+	MYSQL_BIND *params = MYSQL_STMTX_PARAMS(obj);
+	unsigned int param_count = MYSQL_STMTX_PARAM_COUNT(obj);
+	MYSQL_BIND *fields = MYSQL_STMTX_FIELDS(obj);
+	unsigned int field_count = MYSQL_STMTX_FIELD_COUNT(obj);
+	MYSQL_RES  *metares = MYSQL_STMTX_METARES(obj);
+
+	if (stmt != NULL) {
+	    MYSQL_STMTX_STMT(obj) = NULL;
+	    mysql_stmt_free_result(stmt);
+	    mysql_stmt_close(stmt);
+	}
+	if (params != NULL) {
+	    int i;
+	    MYSQL_STMTX_PARAMS(obj) = NULL;
+	    for (i = 0; i <param_count; i++) {
+		if (IS_NUM(params[i].buffer_type)) {
+		    if (params[i].buffer != NULL) free(params[i].buffer);
+		    if (params[i].is_null != NULL) free(params[i].is_null);
+		}
+	    }
+	    free(params);
+	}
+	if (fields != NULL) {
+	    int i;
+	    MYSQL_STMTX_FIELDS(obj) = NULL;
+	    for (i = 0; i < field_count; i++) {
+		if (fields[i].buffer != NULL) free(fields[i].buffer);
+		if (fields[i].length != NULL) free(fields[i].length);
+		if (fields[i].is_null != NULL) free(fields[i].is_null);
+	    }
+	    free(fields);
+	}
+	if (metares != NULL) {
+	    MYSQL_STMTX_METARES(obj) = NULL;
+	    mysql_free_result(metares);
+	}
+	MysqlMarkClosed(obj);
+    }
 }
 
 static MYSQL_STMTX *make_mysql_stmtx(void)
@@ -303,6 +323,8 @@ static void mysql_init_param(MYSQL_BIND *param, ScmObj obj)
 			   SCM_RAISE_CONDITION_MESSAGE, "Parameter is not supported type: %S", obj);
 }
 
+#  if HAVE_MYSQL_BIND
+#    if HAVE_MYSQL_FIELD
 static void mysql_init_field(MYSQL_BIND *bind, MYSQL_FIELD *field)
 {
     SCM_ASSERT(bind != NULL);
@@ -365,6 +387,7 @@ static void mysql_init_field(MYSQL_BIND *bind, MYSQL_FIELD *field)
 			       SCM_RAISE_CONDITION_MESSAGE, "Unsupported field type: %d", field->type);
     }
 }
+#    endif  /* HAVE_MYSQL_FIELD */
 
 void MysqlStmtxExecute(MYSQL_STMTX *stmtx, ScmObj args)
 {
@@ -477,6 +500,7 @@ ScmObj MysqlStmtxFetch(MYSQL_STMTX *stmtx)
 	    SCM_VECTOR_ELEMENTS(v)[i] = mysql_bind_to_scm_obj(field);
     return v;
 }
+#  endif	  /* HAVE_MYSQL_BIND */
 
 ScmObj MysqlStmtAffectedRows(MYSQL_STMT *stmt)
 {
@@ -495,6 +519,8 @@ ScmObj MysqlStmtxFetchFieldNames(MYSQL_STMTX *stmtx)
     return MysqlFetchFieldNames(stmtx->metares);
 }
 
+#  if HAVE_MYSQL_TIME
+
 ScmObj mysql_time_allocate(ScmClass *klass, ScmObj initargs)
 {
     ScmMysqlTime *t = SCM_NEW_ATOMIC2(ScmMysqlTime*, sizeof(ScmMysqlTime));
@@ -509,14 +535,9 @@ ScmObj Scm_MakeMysqlTime(MYSQL_TIME *time)
     SCM_RETURN(t);
 }
 
-void raise_mysql_error(MYSQL *handle, const char *msg)
-{
-    Scm_RaiseCondition(MYSQL_ERROR,
-		       "error-code", SCM_MAKE_INT(mysql_errno(handle)),
-		       "sql-code", SCM_MAKE_STR_IMMUTABLE(mysql_sqlstate(handle)),
-		       SCM_RAISE_CONDITION_MESSAGE, "%s: %s", msg, mysql_error(handle));
-}
+#  endif  /* HAVE_MYSQL_TIME */
 
+#define MYSQL_STMT_ERROR SCM_SYMBOL_VALUE("dbd.mysql", "<mysql-stmt-error>")
 void raise_mysql_stmt_error(MYSQL_STMT *stmt, const char *msg)
 {
     Scm_RaiseCondition(MYSQL_STMT_ERROR,
@@ -524,6 +545,7 @@ void raise_mysql_stmt_error(MYSQL_STMT *stmt, const char *msg)
 		       "sql-code", SCM_MAKE_STR_IMMUTABLE(mysql_stmt_sqlstate(stmt)),
 		       SCM_RAISE_CONDITION_MESSAGE, "%s: %s", msg, mysql_stmt_error(stmt));
 }
+#endif	/* HAVE_MYSQL_STMT */
 
 /*
  * Module initialization function.
@@ -547,9 +569,11 @@ void Scm_Init_dbd_mysql(void)
     MysqlResClass =
         Scm_MakeForeignPointerClass(mod, "<mysql-res>",
                                     NULL, mysql_res_cleanup, 0);
+#if HAVE_MYSQL_STMT
     MysqlStmtxClass =
 	Scm_MakeForeignPointerClass(mod, "<mysql-stmt>",
 				    NULL, mysql_stmtx_cleanup, 0);
+#endif	/* HAVE_MYSQL_STMT */
 
     /* Get handle of the symbol 'closed? */
     sym_closed = SCM_INTERN("closed?");
