@@ -16,23 +16,23 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.24 2007/03/22 08:35:19 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.25 2007/03/22 09:06:38 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
 #include <stdlib.h>
 
 #define MYSQL_ERROR      SCM_SYMBOL_VALUE("dbd.mysql", "<mysql-error>")
+#if HAVE_DECL_MYSQL_SQLSTATE
+# define MYSQL_SQLSTATE(handle) (SCM_MAKE_STR_IMMUTABLE(mysql_sqlstate(handle)))
+#else
+# define MYSQL_SQLSTATE(handle) (SCM_MAKE_STR_IMMUTABLE("HY000"))
+#endif
 void raise_mysql_error(MYSQL *handle, const char *msg)
 {
     Scm_RaiseCondition(MYSQL_ERROR,
 		       "error-code", SCM_MAKE_INT(mysql_errno(handle)),
-		       "sql-code",
-#if HAVE_DECL_MYSQL_SQLSTATE
-		       SCM_MAKE_STR_IMMUTABLE(mysql_sqlstate(handle)),
-#else
-		       SCM_MAKE_STR_IMMUTABLE("HY000"),
-#endif	/* HAVE_DECL_MYSQL_SQLSTATE */
+		       "sql-code",   MYSQL_SQLSTATE(handle),
 		       SCM_RAISE_CONDITION_MESSAGE, "%s: %s", msg, mysql_error(handle));
 }
 
