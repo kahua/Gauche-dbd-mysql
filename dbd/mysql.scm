@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.32 2007/03/01 12:50:13 bizenn Exp $
+;; $Id: mysql.scm,v 1.33 2007/03/22 08:35:19 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -30,7 +30,7 @@
   (use util.match)
   (use gauche.mop.singleton)
   (export <mysql-driver> <mysql-connection> <mysql-result-set>
-	  <mysql-error> <mysql-stmt-error>
+	  <mysql-error>
 	  mysql-dbd-version
           ))
 (select-module dbd.mysql)
@@ -58,7 +58,7 @@
 		   mysql-handle-closed? mysql-res-closed?
 
 		   ;; Low-level Prepared Statement API
-		   <mysql-stmt> <mysql-time>
+		   <mysql-stmt> <mysql-time> <mysql-stmt-error>
 		   mysql-stmt? mysql-time? mysql-stmt-affected-rows mysql-stmt-close
 		   mysql-stmt-data-seek mysql-stmt-errno mysql-stmt-error
 		   mysql-stmt-execute mysql-stmt-fetch mysql-stmt-field-count
@@ -83,7 +83,8 @@
   (error-code)
   (sql-code))                         ;mysql error code
 
-(define-condition-type <mysql-stmt-error> <mysql-error> mysql-stmt-error?)
+(if (global-variable-bound? (current-module) '<mysql-stmt>)
+    (define-condition-type <mysql-stmt-error> <mysql-error> mysql-stmt-error?))
 
 (define-class <mysql-driver> (<dbi-driver> <singleton-mixin>)
   ())

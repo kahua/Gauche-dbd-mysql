@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.23 2007/03/01 12:50:13 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.24 2007/03/22 08:35:19 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -31,7 +31,7 @@ void raise_mysql_error(MYSQL *handle, const char *msg)
 #if HAVE_DECL_MYSQL_SQLSTATE
 		       SCM_MAKE_STR_IMMUTABLE(mysql_sqlstate(handle)),
 #else
-		       "HY000",
+		       SCM_MAKE_STR_IMMUTABLE("HY000"),
 #endif	/* HAVE_DECL_MYSQL_SQLSTATE */
 		       SCM_RAISE_CONDITION_MESSAGE, "%s: %s", msg, mysql_error(handle));
 }
