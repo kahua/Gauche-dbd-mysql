@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.h,v 1.21 2007/03/01 07:30:58 bizenn Exp $
+ * $Id: dbd_mysql.h,v 1.22 2007/03/23 07:23:33 bizenn Exp $
  */
 
 /* Prologue */
@@ -31,7 +31,7 @@
 #include <gauche/extend.h>
 #include <gauche/class.h>
 
-#include "config.h"
+#include "acconfig.h"
 
 SCM_DECL_BEGIN
 

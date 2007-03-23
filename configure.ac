@@ -2,12 +2,12 @@ dnl
 dnl Configuring Gauche-dbd-mysql
 dnl  process this file with autoconf to generate 'configure'.
 dnl
-dnl $Id: configure.ac,v 1.2 2007/03/01 07:30:58 bizenn Exp $
+dnl $Id: configure.ac,v 1.3 2007/03/23 07:23:33 bizenn Exp $
 dnl
 
 AC_PREREQ(2.59)
 AC_INIT(Gauche-dbd-mysql, 0.3_pre2, info@kahua.org)
-AC_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADER(acconfig.h)
 
 dnl
 dnl Check gauche and its stuff.

@@ -1,5 +1,5 @@
 #
-# $Id: Makefile.in,v 1.9 2007/03/01 07:30:58 bizenn Exp $
+# $Id: Makefile.in,v 1.10 2007/03/23 07:23:33 bizenn Exp $
 #
 
 # General info
@@ -33,9 +33,9 @@ SCMFILES  = dbd/mysql.scm
 HEADERS   = 
 
 TARGET    = $(ARCHFILES)
-DIST_GENERATED = config.h.in configure DIST_EXCLUDE_X
+DIST_GENERATED = acconfig.h.in configure DIST_EXCLUDE_X
 CONFIGURE_GENERATED = Makefile config.cache config.log config.status \
-		      configure.lineno $(PACKAGE).gpd VERSION config.h
+		      configure.lineno $(PACKAGE).gpd VERSION acconfig.h
 
 MYSQL_CFLAGS = @MYSQL_CFLAGS@
 MYSQL_LIBS   = @MYSQL_LDFLAGS@
