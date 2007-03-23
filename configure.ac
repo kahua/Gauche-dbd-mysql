@@ -2,7 +2,7 @@ dnl
 dnl Configuring Gauche-dbd-mysql
 dnl  process this file with autoconf to generate 'configure'.
 dnl
-dnl $Id: configure.ac,v 1.3 2007/03/23 07:23:33 bizenn Exp $
+dnl $Id: configure.ac,v 1.4 2007/03/23 09:43:16 bizenn Exp $
 dnl
 
 AC_PREREQ(2.59)
@@ -92,6 +92,11 @@ AC_CHECK_DECLS([SHUTDOWN_DEFAULT],,,[
 #include <mysql.h>
 #include <errmsg.h>
 #include <mysqld_error.h>
+])
+
+AC_CHECK_DECLS([MY_CS_AVAILABLE],,,[
+#include <my_global.h>
+#include <my_sys.h>
 ])
 
 dnl Creating gpd (gauche package description) file

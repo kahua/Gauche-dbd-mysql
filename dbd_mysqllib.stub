@@ -18,7 +18,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: dbd_mysqllib.stub,v 1.27 2007/03/01 07:30:58 bizenn Exp $
+;; $Id: dbd_mysqllib.stub,v 1.28 2007/03/23 09:43:16 bizenn Exp $
 
 "
 #include \"dbd_mysql.h\"
@@ -265,7 +265,7 @@
 (define-cproc mysql-free-result (result::<mysql-res>)
   (body <void> "mysql_res_cleanup(result_scm);"))
 
-(if "defined HAVE_MY_CHARSET_INFO"
+(if "HAVE_MY_CHARSET_INFO"
     (begin
       ;; MY_CHARSET_INFO
       (define-type <mysql-charset> "ScmMysqlCharsetInfo*" "MySQL character set information"
@@ -518,7 +518,7 @@
 ;; Native Prepared Statement API
 ;;
 
-(if "defined HAVE_MYSQL_STMT"
+(if "HAVE_MYSQL_STMT"
     (begin
       (define-type <mysql-stmt> "MYSQL_STMTX*" "MySQL enhanced statement handle"
 	"MYSQL_STMTX_P" "MYSQL_STMTX_UNBOX" "MYSQL_STMTX_BOX")
@@ -612,7 +612,7 @@
       (define-cproc mysql-stmt-fetch-field-names (stmtx::<mysql-stmt>)
 	(call "MysqlStmtxFetchFieldNames"))))
 
-(if "defined HAVE_MYSQL_TIME"
+(if "HAVE_MYSQL_TIME"
     (begin
       (define-type <mysql-time> "ScmMysqlTime*" "MySQL DATE/TIME/TIMESTAMP structure"
 	"MYSQL_TIME_P" "SCM_MYSQL_TIME")
@@ -631,6 +631,15 @@
       (define-cproc mysql-time? (obj)
 	(call <boolean> "MYSQL_TIME_P"))))
 
+"
+#if HAVE_DECL_MY_CS_AVAILABLE
+# define GET_CHARSET_NUMBER(csname)  get_charset_number((csname), MY_CS_AVAILABLE)
+#else
+# define GET_CHARSET_NUMBER(csname)  get_charset_number(csname)
+#endif
+"
+(define-cproc mysql-get-charset-number (csname::<const-cstring>)
+  (expr <int> "GET_CHARSET_NUMBER(csname)"))
 ;;
 ;; from errmsg.h mysql-5.0.27
 ;;

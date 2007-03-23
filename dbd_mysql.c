@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.25 2007/03/22 09:06:38 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.26 2007/03/23 09:43:16 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -96,6 +96,11 @@ static const char *default_character_encoding = "binary"; /* FIXME!! */
 static const char setnames[] = "SET NAMES binary";
 #endif
 
+#if HAVE_DECL_MY_CS_AVAILABLE
+# define GET_CHARSET_NUMBER(csname)  get_charset_number((csname), MY_CS_AVAILABLE)
+#else
+# define GET_CHARSET_NUMBER(csname)  get_charset_number(csname)
+#endif
 
 MYSQL *MysqlRealConnect(const char *host,
 			const char *user,
@@ -108,14 +113,18 @@ MYSQL *MysqlRealConnect(const char *host,
     MYSQL *conn, *handle = SCM_NEW(MYSQL);
     if ((handle = mysql_init(handle)) == NULL)
 	Scm_SysError("Cannot initialize MYSQL structure.");
-    if (mysql_options(handle, MYSQL_SET_CHARSET_NAME, default_character_encoding) != 0)
-	raise_mysql_error(handle, "mysql_option w/ MYSQL_SET_CHARSET_NAME");
+#if !HAVE_DECL_MYSQL_SET_CHARACTER_SET
+    if (GET_CHARSET_NUMBER(default_character_encoding) > 0)
+	if (mysql_options(handle, MYSQL_SET_CHARSET_NAME, default_character_encoding) != 0)
+	    raise_mysql_error(handle, "mysql_option w/ MYSQL_SET_CHARSET_NAME");
+#endif
     if ((conn = mysql_real_connect(handle, host, user, password, db, port, unix_socket, client_flag)) == NULL)
 	raise_mysql_error(handle, "mysql_real_connect");
-#if HAVE_DECL_MYSQL_GET_SERVER_VERSION
-    if (mysql_get_server_version(conn) >= 40100)
-	mysql_real_query(handle, setnames, sizeof(setnames)-1);
-#endif	/* HAVE_DECL_MYSQL_GET_SERVER_VERSION */
+#if HAVE_DECL_MYSQL_SET_CHARACTER_SET
+    mysql_set_character_set(conn, default_character_encoding); /* Ignore even if error occured */
+#else
+    mysql_real_query(handle, setnames, sizeof(setnames)-1);    /* Ignore even if error occured */
+#endif	/* HAVE_DECL_MYSQL_SET_CHARACTER_SET */
     return conn;
 }
 

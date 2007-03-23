@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.33 2007/03/22 08:35:19 bizenn Exp $
+;; $Id: mysql.scm,v 1.34 2007/03/23 09:43:22 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -67,7 +67,10 @@
 		   mysql-stmt-sqlstate
 		   mysql-stmt-closed?
 		   mysql-stmt-fetch-field-names
-		   mysql-time->string)
+		   mysql-time->string
+
+		   mysql-get-charset-number
+		   )
 
 (export-if-defined REFRESH_GRANT REFRESH_LOG REFRESH_TABLES REFRESH_HOSTS
 		   REFRESH_STATUS REFRESH_THREADS REFRESH_SLAVE REFRESH_MASTER)

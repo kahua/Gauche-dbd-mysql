@@ -5,7 +5,7 @@
 ;;  Copyright (c) 2003-2007 Scheme Arts, L.L.C., All rights reserved.
 ;;  Copyright (c) 2003-2007 Time Intermedia Corporation, All rights reserved.
 ;;
-;; $Id: dbd.scm,v 1.18 2007/02/28 07:11:06 bizenn Exp $
+;; $Id: dbd.scm,v 1.19 2007/03/23 09:43:22 bizenn Exp $
 
 (use gauche.test)
 (use gauche.collection)
@@ -31,23 +31,26 @@
 	 (class-of c)))
 
 (test-section "Character set handling")
-(test* "mysql-character-set-name" "utf8"
-       (mysql-character-set-name *mysql*) string=?)
-(let1 charset (mysql-get-character-set-info *mysql*)
-  (test* "mysql-get-character-set-info: <mysql-charset>" <mysql-charset> (class-of charset))
-  (for-each (lambda (args)
-	      (apply (lambda (sname comp value)
-		       (test* (format "mysql-get-character-set-info: ~a" sname)
-			      value (slot-ref charset sname) comp))
-		     args))
-	    `((name ,string=? "utf8_general_ci")
-	      (csname ,string=? "utf8")
-	      (number ,= 33)
-	      (state ,= 993)
-	      (comment ,string=? "UTF-8 Unicode")
-	      (dir ,equal? #f)
-	      (mbminlen ,= 1)
-	      (mbmaxlen ,= 3))))
+(when (global-variable-bound? (current-module) 'mysql-character-set-name)
+  (test* "mysql-character-set-name" "utf8"
+	 (mysql-character-set-name *mysql*) string=?))
+(when (global-variable-bound? (current-module) 'mysql-get-character-set-info)
+  (let1 charset (mysql-get-character-set-info *mysql*)
+    (test* "mysql-get-character-set-info: <mysql-charset>" <mysql-charset> (class-of charset))
+    (for-each (lambda (args)
+		(apply (lambda (sname comp value)
+			 (test* (format "mysql-get-character-set-info: ~a" sname)
+				value (slot-ref charset sname) comp))
+		       args))
+	      `((name ,string=? "utf8_general_ci")
+		(csname ,string=? "utf8")
+		(number ,= 33)
+		(state ,= 993)
+		(comment ,string=? "UTF-8 Unicode")
+		(dir ,equal? #f)
+		(mbminlen ,= 1)
+		(mbmaxlen ,= 3)))))
+
 (test* "mysql-real-escape-string" "\\0a\\rb\\nc\\\\d\\'e\\\"f\\Z"
        (mysql-real-escape-string *mysql* "\0a\rb\nc\\d'e\"f\x1a"))
 
