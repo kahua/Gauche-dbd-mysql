@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.h,v 1.22 2007/03/23 07:23:33 bizenn Exp $
+ * $Id: dbd_mysql.h,v 1.23 2007/03/23 07:34:58 bizenn Exp $
  */
 
 /* Prologue */
@@ -27,10 +27,18 @@
 #include <errmsg.h>
 #include <mysqld_error.h>
 
+#include <my_config.h>
+
 #include <gauche.h>
 #include <gauche/extend.h>
 #include <gauche/class.h>
 
+/* To avoid confliction. */
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
 #include "acconfig.h"
 
 SCM_DECL_BEGIN
