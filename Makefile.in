@@ -1,5 +1,5 @@
 #
-# $Id: Makefile.in,v 1.10 2007/03/23 07:23:33 bizenn Exp $
+# $Id: Makefile.in,v 1.11 2007/03/24 05:44:43 bizenn Exp $
 #
 
 # General info
@@ -78,7 +78,7 @@ uninstall :
 
 clean :
 	$(GAUCHE_PACKAGE) compile --clean dbd_mysql $(dbd_mysql_SRCS)
-	rm -rf core $(TARGET) *~ test/*-test.log so_locations
+	rm -rf core $(TARGET) *~ dbd/*~ test/*~ test/*-test.log so_locations
 
 distclean : clean
 	rm -rf $(CONFIGURE_GENERATED) autom4te*.cache
