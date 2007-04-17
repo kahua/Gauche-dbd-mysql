@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.28 2007/04/17 14:46:45 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.29 2007/04/17 15:41:47 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -118,6 +118,7 @@ MYSQL *MysqlRealConnect(const char *host,
 	if (mysql_options(handle, MYSQL_SET_CHARSET_NAME, default_character_encoding) != 0)
 	    raise_mysql_error(handle, "mysql_option w/ MYSQL_SET_CHARSET_NAME");
 #endif
+    mysql_options(handle, MYSQL_READ_DEFAULT_GROUP, "client");
     if ((conn = mysql_real_connect(handle, host, user, password, db, port, unix_socket, client_flag)) == NULL)
 	raise_mysql_error(handle, "mysql_real_connect");
 #if HAVE_DECL_MYSQL_SET_CHARACTER_SET
