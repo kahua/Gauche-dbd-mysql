@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.27 2007/04/17 14:38:38 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.28 2007/04/17 14:46:45 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -564,11 +564,14 @@ extern void Scm_Init_dbd_mysqllib(ScmModule*);
 static const char *load_default_groups[]
 = {"mysql", "client", NULL};
 
+static const char *dummy_argv[]
+= { "dbd.mysql" };
+
 void Scm_Init_dbd_mysql(void)
 {
     ScmModule *mod;
     int   ac = 1;
-    char *av[] = { "dbd.mysql" }; /* DUMMY */
+    char **av = (char**)dummy_argv;
 
     /* Register this DSO to Gauche */
     SCM_INIT_EXTENSION(dbd_mysql);
