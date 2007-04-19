@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.35 2007/04/19 07:17:25 bizenn Exp $
+;; $Id: mysql.scm,v 1.36 2007/04/19 07:52:13 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -38,10 +38,14 @@
 ;; Loads extension
 (dynamic-load "dbd_mysql")
 
-(define-macro (compile-when condition form)
-  (if (eval condition (current-module))
-      form
-      '(begin)))
+(define-macro (compile-when condition . bodies)
+  (let ((_compile-when_ (gensym "%%dbd.mysql"))
+	(_bodies_ `(begin ,@bodies)))
+    `(begin (define-macro (,_compile-when_)
+	      (if ,condition
+		  ',_bodies_
+		  '(begin)))
+	    (,_compile-when_))))
 
 (define-condition-type <mysql-error> <dbi-error> mysql-error?
   (error-code)
