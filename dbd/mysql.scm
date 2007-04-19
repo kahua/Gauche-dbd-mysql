@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.36 2007/04/19 07:52:13 bizenn Exp $
+;; $Id: mysql.scm,v 1.37 2007/04/19 08:00:31 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -38,6 +38,7 @@
 ;; Loads extension
 (dynamic-load "dbd_mysql")
 
+;; This is a transitional way.
 (define-macro (compile-when condition . bodies)
   (let ((_compile-when_ (gensym "%%dbd.mysql"))
 	(_bodies_ `(begin ,@bodies)))
