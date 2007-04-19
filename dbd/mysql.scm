@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.34 2007/03/23 09:43:22 bizenn Exp $
+;; $Id: mysql.scm,v 1.35 2007/04/19 07:17:25 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -38,56 +38,17 @@
 ;; Loads extension
 (dynamic-load "dbd_mysql")
 
-;; Low-level API
-(export-if-defined <mysql-handle> <mysql-res> <mysql-field> <mysql-charset>
-		   mysql-handle? mysql-res? mysql-field? mysql-charset?
-		   mysql-affected-rows mysql-autocommit
-		   mysql-change-user mysql-character-set-name
-		   mysql-close mysql-commit mysql-debug mysql-data-seek
-		   mysql-dump-debug-info mysql-error mysql-errno
-		   mysql-fetch-field-direct mysql-fetch-field-names mysql-fetch-row mysql-field-count
-		   mysql-free-result mysql-get-character-set-info mysql-get-client-info
-		   mysql-get-client-version mysql-get-host-info mysql-get-proto-info mysql-get-server-info
-		   mysql-get-server-version mysql-info mysql-insert-id
-		   mysql-list-dbs mysql-list-fields mysql-list-processes
-		   mysql-list-tables mysql-num-fields mysql-num-rows
-		   mysql-real-connect mysql-real-escape-string mysql-real-query
-		   mysql-refresh mysql-rollback mysql-select-db mysql-set-character-set
-		   mysql-shutdown mysql-sqlstate mysql-stat mysql-store-result
-		   mysql-thread-id mysql-warning-count
-		   mysql-handle-closed? mysql-res-closed?
-
-		   ;; Low-level Prepared Statement API
-		   <mysql-stmt> <mysql-time> <mysql-stmt-error>
-		   mysql-stmt? mysql-time? mysql-stmt-affected-rows mysql-stmt-close
-		   mysql-stmt-data-seek mysql-stmt-errno mysql-stmt-error
-		   mysql-stmt-execute mysql-stmt-fetch mysql-stmt-field-count
-		   mysql-stmt-free-result mysql-stmt-insert-id mysql-stmt-num-rows
-		   mysql-stmt-param-count mysql-stmt-prepare mysql-stmt-reset
-		   mysql-stmt-sqlstate
-		   mysql-stmt-closed?
-		   mysql-stmt-fetch-field-names
-		   mysql-time->string
-
-		   mysql-get-charset-number
-		   )
-
-(export-if-defined REFRESH_GRANT REFRESH_LOG REFRESH_TABLES REFRESH_HOSTS
-		   REFRESH_STATUS REFRESH_THREADS REFRESH_SLAVE REFRESH_MASTER)
-
-(export-if-defined MYSQL_TYPE_TINY MYSQL_TYPE_SHORT MYSQL_TYPE_LONG MYSQL_TYPE_INT24
-		   MYSQL_TYPE_LONGLONG MYSQL_TYPE_DECIMAL MYSQL_TYPE_NEWDECIMAL
-		   MYSQL_TYPE_FLOAT MYSQL_TYPE_DOUBLE MYSQL_TYPE_BIT MYSQL_TYPE_TIMESTAMP
-		   MYSQL_TYPE_DATE MYSQL_TYPE_TIME MYSQL_TYPE_DATETIME MYSQL_TYPE_YEAR
-		   MYSQL_TYPE_STRING MYSQL_TYPE_VAR_STRING MYSQL_TYPE_BLOB MYSQL_TYPE_SET
-		   MYSQL_TYPE_ENUM MYSQL_TYPE_GEOMETRY MYSQL_TYPE_NULL)
+(define-macro (compile-when condition form)
+  (if (eval condition (current-module))
+      form
+      '(begin)))
 
 (define-condition-type <mysql-error> <dbi-error> mysql-error?
   (error-code)
   (sql-code))                         ;mysql error code
 
-(if (global-variable-bound? (current-module) '<mysql-stmt>)
-    (define-condition-type <mysql-stmt-error> <mysql-error> mysql-stmt-error?))
+(compile-when (global-variable-bound? (current-module) '<mysql-stmt>)
+  (define-condition-type <mysql-stmt-error> <mysql-error> mysql-stmt-error?))
 
 (define-class <mysql-driver> (<dbi-driver> <singleton-mixin>)
   ())
@@ -278,6 +239,50 @@
 	  (slot-set! d 'nanosecond (* 1000 (slot-ref t 'second-part)))
 	  d))
       ))
+
+;; Low-level API
+(export-if-defined <mysql-handle> <mysql-res> <mysql-field> <mysql-charset>
+		   mysql-handle? mysql-res? mysql-field? mysql-charset?
+		   mysql-affected-rows mysql-autocommit
+		   mysql-change-user mysql-character-set-name
+		   mysql-close mysql-commit mysql-debug mysql-data-seek
+		   mysql-dump-debug-info mysql-error mysql-errno
+		   mysql-fetch-field-direct mysql-fetch-field-names mysql-fetch-row mysql-field-count
+		   mysql-free-result mysql-get-character-set-info mysql-get-client-info
+		   mysql-get-client-version mysql-get-host-info mysql-get-proto-info mysql-get-server-info
+		   mysql-get-server-version mysql-info mysql-insert-id
+		   mysql-list-dbs mysql-list-fields mysql-list-processes
+		   mysql-list-tables mysql-num-fields mysql-num-rows
+		   mysql-real-connect mysql-real-escape-string mysql-real-query
+		   mysql-refresh mysql-rollback mysql-select-db mysql-set-character-set
+		   mysql-shutdown mysql-sqlstate mysql-stat mysql-store-result
+		   mysql-thread-id mysql-warning-count
+		   mysql-handle-closed? mysql-res-closed?
+
+		   ;; Low-level Prepared Statement API
+		   <mysql-stmt> <mysql-time> <mysql-stmt-error> mysql-stmt-error?
+		   mysql-stmt? mysql-time? mysql-stmt-affected-rows mysql-stmt-close
+		   mysql-stmt-data-seek mysql-stmt-errno mysql-stmt-error
+		   mysql-stmt-execute mysql-stmt-fetch mysql-stmt-field-count
+		   mysql-stmt-free-result mysql-stmt-insert-id mysql-stmt-num-rows
+		   mysql-stmt-param-count mysql-stmt-prepare mysql-stmt-reset
+		   mysql-stmt-sqlstate
+		   mysql-stmt-closed?
+		   mysql-stmt-fetch-field-names
+		   mysql-time->string
+
+		   mysql-get-charset-number
+		   )
+
+(export-if-defined REFRESH_GRANT REFRESH_LOG REFRESH_TABLES REFRESH_HOSTS
+		   REFRESH_STATUS REFRESH_THREADS REFRESH_SLAVE REFRESH_MASTER)
+
+(export-if-defined MYSQL_TYPE_TINY MYSQL_TYPE_SHORT MYSQL_TYPE_LONG MYSQL_TYPE_INT24
+		   MYSQL_TYPE_LONGLONG MYSQL_TYPE_DECIMAL MYSQL_TYPE_NEWDECIMAL
+		   MYSQL_TYPE_FLOAT MYSQL_TYPE_DOUBLE MYSQL_TYPE_BIT MYSQL_TYPE_TIMESTAMP
+		   MYSQL_TYPE_DATE MYSQL_TYPE_TIME MYSQL_TYPE_DATETIME MYSQL_TYPE_YEAR
+		   MYSQL_TYPE_STRING MYSQL_TYPE_VAR_STRING MYSQL_TYPE_BLOB MYSQL_TYPE_SET
+		   MYSQL_TYPE_ENUM MYSQL_TYPE_GEOMETRY MYSQL_TYPE_NULL)
 
 ;; Epilogue
 (provide "dbd/mysql")
