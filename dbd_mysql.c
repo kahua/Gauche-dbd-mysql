@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.29 2007/04/17 15:41:47 bizenn Exp $
+ * $Id: dbd_mysql.c,v 1.30 2007/04/26 21:02:44 bizenn Exp $
  */
 
 #include "dbd_mysql.h"
@@ -83,14 +83,14 @@ void MysqlMarkClosed(ScmObj obj)
 }
 
 #if   defined(GAUCHE_CHAR_ENCODING_EUC_JP)
-static const char *default_character_encoding = "ujis";
-static const char setnames[] = "SET NAMES ujis";
+static const char *default_character_encoding = "eucjpms";
+static const char setnames[] = "SET NAMES eucjpms";
 #elif defined(GAUCHE_CHAR_ENCODING_UTF_8)
 static const char *default_character_encoding = "utf8";
 static const char setnames[] = "SET NAMES utf8";
 #elif defined(GAUCHE_CHAR_ENCODING_SJIS)
-static const char *default_character_encoding = "sjis";
-static const char setnames[] = "SET NAMES sjis";
+static const char *default_character_encoding = "cp932";
+static const char setnames[] = "SET NAMES cp932";
 #else  /* NONE */
 static const char *default_character_encoding = "binary"; /* FIXME!! */
 static const char setnames[] = "SET NAMES binary";
