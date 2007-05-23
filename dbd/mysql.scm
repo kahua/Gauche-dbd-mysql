@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.37 2007/04/19 08:00:31 bizenn Exp $
+;; $Id: mysql.scm,v 1.38 2007/05/23 14:41:31 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
@@ -96,7 +96,7 @@
 			   (error <dbi-parameter-error> "parameters are given to the pass through sql:" sql))
 			 sql)
 		       (guard (e ((mysql-error? e)
-				  (dbi-prepare-sql c #?=sql)))
+				  (dbi-prepare-sql c sql)))
 			 (mysql-stmt-prepare conn sql)))))
     (make <mysql-query> :connection c :prepared prepared :open #t)))
 
