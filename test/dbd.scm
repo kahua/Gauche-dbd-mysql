@@ -46,7 +46,7 @@
 		(csname ,string=? "utf8")
 		(number ,= 33)
 		(state ,= 993)
-		(comment ,string=? "UTF-8 Unicode")
+;		(comment ,string=? "UTF-8 Unicode")
 		(dir ,equal? #f)
 		(mbminlen ,= 1)
 		(mbmaxlen ,= 3)))))
