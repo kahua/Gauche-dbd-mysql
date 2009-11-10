@@ -34,8 +34,17 @@ AC_SUBST(GAUCHE_PKGARCHDIR)
 dnl
 dnl Check MySQL and its stuff.
 dnl
-AC_PATH_PROGS(MYSQL_CONFIG, mysql_config)
-AC_MSG_CHECKING(checking mysql client library)
+AC_ARG_WITH(
+  [mysql-config],
+  [AC_HELP_STRING([--with-mysql-config=PATH],
+		  [path to mysql_config for finding the MySQL client library])])
+if test "X${with_mysql_config}" != X; then
+   if test "${with_mysql_config}" != yes; then
+     MYSQL_CONFIG="${with_mysql_config}"
+   else
+     AC_PATH_PROGS(MYSQL_CONFIG, mysql_config)
+   fi
+fi
 if test X${MYSQL_CONFIG} = X; then
   AC_MSG_RESULT(not available)
 else
