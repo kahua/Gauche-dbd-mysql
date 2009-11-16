@@ -1,4 +1,4 @@
-Gauche-dbd-mysql: MySQL native driver and DBD interface module.
+Gauche-dbd-mysql: MySQL (5.0 or later) native driver and DBD interface module.
 
 See <http://www.kahua.org/cgi-bin/kahua.cgi/kahua-web/show/dev/DBI/dbd.mysql>
 but it's a bit out of date, sorry.
