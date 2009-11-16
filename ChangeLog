@@ -1,3 +1,8 @@
+2009-11-16  Tatsuya BIZENN  <bizenn@kahua.org>
+
+	* Change: dbd_mysqllib.stub, dbd/mysql.scm, test/dbd.scm
+	  add mysql-fetch-field.
+
 2009-11-10  Tatsuya BIZENN  <bizenn@kahua.org>
 
 	* Change: configure.ac

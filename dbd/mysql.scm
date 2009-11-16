@@ -252,7 +252,8 @@
 		   mysql-change-user mysql-character-set-name
 		   mysql-close mysql-commit mysql-debug mysql-data-seek
 		   mysql-dump-debug-info mysql-error mysql-errno
-		   mysql-fetch-field-direct mysql-fetch-field-names mysql-fetch-row mysql-field-count
+		   mysql-fetch-field mysql-fetch-field-direct
+		   mysql-fetch-field-names mysql-fetch-row mysql-field-count
 		   mysql-free-result mysql-get-character-set-info mysql-get-client-info
 		   mysql-get-client-version mysql-get-host-info mysql-get-proto-info mysql-get-server-info
 		   mysql-get-server-version mysql-info mysql-insert-id

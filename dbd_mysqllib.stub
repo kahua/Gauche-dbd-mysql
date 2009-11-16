@@ -292,11 +292,15 @@
 
 (if "HAVE_MYSQL_FIELD"
     (begin
-      ;; mysql_fetch_field(): OMITTED
+      ;; mysql_fetch_field
+      (define-cproc mysql-fetch-field (result::<mysql-res>)
+	(body "MYSQL_FIELD *r = mysql_fetch_field(result);"
+	      "SCM_RESULT = (r == NULL ? SCM_FALSE : Scm_MakeMysqlField(r));"))
 
       ;; mysql_fetch_field_direct
       (define-cproc mysql-fetch-field-direct (result::<mysql-res> offset::<uint>)
-	(body "SCM_RESULT = Scm_MakeMysqlField(mysql_fetch_field_direct(result, offset));"))
+	(body "MYSQL_FIELD *r = mysql_fetch_field_direct(result, offset);"
+	      "SCM_RESULT = (r == NULL ? SCM_FALSE : Scm_MakeMysqlField(r));"))
 
       ;; mysql_fetch_fields(): OMITTED
       ;; mysql_fetch_lengths(): OMITTED
