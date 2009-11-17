@@ -1,3 +1,11 @@
+2009-11-17  Tatsuya BIZENN  <bizenn@kahua.org>
+
+	* Change: dbd_mysqllib.stub, dbd_mysql.c, dbd_mysql.h, dbd/mysql.scm
+	  add mysql-fetch-fields.
+
+	* Change: test/dbd.scm
+	  clean up code.
+
 2009-11-16  Tatsuya BIZENN  <bizenn@kahua.org>
 
 	* Change: dbd_mysqllib.stub, dbd/mysql.scm, test/dbd.scm

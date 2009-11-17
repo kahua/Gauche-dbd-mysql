@@ -158,6 +158,7 @@ extern void mysql_res_cleanup(ScmObj obj);
 #  define MYSQL_FIELD_TYPE(obj) (MYSQL_FIELD_UNBOX(obj)->type)
 
    extern ScmObj Scm_MakeMysqlField(const MYSQL_FIELD *field);
+   extern ScmObj MysqlFetchFields(MYSQL_RES *result);
 #endif	/* HAVE_MYSQL_FIELD */
 
 #if HAVE_MY_CHARSET_INFO

@@ -302,7 +302,10 @@
 	(body "MYSQL_FIELD *r = mysql_fetch_field_direct(result, offset);"
 	      "SCM_RESULT = (r == NULL ? SCM_FALSE : Scm_MakeMysqlField(r));"))
 
-      ;; mysql_fetch_fields(): OMITTED
+      ;; mysql_fetch_fields()
+      (define-cproc mysql-fetch-fields (result::<mysql-res>)
+	(call "MysqlFetchFields"))
+
       ;; mysql_fetch_lengths(): OMITTED
       ))
 

@@ -147,8 +147,8 @@ ScmObj MysqlFetchFieldNames(MYSQL_RES *result)
     ScmObj v;
 
     if (result != NULL) {
-	nfields = mysql_num_fields(result);
-	fields = mysql_fetch_fields(result);
+		nfields = mysql_num_fields(result);
+		fields = mysql_fetch_fields(result);
     }
     v = Scm_MakeVector(nfields, SCM_FALSE);
     for (i=0; i<nfields; i++) {
@@ -189,6 +189,22 @@ ScmObj Scm_MakeMysqlField(const MYSQL_FIELD *field)
     SCM_SET_CLASS(obj, SCM_CLASS_MYSQL_FIELD);
     MYSQL_FIELD_UNBOX(obj) = (MYSQL_FIELD*)field;
     SCM_RETURN(SCM_OBJ(obj));
+}
+
+ScmObj MysqlFetchFields(MYSQL_RES *result)
+{
+	const MYSQL_FIELD *fields = NULL;
+	int nfields = 0, i;
+	ScmObj v;
+
+	SCM_ASSERT(result != NULL);
+	nfields = mysql_num_fields(result);
+	fields = mysql_fetch_fields(result);
+	v = Scm_MakeVector(nfields, SCM_FALSE);
+	for (i = 0; i < nfields; ++i, ++fields) {
+		SCM_VECTOR_ELEMENTS(v)[i] = Scm_MakeMysqlField(fields);
+	}
+	return v;
 }
 
 #endif	/* HAVE_MYSQL_FIELD */
