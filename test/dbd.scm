@@ -135,9 +135,21 @@
 (test* "mysql-res-closed?/before close" #f (mysql-res-closed? *result*))
 
 (for-each-with-index (lambda (i info)
+		       (test* "mysql-field-tell" i (mysql-field-tell *result*))
 		       (test* "mysql-fetch-field" (vector-ref *field-definition* i)
 			      (mysql-fetch-field *result*) check-field))
 		     *field-definition*)
+(test* "mysql-field-tell" 2 (mysql-field-tell *result*) =)
+(test* "mysql-fetch-field" #f (mysql-fetch-field *result*) eq?)
+
+(test* "mysql-field-seek" 2 (mysql-field-seek *result* 0) =)
+(for-each-with-index (lambda (i info)
+		       (test* "mysql-field-tell" i (mysql-field-tell *result*))
+		       (test* "mysql-fetch-field" (vector-ref *field-definition* i)
+			      (mysql-fetch-field *result*) check-field))
+		     *field-definition*)
+(test* "mysql-field-tell" 2 (mysql-field-tell *result*) =)
+(test* "mysql-fetch-field" #f (mysql-fetch-field *result*) eq?)
 
 (for-each (lambda (info field)
 	    (test* "mysql-fetch-fields" info field check-field))

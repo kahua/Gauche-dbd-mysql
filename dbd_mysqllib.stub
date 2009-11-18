@@ -319,8 +319,13 @@
 (define-cproc mysql-field-count (handle::<mysql-handle>)
   (call <uint> "mysql_field_count"))
 
-;; mysql_field_seek(): OMITTED
-;; mysql_field_tell(): OMITTED
+;; mysql_field_seek()
+(define-cproc mysql-field-seek (result::<mysql-res> offset::<uint>)
+  (call <uint> "mysql_field_seek"))
+
+;; mysql_field_tell()
+(define-cproc mysql-field-tell (result::<mysql-res>)
+  (call <uint> "mysql_field_tell"))
 
 ;; mysql_free_result
 (define-cproc mysql-free-result (result::<mysql-res>)
