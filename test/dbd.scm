@@ -130,9 +130,17 @@
 	 (set! *result* r)
 	 (class-of r)))
 (test* "mysql-affected-rows/select 10 records" 10 (mysql-affected-rows *mysql*))
+(define *row-offset* #f)
+(test* "mysql-row-tell" <mysql-row-offset>
+       (let1 row-offset (mysql-row-tell *result*)
+	 (set! *row-offset* row-offset)
+	 row-offset) is-class?)
 (dotimes (i 10)
   (test* #`"mysql-fetch-row record #,|i|" `#(,#`",|i|" ,#`"DATA,|i|") (mysql-fetch-row *result*) equal?))
+(test* "mysql-row-tell" <mysql-row-offset> (mysql-row-seek *result* *row-offset*) is-class?)
 (test* "mysql-res-closed?/before close" #f (mysql-res-closed? *result*))
+(dotimes (i 10)
+  (test* #`"mysql-fetch-row record #,|i|" `#(,#`",|i|" ,#`"DATA,|i|") (mysql-fetch-row *result*) equal?))
 
 (for-each-with-index (lambda (i info)
 		       (test* "mysql-field-tell" i (mysql-field-tell *result*))

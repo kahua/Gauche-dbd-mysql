@@ -31,11 +31,15 @@
   "MYSQL_HANDLE_P" "MYSQL_HANDLE_UNBOX" "MYSQL_HANDLE_BOX")
 (define-type <mysql-res> "MYSQL_RES*" "MySQL result handle"
   "MYSQL_RES_P" "MYSQL_RES_UNBOX" "MYSQL_RES_BOX")
+(define-type <mysql-row-offset> "MYSQL_ROWS*" "MySQL row offset"
+  "MYSQL_ROWS_P" "MYSQL_ROWS_UNBOX" "MYSQL_ROWS_BOX")
 
 (define-cproc mysql-handle? (obj)
   (call <boolean> "MYSQL_HANDLE_P"))
 (define-cproc mysql-res? (obj)
   (call <boolean> "MYSQL_RES_P"))
+(define-cproc mysql-row-offset? (obj)
+  (call <boolean> "MYSQL_ROWS_P"))
 
 ;; key to the foreign pointer attribute to keep track of closed state
 ;; of handles.
@@ -446,7 +450,7 @@
 	"if (mysql_ping(handle) != 0)"
 	"  raise_mysql_error(handle, \"mysql_ping\");"))
 
-;; mysql_query(): OMITTED
+;; mysql_query(): OMITTED(You should use mysql_real_query().)
 
 ;; mysql_real_connect
 (define-cproc mysql-real-connect (host::<const-cstring>?
@@ -507,8 +511,13 @@
 	    "if (mysql_rollback(handle) != 0)"
 	    "  raise_mysql_error(handle, \"mysql_rollback\");")))
 
-;; mysql_row_seek(): OMITTED
-;; mysql_row_tell(): OMITTED
+;; mysql_row_seek()
+(define-cproc mysql-row-seek (result::<mysql-res> offset::<mysql-row-offset>)
+  (call <mysql-row-offset> "mysql_row_seek"))
+
+;; mysql_row_tell()
+(define-cproc mysql-row-tell (result::<mysql-res>)
+  (call <mysql-row-offset> "mysql_row_tell"))
 
 ;; mysql_select_db
 (define-cproc mysql-select-db (handle::<mysql-handle> db::<const-cstring>)

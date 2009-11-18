@@ -246,15 +246,15 @@
       ))
 
 ;; Low-level API
-(export-if-defined <mysql-handle> <mysql-res> <mysql-field> <mysql-charset>
-		   mysql-handle? mysql-res? mysql-field? mysql-charset?
+(export-if-defined <mysql-handle> <mysql-res> <mysql-row-offset> <mysql-field> <mysql-charset>
+		   mysql-handle? mysql-res? mysql-row-offset? mysql-field? mysql-charset?
 		   mysql-affected-rows mysql-autocommit
 		   mysql-change-user mysql-character-set-name
 		   mysql-close mysql-commit mysql-debug mysql-data-seek
 		   mysql-dump-debug-info mysql-error mysql-errno
 		   mysql-fetch-field mysql-fetch-field-direct mysql-fetch-fields mysql-fetch-lengths
 		   mysql-fetch-field-names mysql-fetch-row mysql-field-count
-		   mysql-field-seek mysql-field-tell
+		   mysql-field-seek mysql-field-tell mysql-row-seek mysql-row-tell
 		   mysql-free-result mysql-get-character-set-info mysql-get-client-info
 		   mysql-get-client-version mysql-get-host-info mysql-get-proto-info mysql-get-server-info
 		   mysql-get-server-version mysql-info mysql-insert-id

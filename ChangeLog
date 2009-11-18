@@ -3,6 +3,7 @@
 	* Change: dbd_mysqllib.stub, dbd_mysql.c, mysql_mysql.h,
 	          dbd/mysql.scm, test/dbd.scm
 	  add mysql-fetch-lengths, mysql-field-seek and mysql-field-tell.
+	  add <mysql-row-offset>, mysql-row-seek and mysql-row-tell.
 
 2009-11-17  Tatsuya BIZENN  <bizenn@kahua.org>
 

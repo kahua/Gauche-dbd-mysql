@@ -64,6 +64,12 @@ typedef ScmForeignPointer ScmMysqlRes;
 #define MYSQL_RES_UNBOX(obj) SCM_FOREIGN_POINTER_REF(MYSQL_RES*, obj)
 #define MYSQL_RES_BOX(res)   Scm_MakeForeignPointer(MysqlResClass, res)
 
+extern ScmClass *MysqlRowsClass;
+typedef ScmForeignPointer ScmMysqlRows;
+#define MYSQL_ROWS_P(obj)     SCM_XTYPEP(obj, MysqlRowsClass)
+#define MYSQL_ROWS_UNBOX(obj) SCM_FOREIGN_POINTER_REF(MYSQL_ROWS*, obj)
+#define MYSQL_ROWS_BOX(res)   Scm_MakeForeignPointer(MysqlRowsClass, res)
+
 extern int MysqlClosedP(ScmObj obj);
 extern void MysqlMarkClosed(ScmObj obj);
 

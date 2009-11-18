@@ -43,6 +43,7 @@ void raise_mysql_error(MYSQL *handle, const char *msg)
 /* Class pointers initialized by Scm_Init_gauche_dbd_mysql */
 ScmClass *MysqlHandleClass;
 ScmClass *MysqlResClass;
+ScmClass *MysqlRowsClass;
 
 void mysql_cleanup(ScmObj obj)
 {
@@ -60,6 +61,13 @@ void mysql_res_cleanup(ScmObj obj)
         mysql_free_result(r);
 	MysqlMarkClosed(obj);
     }
+}
+
+void mysql_rows_cleanup(ScmObj obj)
+{
+	if (!MysqlClosedP(obj)) {
+		MysqlMarkClosed(obj);
+	}
 }
 
 /*
@@ -622,6 +630,9 @@ void Scm_Init_dbd_mysql(void)
     MysqlResClass =
         Scm_MakeForeignPointerClass(mod, "<mysql-res>",
                                     NULL, mysql_res_cleanup, 0);
+	MysqlRowsClass =
+		Scm_MakeForeignPointerClass(mod, "<mysql-row-offset>",
+									NULL, mysql_rows_cleanup, 0);
 #if HAVE_MYSQL_STMT
     MysqlStmtxClass =
 	Scm_MakeForeignPointerClass(mod, "<mysql-stmt>",
