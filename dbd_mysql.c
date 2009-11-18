@@ -157,6 +157,25 @@ ScmObj MysqlFetchFieldNames(MYSQL_RES *result)
     return v;
 }
 
+ScmObj MysqlFetchLengths(MYSQL_RES *result)
+{
+	unsigned long *lengths = NULL;
+	int nfields = 0, i;
+	ScmObj v;
+	if (result != NULL) {
+		nfields = mysql_num_fields(result);
+		if ((lengths = mysql_fetch_lengths(result)) == NULL) {
+			raise_mysql_error(result->handle, "mysql-fetch-lengths");
+			return SCM_FALSE;
+		}
+	}
+	v = Scm_MakeVector(nfields, SCM_FALSE);
+	for (i = 0; i < nfields; ++i, ++lengths) {
+		SCM_VECTOR_ELEMENTS(v)[i] = Scm_MakeIntegerU(*lengths);
+	}
+	return v;
+}
+
 ScmObj MysqlFetchRow(MYSQL_RES *result)
 {
     MYSQL_ROW row;

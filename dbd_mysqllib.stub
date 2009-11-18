@@ -307,6 +307,8 @@
 	(call "MysqlFetchFields"))
 
       ;; mysql_fetch_lengths(): OMITTED
+      (define-cproc mysql-fetch-lengths (result::<mysql-res>)
+	(call "MysqlFetchLengths"))
       ))
 
 ;; mysql_fetch_row

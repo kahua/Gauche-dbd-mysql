@@ -76,6 +76,7 @@ extern MYSQL *MysqlRealConnect(const char *host,
 			       unsigned int client_flag);
 extern ScmObj MysqlAffectedRows(MYSQL *handle);
 extern ScmObj MysqlFetchFieldNames(MYSQL_RES *result);
+extern ScmObj MysqlFetchLengths(MYSQL_RES *result);
 extern ScmObj MysqlFetchRow(MYSQL_RES *result);
 
 extern void raise_mysql_error(MYSQL *handle, const char *msg);

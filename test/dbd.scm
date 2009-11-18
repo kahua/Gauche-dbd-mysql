@@ -149,6 +149,11 @@
 			      info (mysql-fetch-field-direct *result* i) check-field))
 		     *field-definition*)
 
+(for-each (lambda (info length)
+	    (test* "mysql-fetch-lengths" (assq-ref info 'max-length) length =))
+	  *field-definition*
+	  (mysql-fetch-lengths *result*))
+
 (test* "mysql-free-result" (undefined) (mysql-free-result *result*))
 (test* "mysql-res-closed?/after close" #t (mysql-res-closed? *result*))
 (test* "mysql-real-query/drop table" (undefined) (mysql-real-query *mysql* "DROP TABLE DBD_TEST"))
