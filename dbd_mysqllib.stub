@@ -388,7 +388,10 @@
     (define-cproc mysql-get-server-version (handle::<mysql-handle>)
       (call <ulong> "mysql_get_server_version")))
 
-;; mysql_get_ssl_cipher(): OMITTED
+;; mysql_get_ssl_cipher()
+(define-cproc mysql-get-ssl-cipher (handle::<mysql-handle>)
+  (call <const-cstring> "mysql_get_ssl_cipher"))
+
 ;; mysql_hex_string(): OMITTED
 
 ;; mysql_info
@@ -554,7 +557,14 @@
     (define-cproc mysql-sqlstate (handle::<mysql-handle>)
       (call <const-cstring> "mysql_sqlstate")))
 
-;; mysql_ssl_set(): OMITTED
+;; mysql_ssl_set()
+(define-cproc mysql-ssl-set (handle::<mysql-handle>
+			     key::<const-cstring>?
+			     cert::<const-cstring>?
+			     ca::<const-cstring>?
+			     capath::<const-cstring>?
+			     cipher::<const-cstring>?)
+  (call <boolean> "mysql_ssl_set"))
 
 ;; mysql-stat
 (define-cproc mysql-stat (handle::<mysql-handle>)
@@ -573,7 +583,12 @@
 (define-cproc mysql-thread-id (handle::<mysql-handle>)
   (call <ulong> "mysql_thread_id"))
 
-;; mysql_use_result(): OMITTED
+;; mysql_use_result()
+(define-cproc mysql-use-result (connection::<mysql-handle>)
+  (body <mysql-res>?
+	"SCM_RESULT = mysql_use_result(connection);"
+	"if ((SCM_RESULT == NULL) && (mysql_errno(connection) != 0))"
+	"  raise_mysql_error(connection, \"mysql_use_result\");"))
 
 ;; mysql_warning_count
 (if "HAVE_DECL_MYSQL_WARNING_COUNT"

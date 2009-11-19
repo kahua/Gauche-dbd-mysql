@@ -257,14 +257,14 @@
 		   mysql-field-seek mysql-field-tell mysql-row-seek mysql-row-tell
 		   mysql-free-result mysql-get-character-set-info mysql-get-client-info
 		   mysql-get-client-version mysql-get-host-info mysql-get-proto-info mysql-get-server-info
-		   mysql-get-server-version mysql-info mysql-insert-id
+		   mysql-get-server-version mysql-get-ssl-cipher mysql-info mysql-insert-id
 		   mysql-list-dbs mysql-list-fields mysql-list-processes
 		   mysql-list-tables mysql-num-fields mysql-num-rows
 		   mysql-real-connect mysql-real-escape-string mysql-real-query
 		   mysql-refresh mysql-rollback mysql-select-db mysql-set-character-set
-		   mysql-shutdown mysql-sqlstate mysql-stat mysql-store-result
+		   mysql-shutdown mysql-sqlstate mysql-stat mysql-store-result mysql-use-result
 		   mysql-thread-id mysql-warning-count
-		   mysql-handle-closed? mysql-res-closed?
+		   mysql-handle-closed? mysql-res-closed? mysql-ssl-set
 
 		   ;; Low-level Prepared Statement API
 		   <mysql-stmt> <mysql-time> <mysql-stmt-error> mysql-stmt-error?
