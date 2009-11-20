@@ -392,7 +392,9 @@
 (define-cproc mysql-get-ssl-cipher (handle::<mysql-handle>)
   (call <const-cstring> "mysql_get_ssl_cipher"))
 
-;; mysql_hex_string(): OMITTED
+;; mysql_hex_string()
+(define-cproc mysql-hex-string (src::<string>)
+  (call "MysqlHexString"))
 
 ;; mysql_info
 (define-cproc mysql-info (handle::<mysql-handle>)

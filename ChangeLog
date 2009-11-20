@@ -1,3 +1,9 @@
+2009-11-20  Tatsuya BIZENN  <bizenn@kahua.org>
+
+	* Change: dbd_mysqllib.stub, dbd_mysql.c, dbd_mysql.h,
+	          dbd/mysql.scm
+	  add mysql-hex-string but not yet tests.
+
 2009-11-19  Tatsuya BIZENN  <bizenn@kahua.org>
 
 	* Change: dbd_mysqllib.stub, dbd/mysql.scm

@@ -206,6 +206,16 @@ ScmObj MysqlFetchRow(MYSQL_RES *result)
     return v;
 }
 
+ScmObj MysqlHexString(ScmString *src)
+{
+	const ScmStringBody *src_body = SCM_STRING_BODY(src);
+	const char *src_p = SCM_STRING_BODY_START(src_body);
+	unsigned int src_size = SCM_STRING_BODY_SIZE(src_body);
+	char *dest_p = SCM_NEW_ATOMIC2(char*, src_size*2+1);
+	unsigned long dest_size = mysql_hex_string(dest_p, src_p, src_size);
+	return Scm_MakeString(dest_p, dest_size, -1, SCM_STRING_TERMINATED);
+}
+
 #if HAVE_MYSQL_FIELD
 
 ScmObj Scm_MakeMysqlField(const MYSQL_FIELD *field)

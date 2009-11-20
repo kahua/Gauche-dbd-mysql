@@ -257,7 +257,7 @@
 		   mysql-field-seek mysql-field-tell mysql-row-seek mysql-row-tell
 		   mysql-free-result mysql-get-character-set-info mysql-get-client-info
 		   mysql-get-client-version mysql-get-host-info mysql-get-proto-info mysql-get-server-info
-		   mysql-get-server-version mysql-get-ssl-cipher mysql-info mysql-insert-id
+		   mysql-get-server-version mysql-get-ssl-cipher mysql-info mysql-insert-id mysql-hex-string
 		   mysql-list-dbs mysql-list-fields mysql-list-processes
 		   mysql-list-tables mysql-num-fields mysql-num-rows
 		   mysql-real-connect mysql-real-escape-string mysql-real-query
