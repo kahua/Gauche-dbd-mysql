@@ -2,10 +2,8 @@
 ;;
 ;; Test for dbd.mysql low level API.
 ;;
-;;  Copyright (c) 2003-2007 Scheme Arts, L.L.C., All rights reserved.
-;;  Copyright (c) 2003-2007 Time Intermedia Corporation, All rights reserved.
-;;
-;; $Id: dbd.scm,v 1.20 2007/03/23 15:15:25 bizenn Exp $
+;;  Copyright (c) 2003-2009 Scheme Arts, L.L.C., All rights reserved.
+;;  Copyright (c) 2003-2009 Time Intermedia Corporation, All rights reserved.
 
 (use gauche.test)
 (use gauche.collection)

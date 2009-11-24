@@ -1,6 +1,6 @@
 /*
- *  Copyright (c) 2004-2007 Scheme Arts, L.L.C., All rights reserved.
- *  Copyright (c) 2004-2007 Time Intermedia Corporation, All rights reserved.
+ *  Copyright (c) 2004-2009 Scheme Arts, L.L.C., All rights reserved.
+ *  Copyright (c) 2004-2009 Time Intermedia Corporation, All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: dbd_mysql.c,v 1.30 2007/04/26 21:02:44 bizenn Exp $
  */
 
 #include "dbd_mysql.h"

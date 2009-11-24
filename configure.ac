@@ -2,8 +2,6 @@ dnl
 dnl Configuring Gauche-dbd-mysql
 dnl  process this file with autoconf to generate 'configure'.
 dnl
-dnl $Id: configure.ac,v 1.5 2007/03/23 15:15:25 bizenn Exp $
-dnl
 
 AC_PREREQ(2.59)
 AC_INIT(Gauche-dbd-mysql, 0.3_pre2, info@kahua.org)

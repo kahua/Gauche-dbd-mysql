@@ -2,10 +2,8 @@
 ;;
 ;; Test for dbd.mysql via DBI.
 ;;
-;;  Copyright (c) 2003-2007 Scheme Arts, L.L.C., All rights reserved.
-;;  Copyright (c) 2003-2007 Time Intermedia Corporation, All rights reserved.
-;;
-;; $Id: dbi.scm,v 1.2 2007/02/16 07:43:43 bizenn Exp $
+;;  Copyright (c) 2003-2009 Scheme Arts, L.L.C., All rights reserved.
+;;  Copyright (c) 2003-2009 Time Intermedia Corporation, All rights reserved.
 
 (use gauche.test)
 (use gauche.collection)
