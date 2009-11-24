@@ -24,9 +24,8 @@
 (define *stmt* #f)
 
 (test-section "Connection")
-(test* "mysql-real-connect/fail" <mysql-error>
-       (guard (e (else (class-of e)))
-	 (mysql-real-connect #f "" "" "nonexistent" 0 #f 0)))
+(test* "mysql-real-connect/fail" (test-error <mysql-error>)
+       (mysql-real-connect #f "" "" "nonexistent" 0 #f 0))
 (test* "mysql-real-connect/success" <mysql-handle>
        (let1 c (mysql-real-connect #f #f #f *db* 0 #f 0)
 	 (set! *mysql* c)
