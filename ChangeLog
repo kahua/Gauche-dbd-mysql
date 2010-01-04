@@ -1,3 +1,10 @@
+2010-01-04  Tatsuya BIZENN  <bizenn@kahua.org>
+
+	* Add: tools/create-test-db-and-user.sql, tools/drop-test-db-and-user.sql
+	  Change: test/dbd.scm
+	  use "kahua_test" user and the same named database for test.
+	  So add a preparing script and a cleanup script.
+
 2009-11-20  Tatsuya BIZENN  <bizenn@kahua.org>
 
 	* Change: dbd_mysqllib.stub, dbd_mysql.c, dbd_mysql.h,

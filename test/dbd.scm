@@ -8,6 +8,7 @@
 (use gauche.test)
 (use gauche.collection)
 (use gauche.sequence)
+(use gauche.interactive)
 (use srfi-1)
 (use srfi-13)
 (use util.list)
@@ -16,7 +17,9 @@
 (use dbd.mysql)
 (test-module 'dbd.mysql)
 
-(define-constant *db* "test")
+(define-constant *db* "kahua_test")
+(define-constant *user* "kahua_test")
+(define-constant *password* "kahua_secret")
 (define *mysql* #f)
 (define *result* #f)
 (define *stmt* #f)
@@ -29,9 +32,8 @@
 (test* "mysql-get-client-info" <string> (mysql-get-client-info) is-class?)
 (test* "mysql-get-client-version" <integer> (mysql-get-client-version) is-class?)
 
-;; Connection with default user/no password/no db
 (test* "mysql-real-connect/default user/no password/no db" <mysql-handle>
-       (let1 c (mysql-real-connect #f #f #f #f 0 #f 0)
+       (let1 c (mysql-real-connect #f *user* *password* #f 0 #f 0)
 	 (set! *mysql* c)
 	 c)
 	 is-class?)
@@ -41,9 +43,9 @@
 (test* "mysql-get-proto-info" <integer> (mysql-get-proto-info *mysql*) is-class?)
 
 (test* "mysql-real-connect/fail" (test-error <mysql-error>)
-       (mysql-real-connect #f "" "" "nonexistent" 0 #f 0))
+       (mysql-real-connect #f *user* *password* "nonexistent" 0 #f 0))
 (test* "mysql-real-connect/success" <mysql-handle>
-       (let1 c (mysql-real-connect #f #f #f *db* 0 #f 0)
+       (let1 c (mysql-real-connect #f *user* *password* *db* 0 #f 0)
 	 (set! *mysql* c)
 	 (class-of c)))
 
@@ -97,7 +99,7 @@
 (define-constant *field-definition*
   `#(((name . "ID") (original-name . "ID")
       (table . "DBD_TEST") (original-table . "DBD_TEST")
-      (db . "test") (catalog . "def")
+      (db . "kahua_test") (catalog . "def")
       (default-value . #f)
       (length . 11) (max-length . 1)
       (not-null? . #t) (primary-key? . #t) (unique-key? . #f)
@@ -106,7 +108,7 @@
       (charset-number . 63) (type . ,MYSQL_TYPE_LONG))
      ((name . "DATA") (original-name . "DATA")
       (table . "DBD_TEST") (original-table . "DBD_TEST")
-      (db . "test") (catalog . "def")
+      (db . "kahua_test") (catalog . "def")
       (default-value . #f)
       (length . 765) (max-length . 5)
       (not-null? . #f) (primary-key? . #f) (unique-key? . #f)
