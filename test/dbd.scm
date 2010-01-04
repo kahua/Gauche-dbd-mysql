@@ -24,19 +24,25 @@
 (define *result* #f)
 (define *stmt* #f)
 
-(test-section "Connection")
+;; Utilities
 
 (define (is-class? class obj)
   (eq? class (class-of obj)))
 
+(define-syntax set!!
+  (syntax-rules ()
+    ((_ var val)
+     (let1 v val
+       (set! var v)
+       v))))
+
+(test-section "Connection and information")
+
 (test* "mysql-get-client-info" <string> (mysql-get-client-info) is-class?)
 (test* "mysql-get-client-version" <integer> (mysql-get-client-version) is-class?)
-
 (test* "mysql-real-connect/default user/no password/no db" <mysql-handle>
-       (let1 c (mysql-real-connect #f *user* *password* #f 0 #f 0)
-	 (set! *mysql* c)
-	 c)
-	 is-class?)
+       (set!! *mysql* (mysql-real-connect #f *user* *password* #f 0 #f 0))
+       is-class?)
 (test* "mysql-get-server-info" <string> (mysql-get-server-info *mysql*) is-class?)
 (test* "mysql-get-server-version" <integer> (mysql-get-server-version *mysql*) is-class?)
 (test* "mysql-get-host-info" <string> (mysql-get-host-info *mysql*) is-class?)
@@ -45,9 +51,8 @@
 (test* "mysql-real-connect/fail" (test-error <mysql-error>)
        (mysql-real-connect #f *user* *password* "nonexistent" 0 #f 0))
 (test* "mysql-real-connect/success" <mysql-handle>
-       (let1 c (mysql-real-connect #f *user* *password* *db* 0 #f 0)
-	 (set! *mysql* c)
-	 (class-of c)))
+       (set!! *mysql* (mysql-real-connect #f *user* *password* *db* 0 #f 0))
+       is-class?)
 
 (test-section "Character set handling")
 (when (global-variable-bound? (current-module) 'mysql-character-set-name)
@@ -140,15 +145,13 @@
 (test* "mysql-real-query/select all" (undefined)
        (mysql-real-query *mysql* "SELECT id, data FROM DBD_TEST order by id"))
 (test* "mysql-store-result/select" <mysql-res>
-       (let1 r (mysql-store-result *mysql*)
-	 (set! *result* r)
-	 (class-of r)))
+       (set!! *result* (mysql-store-result *mysql*))
+       is-class?)
 (test* "mysql-affected-rows/select 10 records" 10 (mysql-affected-rows *mysql*))
 (define *row-offset* #f)
 (test* "mysql-row-tell" <mysql-row-offset>
-       (let1 row-offset (mysql-row-tell *result*)
-	 (set! *row-offset* row-offset)
-	 row-offset) is-class?)
+       (set!! *row-offset* (mysql-row-tell *result*))
+       is-class?)
 (dotimes (i 10)
   (test* #`"mysql-fetch-row record #,|i|" `#(,#`",|i|" ,#`"DATA,|i|") (mysql-fetch-row *result*) equal?))
 (test* "mysql-row-tell" <mysql-row-offset> (mysql-row-seek *result* *row-offset*) is-class?)
@@ -195,15 +198,14 @@
 (when (global-variable-bound? (current-module) '<mysql-stmt>)
   (test-section "Issue MySQL Prepared Statement")
   (test* "mysql-stmt-prepare/create table" <mysql-stmt>
-	 (let1 s (mysql-stmt-prepare *mysql* "
+	 (set!! *stmt* (mysql-stmt-prepare *mysql* "
                   CREATE TABLE DBD_TEST (
                     id integer,
                     name varchar(20),
                     data varchar(255),
                     constraint primary key (id),
-                    constraint unique (name))")
-	   (set! *stmt* s)
-	   (class-of s)))
+                    constraint unique (name))"))
+	 is-class?)
   (test* "mysql-stmt-param-count/create table" 0 (mysql-stmt-param-count *stmt*))
   (test* "mysql-stmt-field-count/create table" 0 (mysql-stmt-field-count *stmt*))
   (test* "mysql-stmt-execute/create table" (undefined) (mysql-stmt-execute *stmt*))
