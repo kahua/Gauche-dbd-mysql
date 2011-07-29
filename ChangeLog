@@ -1,3 +1,10 @@
+2011-07-29  Tatsuya BIZENN  <bizenn@kahua.org>
+
+	* Fix: a typo.
+
+	* Change: Now you have to prepare database "kahua_test", user "kahua_test"
+	  with password "kahua_secret" for test/dbi.scm and test/dbd.scm.
+
 2010-01-04  Tatsuya BIZENN  <bizenn@kahua.org>
 
 	* Add: tools/create-test-db-and-user.sql, tools/drop-test-db-and-user.sql

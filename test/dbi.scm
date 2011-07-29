@@ -20,7 +20,7 @@
 ;; The tester should set up the mysql database so that the current user
 ;; can connect to the database "test" without password.
 (test* "dbi-connect" '<mysql-connection>
-       (let1 c (dbi-connect "dbi:mysql:test")
+       (let1 c (dbi-connect "dbi:mysql:kahua_test" :username "kahua_test" :password "kahua_secret")
          (set! conn c)
          (class-name (class-of c))))
 

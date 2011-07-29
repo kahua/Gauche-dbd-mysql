@@ -188,7 +188,7 @@
 (define-method dbi-close ((result-set <mysql-result-set>))
   (let1 stmt (slot-ref result-set '%statement)
     (if (mysql-res? stmt)
-	(mysql-free-resulst stmt)
+	(mysql-free-result stmt)
 	(mysql-stmt-close stmt))))
 
 (define-method dbi-open? ((c <mysql-connection>))

@@ -13,17 +13,6 @@
 (use srfi-13)
 (use util.list)
 
-(test-start "dbd.mysql(low level)")
-(use dbd.mysql)
-(test-module 'dbd.mysql)
-
-(define-constant *db* "kahua_test")
-(define-constant *user* "kahua_test")
-(define-constant *password* "kahua_secret")
-(define *mysql* #f)
-(define *result* #f)
-(define *stmt* #f)
-
 ;; Utilities
 
 (define (is-class? class obj)
@@ -36,17 +25,62 @@
        (set! var v)
        v))))
 
-(test-section "Connection and information")
+(define (info->version str)
+  (rxmatch-if (#/^(\d+)\.(\d+)\.(\d+)/ str)
+      (#f major minor subm)
+    (+ (* 10000 (x->integer major)) (* 100 (x->integer minor)) (x->integer subm))
+    0))
 
-(test* "mysql-get-client-info" <string> (mysql-get-client-info) is-class?)
-(test* "mysql-get-client-version" <integer> (mysql-get-client-version) is-class?)
-(test* "mysql-real-connect/default user/no password/no db" <mysql-handle>
-       (set!! *mysql* (mysql-real-connect #f *user* *password* #f 0 #f 0))
-       is-class?)
-(test* "mysql-get-server-info" <string> (mysql-get-server-info *mysql*) is-class?)
-(test* "mysql-get-server-version" <integer> (mysql-get-server-version *mysql*) is-class?)
-(test* "mysql-get-host-info" <string> (mysql-get-host-info *mysql*) is-class?)
-(test* "mysql-get-proto-info" <integer> (mysql-get-proto-info *mysql*) is-class?)
+(define (with-mysql-connection user password db proc)
+  (and-let* ((mysql (guard (_ (else #f))
+		      (mysql-real-connect #f user password db 0 #f 0))))
+    (unwind-protect
+     (proc mysql)
+     (mysql-close mysql))))
+
+;; Tests
+
+(test-start "dbd.mysql(low level)")
+(use dbd.mysql)
+(test-module 'dbd.mysql)
+
+(define-constant *db* "kahua_test")
+(define-constant *user* "kahua_test")
+(define-constant *password* "kahua_secret")
+(define *mysql* #f)
+(define *result* #f)
+(define *stmt* #f)
+
+(test-section "Client information (requires no connection)")
+(let ((cinfo #f)
+      (cver  #f))
+  (test* "mysql-get-client-info" <string> (set!! cinfo (mysql-get-client-info)) is-class?)
+  (test* "mysql-get-client-version" <integer> (set!! cver (mysql-get-client-version)) is-class?)
+  (test* "client-info and client-version matching" cver (info->version cinfo) =))
+
+(test-section "Server and connection information (requires connection to a server)")
+(with-mysql-connection *user* *password* *db*
+  (lambda (mysql)
+    (let ((sinfo #f)
+	  (sver  #f))
+      (test* "mysql-get-server-info" <string> (set!! sinfo (mysql-get-server-info mysql)) is-class?)
+      (test* "mysql-get-server-version" <integer> (set!! sver (mysql-get-server-version mysql)) is-class?)
+      (test* "server-info and server-version matching" sver (info->version sinfo) =)
+      (test* "mysql-get-host-info" "Localhost via UNIX socket" (mysql-get-host-info mysql) string-ci=?)
+      (test* "mysql-get-proto-info" 10 (mysql-get-proto-info mysql) <=))))
+
+(let ((mysql #f)
+      (sinfo #f)
+      (sver  #f))
+  (test* "mysql-real-connect w/o db" <mysql-handle>
+	 (set!! mysql (mysql-real-connect #f *user* *password* *db* 0 #f 0))
+	 is-class?)
+  (test* "mysql-handle-closed?/before close" #f (mysql-handle-closed? mysql))
+  (test* "mysql-close" (undefined) (mysql-close mysql))
+  (test* "mysql-handle-closed?/after close" #t (mysql-handle-closed? mysql))
+  )
+
+(test-section "Connection to DB")
 
 (test* "mysql-real-connect/fail" (test-error <mysql-error>)
        (mysql-real-connect #f *user* *password* "nonexistent" 0 #f 0))
@@ -70,7 +104,7 @@
 		(csname ,string=? "utf8")
 		(number ,= 33)
 		(state ,= 993)
-;		(comment ,string=? "UTF-8 Unicode")
+		(comment ,is-class? ,<string>)
 		(dir ,equal? #f)
 		(mbminlen ,= 1)
 		(mbmaxlen ,= 3)))))
