@@ -61,15 +61,6 @@
 (define-class <mysql-connection> (<dbi-connection>)
   ((%handle     :init-keyword :handle :init-value #f)))
 
-(define-class <mysql-query> (<dbi-query>)
-  ())
-
-(define-class <mysql-result-set> (<relation> <sequence>)
-  ((%handle     :init-keyword :handle    :init-value #f)
-   (%statement  :init-keyword :statement :init-value #f)
-   (%row-count  :init-keyword :row-count)
-   (%current-rowid :init-value 0)))
-
 (define-method dbi-make-connection ((d <mysql-driver>)
                                     (options <string>)
                                     (option-alist <list>)
@@ -86,6 +77,15 @@
         (flags  (x->integer (assoc-ref option-alist "client_flag" 0))))
     (let1 handle (mysql-real-connect host user passwd db port socket flags)
       (make <mysql-connection> :driver-name d :open #t :handle handle))))
+
+(define-class <mysql-query> (<dbi-query>)
+  ())
+
+(define-class <mysql-result-set> (<relation> <sequence>)
+  ((%handle     :init-keyword :handle    :init-value #f)
+   (%statement  :init-keyword :statement :init-value #f)
+   (%row-count  :init-keyword :row-count)
+   (%current-rowid :init-value 0)))
 
 (define-method dbi-prepare ((c <mysql-connection>) (sql <string>) . args)
   (let* ((conn (slot-ref c '%handle))
@@ -149,9 +149,9 @@
 	    (values mysql-data-seek mysql-fetch-row identity)
 	    (values mysql-stmt-data-seek mysql-stmt-fetch
 		    (cut map-to <vector> x->string <>)))
-      (lambda (r i . fallback)
-	(if (>= i (slot-ref r '%row-count))
-	    fallback
+      (lambda (r i . maybe-fallback)
+	(if (or (< i 0) (>= i (slot-ref r '%row-count)))
+	    (get-optional maybe-fallback (error "index is out of range: " i))
 	    (begin
 	      (seek stmt i)
 	      (let1 row (fetch stmt)
