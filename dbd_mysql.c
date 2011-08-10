@@ -49,7 +49,7 @@ void mysql_cleanup(ScmObj obj)
     if (!MysqlClosedP(obj)) {
         MYSQL *s = MYSQL_HANDLE_UNBOX(obj);
         mysql_close(s);
-	MysqlMarkClosed(obj);
+		MysqlMarkClosed(obj);
     }
 }
 
@@ -58,7 +58,7 @@ void mysql_res_cleanup(ScmObj obj)
     if (!MysqlClosedP(obj)) {
         MYSQL_RES *r = MYSQL_RES_UNBOX(obj);
         mysql_free_result(r);
-	MysqlMarkClosed(obj);
+		MysqlMarkClosed(obj);
     }
 }
 
@@ -74,19 +74,36 @@ void mysql_rows_cleanup(ScmObj obj)
  */
 /* Symbol 'closed? */
 static ScmObj sym_closed;
+static ScmObj sym_result_closed;
 
 int MysqlClosedP(ScmObj obj)
 {
     SCM_ASSERT(SCM_FOREIGN_POINTER_P(obj));
-    return !SCM_FALSEP(Scm_ForeignPointerAttrGet(SCM_FOREIGN_POINTER(obj),
-                                                 sym_closed, SCM_FALSE));
+    return !SCM_FALSEP(Scm_ForeignPointerAttrGet(SCM_FOREIGN_POINTER(obj), sym_closed, SCM_FALSE));
 }
 
 void MysqlMarkClosed(ScmObj obj)
 {
     SCM_ASSERT(SCM_FOREIGN_POINTER_P(obj));
-    Scm_ForeignPointerAttrSet(SCM_FOREIGN_POINTER(obj),
-                              sym_closed, SCM_TRUE);
+    Scm_ForeignPointerAttrSet(SCM_FOREIGN_POINTER(obj), sym_closed, SCM_TRUE);
+}
+
+int MysqlResultClosedP(ScmObj obj)
+{
+	SCM_ASSERT(SCM_FOREIGN_POINTER_P(obj));
+	return !SCM_FALSEP(Scm_ForeignPointerAttrGet(SCM_FOREIGN_POINTER(obj), sym_result_closed, SCM_TRUE));
+}
+
+void MysqlResultMarkClosed(ScmObj obj)
+{
+	SCM_ASSERT(SCM_FOREIGN_POINTER_P(obj));
+	Scm_ForeignPointerAttrSet(SCM_FOREIGN_POINTER(obj), sym_result_closed, SCM_TRUE);
+}
+
+void MysqlResultUnmarkClosed(ScmObj obj)
+{
+	SCM_ASSERT(SCM_FOREIGN_POINTER_P(obj));
+	Scm_ForeignPointerAttrSet(SCM_FOREIGN_POINTER(obj), sym_result_closed, SCM_FALSE);
 }
 
 #if   defined(GAUCHE_CHAR_ENCODING_EUC_JP)
@@ -469,54 +486,54 @@ void MysqlStmtxExecute(MYSQL_STMTX *stmtx, ScmObj args)
     stmtx->param_count = param_count = mysql_stmt_param_count(stmt);
     memset(params, 0, sizeof(MYSQL_BIND)*param_count);
     for (ptr = args, i = 0, param = params;
-	 !SCM_NULLP(ptr);
-	 ptr = Scm_Cdr(ptr), i++, param++) {
-	obj = Scm_Car(ptr);
-	if (i >= param_count)
-	    Scm_RaiseCondition(MYSQL_ERROR, "error-code", SCM_MAKE_INT(0), "sql-code", SCM_MAKE_STR_IMMUTABLE(""),
-			       SCM_RAISE_CONDITION_MESSAGE, "mysql-stmt-execute require %d parameters, but got %d parameters",
-			       param_count, Scm_Length(args));
-	mysql_init_param(param, obj);
+		 !SCM_NULLP(ptr);
+		 ptr = Scm_Cdr(ptr), i++, param++) {
+		obj = Scm_Car(ptr);
+		if (i >= param_count)
+			Scm_RaiseCondition(MYSQL_ERROR, "error-code", SCM_MAKE_INT(0), "sql-code", SCM_MAKE_STR_IMMUTABLE(""),
+							   SCM_RAISE_CONDITION_MESSAGE, "mysql-stmt-execute require %d parameters, but got %d parameters",
+							   param_count, Scm_Length(args));
+		mysql_init_param(param, obj);
     }
     if (i != param_count)
-	Scm_RaiseCondition(MYSQL_ERROR, "error-code", SCM_MAKE_INT(0), "sql-code", SCM_MAKE_STR_IMMUTABLE(""),
-			   SCM_RAISE_CONDITION_MESSAGE, "mysql-stmt-execute require %d parameters, but got %d parameters",
-			   param_count, i);
+		Scm_RaiseCondition(MYSQL_ERROR, "error-code", SCM_MAKE_INT(0), "sql-code", SCM_MAKE_STR_IMMUTABLE(""),
+						   SCM_RAISE_CONDITION_MESSAGE, "mysql-stmt-execute require %d parameters, but got %d parameters",
+						   param_count, i);
     if (mysql_stmt_bind_param(stmt, params) != 0)
-	raise_mysql_stmt_error(stmt, "mysql_stmt_bind_param");
+		raise_mysql_stmt_error(stmt, "mysql_stmt_bind_param");
     stmtx->field_count = field_count = mysql_stmt_field_count(stmt);
     if (field_count > 0) {
-	int i;
-	MYSQL_FIELD *field = mysql_fetch_fields(stmtx->metares);
-	for (i = 0; i < field_count; i++, field++) {
-	    if (field->type == MYSQL_TYPE_BLOB) {
-		fix_metadata = 1;
-		mysql_stmt_attr_set(stmt, STMT_ATTR_UPDATE_MAX_LENGTH, &fix_metadata);
-		break;
-	    }
-	}
+		int i;
+		MYSQL_FIELD *field = mysql_fetch_fields(stmtx->metares);
+		for (i = 0; i < field_count; i++, field++) {
+			if (field->type == MYSQL_TYPE_BLOB) {
+				fix_metadata = 1;
+				mysql_stmt_attr_set(stmt, STMT_ATTR_UPDATE_MAX_LENGTH, &fix_metadata);
+				break;
+			}
+		}
     }
     if (mysql_stmt_execute(stmt) != 0)
-	raise_mysql_stmt_error(stmt, "mysql_stmt_execute");
+		raise_mysql_stmt_error(stmt, "mysql_stmt_execute");
     if (mysql_stmt_store_result(stmt) != 0)
-	raise_mysql_stmt_error(stmt, "mysql_stmt_store_result");
+		raise_mysql_stmt_error(stmt, "mysql_stmt_store_result");
     if (fix_metadata) {
-	MYSQL_RES *metares;
-	if ((metares = mysql_stmt_result_metadata(stmt)) == NULL)
-	    if (mysql_stmt_errno(stmt) != 0)
-		raise_mysql_stmt_error(stmt, "mysql_stmt_result_metadata");
-	mysql_free_result(stmtx->metares);
-	stmtx->metares = metares;
+		MYSQL_RES *metares;
+		if ((metares = mysql_stmt_result_metadata(stmt)) == NULL)
+			if (mysql_stmt_errno(stmt) != 0)
+				raise_mysql_stmt_error(stmt, "mysql_stmt_result_metadata");
+		mysql_free_result(stmtx->metares);
+		stmtx->metares = metares;
     }
     if (field_count > 0) {
-	int i;
-	if ((fields = (MYSQL_BIND*)calloc(field_count, sizeof(MYSQL_BIND))) == NULL)
-	    Scm_SysError("Cannot allocate MYSQL_BIND buffers");
-	stmtx->fields = fields;
-	for (i = 0, field = fields; i < field_count; i++, field++)
-	    mysql_init_field(field, mysql_fetch_field_direct(stmtx->metares, i));
-	if (mysql_stmt_bind_result(stmt, fields) != 0)
-	    raise_mysql_stmt_error(stmt, "mysql_stmt_bind_result");
+		int i;
+		if ((fields = (MYSQL_BIND*)calloc(field_count, sizeof(MYSQL_BIND))) == NULL)
+			Scm_SysError("Cannot allocate MYSQL_BIND buffers");
+		stmtx->fields = fields;
+		for (i = 0, field = fields; i < field_count; i++, field++)
+			mysql_init_field(field, mysql_fetch_field_direct(stmtx->metares, i));
+		if (mysql_stmt_bind_result(stmt, fields) != 0)
+			raise_mysql_stmt_error(stmt, "mysql_stmt_bind_result");
     }
 }
 
@@ -650,6 +667,7 @@ void Scm_Init_dbd_mysql(void)
 
     /* Get handle of the symbol 'closed? */
     sym_closed = SCM_INTERN("closed?");
+	sym_result_closed = SCM_INTERN("result-closed?");
 
     /* Register stub-generated procedures */
     Scm_Init_dbd_mysqllib(mod);

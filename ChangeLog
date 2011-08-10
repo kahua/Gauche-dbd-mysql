@@ -1,3 +1,9 @@
+2011-08-10  Tatsuya BIZENN  <bizenn@kahua.org>
+
+	* Add: mysql-stmt-res-closed?
+
+	* Fix: handling <mysql-stmt> result set open/close properly.
+
 2011-07-29  Tatsuya BIZENN  <bizenn@kahua.org>
 
 	* Fix: a typo.

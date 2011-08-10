@@ -78,6 +78,9 @@
     (let1 handle (mysql-real-connect host user passwd db port socket flags)
       (make <mysql-connection> :driver-name d :open #t :handle handle))))
 
+(define-method dbi-open? ((c <mysql-connection>))
+  (not (mysql-handle-closed? (slot-ref c '%handle))))
+
 (define-class <mysql-query> (<dbi-query>)
   ())
 
@@ -88,33 +91,23 @@
    (%current-rowid :init-value 0)))
 
 (define-method dbi-prepare ((c <mysql-connection>) (sql <string>) . args)
-  (let* ((conn (slot-ref c '%handle))
-	 (prepared (if (and (get-keyword :pass-through args #f)
-			    (not (string-scan sql #\?)))
-		       (lambda args
-			 (unless (null? args)
-			   (error <dbi-parameter-error> "parameters are given to the pass through sql:" sql))
-			 sql)
-		       (guard (e ((mysql-error? e)
-				  (dbi-prepare-sql c sql)))
-			 (mysql-stmt-prepare conn sql)))))
-    (make <mysql-query> :connection c :prepared prepared :open #t)))
+  (make <mysql-query> :connection c :prepared (mysql-stmt-prepare (slot-ref c '%handle) sql)))
+
+(define-method dbi-open? ((q <mysql-query>))
+  (not (mysql-stmt-closed? (slot-ref q 'prepared))))
 
 (define-method dbi-execute-using-connection ((c <mysql-connection>)
                                              (q <dbi-query>) params)
   (let* ((conn (slot-ref c '%handle))
 	 (prepared  (slot-ref q 'prepared)))
-    (if (procedure? prepared)
-	(begin
-	  (mysql-real-query conn (apply prepared params))
-	  (and-let* ((rs (mysql-store-result conn)))
-	    (make <mysql-result-set>
-	     :open #t :handle conn :statement rs :row-count (mysql-affected-rows conn))))
-	(begin
-	  (apply mysql-stmt-execute prepared params)
-	  (and (< 0 (mysql-stmt-field-count prepared))
-	       (make <mysql-result-set>
-		:open #t :handle conn :statement prepared :row-count (mysql-stmt-affected-rows prepared)))))))
+    (unless (dbi-open? q)
+      (error <dbi-error> "query already closed: " q))
+    (unless (dbi-open? c)
+      (error <dbi-error> "connection already closed: " c))
+    (apply mysql-stmt-execute prepared params)
+    (and (< 0 (mysql-stmt-field-count prepared))
+	 (make <mysql-result-set>
+	   :open #t :handle conn :statement prepared :row-count (mysql-stmt-affected-rows prepared)))))
 
 (define-method dbi-escape-sql ((c <mysql-connection>) str)
   (mysql-real-escape-string (slot-ref c '%handle) str))
@@ -182,17 +175,17 @@
   (and (not (let1 stmt (slot-ref result-set '%statement)
 	      (if (mysql-res? stmt)
 		  (mysql-res-closed? stmt)
-		  (mysql-stmt-closed? stmt))))
+		  (mysql-stmt-res-closed? stmt))))
        (not (mysql-handle-closed? (slot-ref result-set '%handle)))))
 
 (define-method dbi-close ((result-set <mysql-result-set>))
   (let1 stmt (slot-ref result-set '%statement)
     (if (mysql-res? stmt)
 	(mysql-free-result stmt)
-	(mysql-stmt-close stmt))))
+	(mysql-stmt-free-result stmt))))
 
-(define-method dbi-open? ((c <mysql-connection>))
-  (not (mysql-handle-closed? (slot-ref c '%handle))))
+(define-method dbi-close ((query <mysql-query>))
+  (mysql-stmt-close (slot-ref query 'prepared)))
 
 (define-method dbi-close ((c <mysql-connection>))
   (mysql-close (slot-ref c '%handle)))

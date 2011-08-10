@@ -71,6 +71,9 @@ typedef ScmForeignPointer ScmMysqlRows;
 
 extern int MysqlClosedP(ScmObj obj);
 extern void MysqlMarkClosed(ScmObj obj);
+int MysqlResultClosedP(ScmObj obj);
+void MysqlResultMarkClosed(ScmObj obj);
+void MysqlResultUnmarkClosed(ScmObj obj);
 
 extern MYSQL *MysqlRealConnect(const char *host,
 			       const char *user,
