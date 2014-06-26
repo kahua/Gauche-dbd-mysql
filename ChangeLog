@@ -1,3 +1,11 @@
+2014-06-26  Tatsuya BIZENN  <bizenn@visha.org>
+
+	* Fix: improper initialization: add my_init() calling and drop
+		load_defaults()(obsolet function?).
+
+	* Fix: drop "set names <character set>" and now mysql_set_character_set()
+		required.  So now we support MySQL 5.0.7 or later.
+
 2011-08-10  Tatsuya BIZENN  <bizenn@kahua.org>
 
 	* Add: mysql-stmt-res-closed?
