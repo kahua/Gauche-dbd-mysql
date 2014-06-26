@@ -631,17 +631,11 @@ void raise_mysql_stmt_error(MYSQL_STMT *stmt, const char *msg)
  */
 extern void Scm_Init_dbd_mysqllib(ScmModule*);
 
-static const char *load_default_groups[]
-= {"mysql", "client", NULL};
-
-static const char *dummy_argv[]
-= { "dbd.mysql" };
-
 void Scm_Init_dbd_mysql(void)
 {
     ScmModule *mod;
-    int   ac = 1;
-    char **av = (char**)dummy_argv;
+
+    my_init();
 
     /* Register this DSO to Gauche */
     SCM_INIT_EXTENSION(dbd_mysql);
@@ -671,6 +665,4 @@ void Scm_Init_dbd_mysql(void)
 
     /* Register stub-generated procedures */
     Scm_Init_dbd_mysqllib(mod);
-
-    load_defaults("my", load_default_groups, &ac, &av);
 }
