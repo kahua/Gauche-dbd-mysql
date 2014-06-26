@@ -108,22 +108,22 @@ void MysqlResultUnmarkClosed(ScmObj obj)
 
 #if   defined(GAUCHE_CHAR_ENCODING_EUC_JP)
 static const char *default_character_encoding = "eucjpms";
-static const char setnames[] = "SET NAMES eucjpms";
 #elif defined(GAUCHE_CHAR_ENCODING_UTF_8)
 static const char *default_character_encoding = "utf8";
-static const char setnames[] = "SET NAMES utf8";
 #elif defined(GAUCHE_CHAR_ENCODING_SJIS)
 static const char *default_character_encoding = "cp932";
-static const char setnames[] = "SET NAMES cp932";
 #else  /* NONE */
 static const char *default_character_encoding = "binary"; /* FIXME!! */
-static const char setnames[] = "SET NAMES binary";
 #endif
 
 #if HAVE_DECL_MY_CS_AVAILABLE
 # define GET_CHARSET_NUMBER(csname)  get_charset_number((csname), MY_CS_AVAILABLE)
 #else
 # define GET_CHARSET_NUMBER(csname)  get_charset_number(csname)
+#endif
+
+#if !HAVE_DECL_MYSQL_SET_CHARACTER_SET
+# error "MySQL 5.0.7 or later required!!.  You need mysql_set_character_set() for this module."
 #endif
 
 MYSQL *MysqlRealConnect(const char *host,
@@ -137,19 +137,10 @@ MYSQL *MysqlRealConnect(const char *host,
     MYSQL *conn, *handle = SCM_NEW(MYSQL);
     if ((handle = mysql_init(handle)) == NULL)
 	Scm_SysError("Cannot initialize MYSQL structure.");
-#if !HAVE_DECL_MYSQL_SET_CHARACTER_SET
-    if (GET_CHARSET_NUMBER(default_character_encoding) > 0)
-	if (mysql_options(handle, MYSQL_SET_CHARSET_NAME, default_character_encoding) != 0)
-	    raise_mysql_error(handle, "mysql_option w/ MYSQL_SET_CHARSET_NAME");
-#endif
     mysql_options(handle, MYSQL_READ_DEFAULT_GROUP, "client");
     if ((conn = mysql_real_connect(handle, host, user, password, db, port, unix_socket, client_flag)) == NULL)
 	raise_mysql_error(handle, "mysql_real_connect");
-#if HAVE_DECL_MYSQL_SET_CHARACTER_SET
     mysql_set_character_set(conn, default_character_encoding); /* Ignore even if error occured */
-#else
-    mysql_real_query(handle, setnames, sizeof(setnames)-1);    /* Ignore even if error occured */
-#endif	/* HAVE_DECL_MYSQL_SET_CHARACTER_SET */
     return conn;
 }
 
