@@ -735,7 +735,13 @@
 #endif
 "
 (define-cproc mysql-get-charset-number (csname::<const-cstring>)
-  (expr <int> "GET_CHARSET_NUMBER(csname)"))
+  (expr <int> "
+#if HAVE_MYSQL_GET_CHARSET_NUMBER
+   GET_CHARSET_NUMBER(csname)
+#else
+   0 /* Zero means no charset found */
+#endif
+"))
 ;;
 ;; from errmsg.h mysql-5.0.27
 ;;

@@ -1,3 +1,7 @@
+2014-10-16  Katsuyuki Tateishi  <kt@wheel.jp>
+
+	* Fix: error on loading dbd.mysql with MySQL 5.5.
+
 2014-06-26  Tatsuya BIZENN  <bizenn@visha.org>
 
 	* Fix: improper initialization: add my_init() calling and drop
