@@ -539,7 +539,8 @@ static ScmObj mysql_bind_to_scm_obj(MYSQL_BIND *bind)
 	    return Scm_MakeInteger64(*(long long int*)bind->buffer);
 	case MYSQL_TYPE_DOUBLE:
 	    return Scm_MakeFlonum(*(double*)bind->buffer);
-	case MYSQL_TYPE_DATETIME:
+	case MYSQL_TYPE_DATE: case MYSQL_TYPE_TIME:
+	case MYSQL_TYPE_DATETIME: case MYSQL_TYPE_TIMESTAMP:
 	    return Scm_MakeMysqlTime((MYSQL_TIME*)bind->buffer);
 	default:
 	    Scm_RaiseCondition(MYSQL_ERROR, "error-code", SCM_MAKE_INT(0), "sql-code", SCM_MAKE_STR_IMMUTABLE(""),
