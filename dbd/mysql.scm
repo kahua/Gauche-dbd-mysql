@@ -195,10 +195,43 @@
 (if (global-variable-bound? (current-module) '<mysql-time>)
     (begin
       (define (mysql-time->string t)
-	(format #f "~d-~2,'0d-~2,'0d ~2,'0d:~2,'0d:~2,'0d.~6,'0d"
-		(slot-ref t 'year) (slot-ref t 'month) (slot-ref t 'day)
-		(slot-ref t 'hour) (slot-ref t 'minute) (slot-ref t 'second)
-		(slot-ref t 'second-part)))
+
+	(define fmt-date "~d-~2,'0d-~2,'0d")
+	(define fmt-time "~2,'0d:~2,'0d:~2,'0d")
+	(define fmt-flacsec ".~6,'0d")
+	(define fmt-time/f (string-append fmt-time fmt-flacsec))
+	(define fmt-datetime (string-append fmt-date " " fmt-time))
+	(define fmt-datetime/f (string-append fmt-datetime fmt-flacsec))
+
+	(define (ts-date->string t)
+	  (format #f fmt-date
+		  (slot-ref t 'year) (slot-ref t 'month) (slot-ref t 'day)))
+	(define (ts-datetime->string t)
+	  (if (> (slot-ref t 'second-part) 0)
+	      (format #f fmt-datetime/f
+		      (slot-ref t 'year) (slot-ref t 'month) (slot-ref t 'day)
+		      (slot-ref t 'hour) (slot-ref t 'minute) (slot-ref t 'second)
+		      (slot-ref t 'second-part))
+	      (format #f fmt-datetime
+		      (slot-ref t 'year) (slot-ref t 'month) (slot-ref t 'day)
+		      (slot-ref t 'hour) (slot-ref t 'minute) (slot-ref t 'second))))
+	(define (ts-time->string t)
+	  (if (> (slot-ref t 'second-part) 0)
+	      (format #f fmt-time/f
+		      (slot-ref t 'hour) (slot-ref t 'minute) (slot-ref t 'second)
+		      (slot-ref t 'second-part))
+	      (format #f fmt-time
+		      (slot-ref t 'hour) (slot-ref t 'minute) (slot-ref t 'second))))
+
+	(let1 time-type (slot-ref t 'time-type)
+	  (cond
+	   ((eqv? MYSQL_TIMESTAMP_DATE time-type) (ts-date->string t))
+	   ((eqv? MYSQL_TIMESTAMP_DATETIME time-type) (ts-datetime->string t))
+	   ((eqv? MYSQL_TIMESTAMP_TIME time-type) (ts-time->string t))
+	   ((or (eqv? MYSQL_TIMESTAMP_NONE time-type)
+		(eqv? MYSQL_TIMESTAMP_ERROR time-type))
+	    (error "time-type indicates some error on this field:" time-type))
+	   (else (error "Unknown time-type")))))
       (define-method x->string ((t <mysql-time>))
 	(mysql-time->string t))
 
@@ -283,6 +316,9 @@
 		   MYSQL_TYPE_DATE MYSQL_TYPE_TIME MYSQL_TYPE_DATETIME MYSQL_TYPE_YEAR
 		   MYSQL_TYPE_STRING MYSQL_TYPE_VAR_STRING MYSQL_TYPE_BLOB MYSQL_TYPE_SET
 		   MYSQL_TYPE_ENUM MYSQL_TYPE_GEOMETRY MYSQL_TYPE_NULL)
+
+(export-if-defined MYSQL_TIMESTAMP_NONE MYSQL_TIMESTAMP_ERROR MYSQL_TIMESTAMP_DATE
+		   MYSQL_TIMESTAMP_DATETIME MYSQL_TIMESTAMP_TIME)
 
 ;; Epilogue
 (provide "dbd/mysql")

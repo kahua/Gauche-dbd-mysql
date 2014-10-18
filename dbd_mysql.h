@@ -209,6 +209,7 @@ extern void mysql_res_cleanup(ScmObj obj);
 #  define MYSQL_TIME_SECOND(obj)   (MYSQL_TIME_UNBOX(obj).second)
 #  define MYSQL_TIME_NEGATIVE_P(obj) (MYSQL_TIME_UNBOX(obj).neg)
 #  define MYSQL_TIME_SECOND_PART(obj) (MYSQL_TIME_UNBOX(obj).second_part)
+#  define MYSQL_TIME_TIME_TYPE(obj) (MYSQL_TIME_UNBOX(obj).time_type)
 
    extern ScmObj mysql_time_allocate(ScmClass *klass, ScmObj initargs);
    extern ScmObj Scm_MakeMysqlTime(MYSQL_TIME *time);
