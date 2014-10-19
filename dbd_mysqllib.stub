@@ -712,6 +712,16 @@
     (begin
       (define-type <mysql-time> "ScmMysqlTime*" "MySQL DATE/TIME/TIMESTAMP structure"
 	"MYSQL_TIME_P" "SCM_MYSQL_TIME")
+      (define-enum MYSQL_TIMESTAMP_NONE)
+      (define-constant MYSQL_TIMESTAMP_NONE (c "SCM_MAKE_INT(MYSQL_TIMESTAMP_NONE)"))
+      (define-enum MYSQL_TIMESTAMP_ERROR)
+      (define-constant MYSQL_TIMESTAMP_ERROR (c "SCM_MAKE_INT(MYSQL_TIMESTAMP_ERROR)"))
+      (define-enum MYSQL_TIMESTAMP_DATE)
+      (define-constant MYSQL_TIMESTAMP_DATE (c "SCM_MAKE_INT(MYSQL_TIMESTAMP_DATE)"))
+      (define-enum MYSQL_TIMESTAMP_DATETIME)
+      (define-constant MYSQL_TIMESTAMP_DATETIME (c "SCM_MAKE_INT(MYSQL_TIMESTAMP_DATETIME)"))
+      (define-enum MYSQL_TIMESTAMP_TIME)
+      (define-constant MYSQL_TIMESTAMP_TIME (c "SCM_MAKE_INT(MYSQL_TIMESTAMP_TIME)"))
       (define-cclass <mysql-time>
 	"ScmMysqlTime*" "Scm_MysqlTimeClass"
 	()
@@ -722,6 +732,7 @@
 	 (minute :type <uint> :c-spec "MYSQL_TIME_MINUTE(obj)")
 	 (second :type <uint> :c-spec "MYSQL_TIME_SECOND(obj)")
 	 (second-part :type <uint> :c-spec "MYSQL_TIME_SECOND_PART(obj)") ; microsecond/unused
+	 (time-type :type <uint> :c-spec "MYSQL_TIME_TIME_TYPE(obj)")
 	 (nagative? :type <boolean> :c-spec "MYSQL_TIME_NEGATIVE_P(obj)"))
 	(allocator (c "mysql_time_allocate")))
       (define-cproc mysql-time? (obj)

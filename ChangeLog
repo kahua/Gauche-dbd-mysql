@@ -1,3 +1,11 @@
+2014-10-18  Katsuyuki Tateishi <kt@wheel.jp>
+
+	* Fix: error on fetching MYSQL_TIME_TYPE field
+
+	* Change: string format for DATETIME is changed to 'YYYY-MM-DD
+	  HH:DD:SS' from 'YYYY-MM-DD HH:DD:SS.FFFFFF' when FFFFFF, fractional
+	  seconds, is zero (in many cases this condition will be met).
+
 2014-10-16  Katsuyuki Tateishi  <kt@wheel.jp>
 
 	* Fix: check get_charset_number existence to avoid dynamic load error.
