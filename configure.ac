@@ -105,6 +105,10 @@ AC_CHECK_DECLS([MY_CS_AVAILABLE],,,[
 #include <my_sys.h>
 ])
 
+AC_CHECK_FUNC([get_charset_number],
+	      [AC_DEFINE([HAVE_MYSQL_GET_CHARSET_NUMBER],[1],
+			 [Define to 1 if you have linkable get_charset_number])])
+
 dnl Creating gpd (gauche package description) file
 GAUCHE_PACKAGE_CONFIGURE_ARGS="`echo ""$ac_configure_args"" | sed 's/[\\""\`\$]/\\\&/g'`"
 AC_MSG_NOTICE([creating ${PACKAGE_NAME}.gpd])
