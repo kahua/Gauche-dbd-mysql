@@ -23,8 +23,8 @@
 #include \"dbd_mysql.h\"
 "
 
-(define-cproc mysql-dbd-version ()
-  (expr <const-cstring> "PACKAGE_VERSION"))
+(define-cproc mysql-dbd-version () ::<const-cstring>
+  (return PACKAGE_VERSION))
 
 (define-type <mysql-handle> "MYSQL*" "MySQL handle"
   "MYSQL_HANDLE_P" "MYSQL_HANDLE_UNBOX" "MYSQL_HANDLE_BOX")
@@ -33,12 +33,9 @@
 (define-type <mysql-row-offset> "MYSQL_ROWS*" "MySQL row offset"
   "MYSQL_ROWS_P" "MYSQL_ROWS_UNBOX" "MYSQL_ROWS_BOX")
 
-(define-cproc mysql-handle? (obj)
-  (call <boolean> "MYSQL_HANDLE_P"))
-(define-cproc mysql-res? (obj)
-  (call <boolean> "MYSQL_RES_P"))
-(define-cproc mysql-row-offset? (obj)
-  (call <boolean> "MYSQL_ROWS_P"))
+(define-cproc mysql-handle? (obj) ::<boolean> MYSQL_HANDLE_P)
+(define-cproc mysql-res? (obj) ::<boolean> MYSQL_RES_P)
+(define-cproc mysql-row-offset? (obj) ::<boolean> MYSQL_ROWS_P)
 
 ;; key to the foreign pointer attribute to keep track of closed state
 ;; of handles.
@@ -69,8 +66,10 @@
   (call <const-cstring> "mysql_character_set_name"))
 
 ;; mysql_close
-(define-cproc mysql-close (connection::<mysql-handle>)
-  (body <void> "mysql_cleanup(connection_scm);"))
+(define-cproc mysql-close (connection) ::<void>
+  (unless (MYSQL_HANDLE_P connection)
+    (SCM_TYPE_ERROR connection "<mysql-chandle>"))
+  (mysql_cleanup connection))
 
 ;; mysql_commit
 (if "HAVE_DECL_MYSQL_COMMIT"
@@ -331,8 +330,9 @@
   (call <uint> "mysql_field_tell"))
 
 ;; mysql_free_result
-(define-cproc mysql-free-result (result::<mysql-res>)
-  (body <void> "mysql_res_cleanup(result_scm);"))
+(define-cproc mysql-free-result (result) ::<void>
+  (unless (MYSQL_RES_P result) (SCM_TYPE_ERROR result "<mysql-res>"))
+  (mysql_res_cleanup result))
 
 (if "HAVE_MY_CHARSET_INFO"
     (begin
@@ -596,11 +596,15 @@
     (define-cproc mysql-warning-count (handle::<mysql-handle>)
       (call <uint> "mysql_warning_count")))
 
-(define-cproc mysql-handle-closed? (connection::<mysql-handle>)
-  (expr <boolean> "MysqlClosedP(connection_scm)"))
+(define-cproc mysql-handle-closed? (connection) ::<boolean>
+  (unless (MYSQL_HANDLE_P connection)
+    (SCM_TYPE_ERROR connection "<mysql-chandle>"))
+  (result (MysqlClosedP connection)))
 
-(define-cproc mysql-res-closed? (result::<mysql-res>)
-  (expr <boolean> "MysqlClosedP(result_scm)"))
+(define-cproc mysql-res-closed? (result) ::<boolean>
+  (unless (MYSQL_RES_P result)
+    (SCM_TYPE_ERROR result "<mysql-res>"))
+  (result (MysqlClosedP result)))
 
 (define-cproc mysql-fetch-field-names (result::<mysql-res>?)
   (call "MysqlFetchFieldNames"))
@@ -626,24 +630,26 @@
       ;; mysql_stmt_bind_result(integrated into mysql-stmt-execute)
 
       ;; mysql_stmt_close
-      (define-cproc mysql-stmt-close (stmtx::<mysql-stmt>)
-	(body <void> "mysql_stmtx_cleanup(stmtx_scm);"))
+      (define-cproc mysql-stmt-close (stmtx) ::<void>
+        (unless (MYSQL_STMTX_P stmtx) (SCM_TYPE_ERROR stmtx "<mysql-stmt>"))
+	(mysql_stmtx_cleanup stmtx))
 
       ;; mysql_stmt_data_seek
-      (define-cproc mysql-stmt-data-seek (stmtx::<mysql-stmt> offset::<integer>)
-	(body <void> "mysql_stmt_data_seek(stmtx->stmt, Scm_GetIntegerU64(offset));"))
+      (define-cproc mysql-stmt-data-seek (stmtx::<mysql-stmt> offset::<integer>) ::<void>
+	(mysql_stmt_data_seek (-> stmtx stmt) (Scm_GetIntegerU64 offset)))
 
       ;; mysql_stmt_errno
-      (define-cproc mysql-stmt-errno (stmtx::<mysql-stmt>)
-	(expr <uint> "mysql_stmt_errno(stmtx->stmt)"))
+      (define-cproc mysql-stmt-errno (stmtx::<mysql-stmt>) ::<uint>
+	(result (mysql_stmt_errno (-> stmtx stmt))))
 
       ;; mysql_stmt_error
-      (define-cproc mysql-stmt-error (stmtx::<mysql-stmt>)
-	(expr <const-cstring> "mysql_stmt_error(stmtx->stmt)"))
+      (define-cproc mysql-stmt-error (stmtx::<mysql-stmt>) ::<const-cstring>
+	(result (mysql_stmt_error (-> stmtx stmt))))
 
       ;; mysql_stmt_execute
-      (define-cproc mysql-stmt-execute (stmtx::<mysql-stmt> &rest args)
-	(body <void> "MysqlStmtxExecute(stmtx, args); MysqlResultUnmarkClosed(stmtx_scm);"))
+      (define-cproc mysql-stmt-execute (stmtx::<mysql-stmt> &rest args) ::<void>
+	(MysqlStmtxExecute stmtx args)
+        (MysqlResultUnmarkClosed stmtx_scm))
 
       ;; mysql_stmt_fetch
       (define-cproc mysql-stmt-fetch (stmtx::<mysql-stmt>)
@@ -699,14 +705,17 @@
 
       ;; mysql_stmt_store_result(integrated into mysql-stmt-execute)
 
-      (define-cproc mysql-stmt-closed? (stmtx::<mysql-stmt>)
-	(expr <boolean> "MysqlClosedP(stmtx_scm)"))
+      (define-cproc mysql-stmt-closed? (stmtx) ::<boolean>
+        (unless (MYSQL_STMTX_P stmtx) (SCM_TYPE_ERROR stmtx "<mysql-stmt>"))
+	(result (MysqlClosedP stmtx)))
 
-      (define-cproc mysql-stmt-res-closed? (stmtx::<mysql-stmt>)
-	(expr <boolean> "MysqlResultClosedP(stmtx_scm)"))
+      (define-cproc mysql-stmt-res-closed? (stmtx) ::<boolean>
+        (unless (MYSQL_STMTX_P stmtx) (SCM_TYPE_ERROR stmtx "<mysql-stmt>"))
+	(result (MysqlResultClosedP stmtx)))
 
       (define-cproc mysql-stmt-fetch-field-names (stmtx::<mysql-stmt>)
-	(call "MysqlStmtxFetchFieldNames"))))
+	MysqlStmtxFetchFieldNames)
+      ))
 
 (if "HAVE_MYSQL_TIME"
     (begin
