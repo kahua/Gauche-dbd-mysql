@@ -308,7 +308,9 @@ static MYSQL_STMTX *make_mysql_stmtx(void)
     stmtx = SCM_NEW_ATOMIC2(MYSQL_STMTX*, sizeof(MYSQL_STMTX));
     stmtx->stmt = NULL;
     stmtx->params = NULL;
+    stmtx->param_count = 0;
     stmtx->fields = NULL;
+    stmtx->field_count = 0;
     stmtx->metares = NULL;
     return stmtx;
 }
@@ -334,6 +336,7 @@ MYSQL_STMTX *MysqlStmtxPrepare(MYSQL *connection, ScmString *sql)
 	if ((params = (MYSQL_BIND*)calloc(param_count, sizeof(MYSQL_BIND))) == NULL)
 	    Scm_SysError("Cannot allocate MYSQL_BIND buffers.");
     stmtx->params = params;
+    stmtx->param_count = param_count;
 
     if ((metares = mysql_stmt_result_metadata(stmt)) == NULL)
 	if (mysql_stmt_errno(stmt) != 0)
