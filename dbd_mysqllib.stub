@@ -43,27 +43,27 @@
 
 ;; mysql_affected_rows
 (define-cproc mysql-affected-rows (connection::<mysql-handle>)
-  (call "MysqlAffectedRows"))
+  MysqlAffectedRows)
 
 ;; mysql_autocommit
 (if "HAVE_DECL_MYSQL_AUTOCOMMIT"
     (define-cproc mysql-autocommit (handle::<mysql-handle> flag::<boolean>)
-      (body <void>
-	    "if (mysql_autocommit(handle, flag) != 0)"
-	    "  raise_mysql_error(handle, \"mysql_autocommit\");")))
+      ::<void>
+      (when (!= (mysql_autocommit handle flag) 0)
+        (raise_mysql_error handle "mysql_autocommit"))))
 
 ;; mysql_change_user
 (define-cproc mysql-change-user (handle::<mysql-handle>
 				 user::<const-cstring>?
 				 password::<const-cstring>?
 				 db::<const-cstring>?)
-  (body <void>
-	"if (mysql_change_user(handle, user, password, db) != 0)"
-	"  raise_mysql_error(handle, \"mysql_change_user\");"))
+  ::<void>
+  (when (!= (mysql_change_user handle user password db) 0)
+    (raise_mysql_error handle "mysql_change_user")))
 
 ;; mysql_character_set_name
 (define-cproc mysql-character-set-name (connection::<mysql-handle>)
-  (call <const-cstring> "mysql_character_set_name"))
+  ::<const-cstring> mysql_character_set_name)
 
 ;; mysql_close
 (define-cproc mysql-close (connection) ::<void>
@@ -754,14 +754,22 @@
 # define GET_CHARSET_NUMBER(csname)  get_charset_number(csname)
 #endif
 "
-(define-cproc mysql-get-charset-number (csname::<const-cstring>)
-  (expr <int> "
+
+;; Separate static function to avoid "set but unused" warning.
+"
+static int get_charset_number_int(const char *csname)
+{
 #if HAVE_MYSQL_GET_CHARSET_NUMBER
-   GET_CHARSET_NUMBER(csname)
+   return GET_CHARSET_NUMBER(csname);
 #else
-   0 /* Zero means no charset found */
+   return 0; /* Zero means no charset found */
 #endif
-"))
+}
+"
+
+(define-cproc mysql-get-charset-number (csname::<const-cstring>) ::<int>
+  get_charset_number_int)
+
 ;;
 ;; from errmsg.h mysql-5.0.27
 ;;
