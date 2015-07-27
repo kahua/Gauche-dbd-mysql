@@ -45,21 +45,25 @@
 (define-cproc mysql-affected-rows (connection::<mysql-handle>)
   MysqlAffectedRows)
 
+;; Capture the common pattern
+;; Call API with HANDLE and ARGS; if the result isn't zero, calls
+;; raise_mysql_error.
+(define-cise-stmt mysql-call
+  [(_ api handle . args)
+   `(when (!= (,api ,handle ,@args) 0)
+      (raise_mysql_error ,handle ,(x->string ',api)))])
+
 ;; mysql_autocommit
 (if "HAVE_DECL_MYSQL_AUTOCOMMIT"
     (define-cproc mysql-autocommit (handle::<mysql-handle> flag::<boolean>)
-      ::<void>
-      (when (!= (mysql_autocommit handle flag) 0)
-        (raise_mysql_error handle "mysql_autocommit"))))
+      ::<void> (mysql-call mysql_autocommit handle flag)))
 
 ;; mysql_change_user
 (define-cproc mysql-change-user (handle::<mysql-handle>
 				 user::<const-cstring>?
 				 password::<const-cstring>?
 				 db::<const-cstring>?)
-  ::<void>
-  (when (!= (mysql_change_user handle user password db) 0)
-    (raise_mysql_error handle "mysql_change_user")))
+  ::<void> (mysql-call mysql_change_user handle user password db))
 
 ;; mysql_character_set_name
 (define-cproc mysql-character-set-name (connection::<mysql-handle>)
@@ -73,39 +77,33 @@
 
 ;; mysql_commit
 (if "HAVE_DECL_MYSQL_COMMIT"
-    (define-cproc mysql-commit (connection::<mysql-handle>)
-      (body <void>
-	    "if (mysql_commit(connection) != 0)"
-	    " raise_mysql_error(connection, \"mysql_commit\");")))
+    (define-cproc mysql-commit (connection::<mysql-handle>) ::<void>
+      (mysql-call mysql-commit connection)))
 
 ;; mysql_connect(): OMITTED(deprecated)
 ;; mysql_create_db(): OMITTED(deprecated)
 
 ;; mysql_data_seek
-(define-cproc mysql-data-seek (result::<mysql-res> offset::<integer>)
-  (body <void> "mysql_data_seek(result, Scm_GetInteger64(offset));"))
+(define-cproc mysql-data-seek (result::<mysql-res> offset::<integer>) ::<void>
+  (mysql_data_seek result (Scm_GetInteger64 offset)))
 
 ;; mysql_debug
-(define-cproc mysql-debug (debug::<const-cstring>)
-  (call <void> "mysql_debug"))
+(define-cproc mysql-debug (debug::<const-cstring>) ::<void> mysql_debug)
 
 ;; mysql_drop_db(): OMITTED(deprecated)
 
 ;; mysql_dump_debug_info
-(define-cproc mysql-dump-debug-info (handle::<mysql-handle>)
-  (body <void>
-	"if (mysql_dump_debug_info(handle))"
-	"  raise_mysql_error(handle, \"mysql_dump_debug_info\");"))
+(define-cproc mysql-dump-debug-info (handle::<mysql-handle>) ::<void>
+  (mysql-call mysql_dump_debug_info handle))
 
 ;; mysql_eof(): OMITTED(deprecated)
 
 ;; mysql_errno
-(define-cproc mysql-errno (connection::<mysql-handle>)
-  (call <int> "mysql_errno"))
+(define-cproc mysql-errno (connection::<mysql-handle>) ::<int> mysql_errno)
 
 ;; mysql_error
-(define-cproc mysql-error (connection::<mysql-handle>)
-  (call <const-cstring> "mysql_error"))
+(define-cproc mysql-error (connection::<mysql-handle>) ::<const-cstring>
+  mysql_error)
 
 ;; mysql_escape_string(): OMITTED(You should use mysql_real_escape_string().)
 
@@ -314,20 +312,19 @@
       ))
 
 ;; mysql_fetch_row
-(define-cproc mysql-fetch-row (result::<mysql-res>)
-  (call "MysqlFetchRow"))
+(define-cproc mysql-fetch-row (result::<mysql-res>) MysqlFetchRow)
 
 ;; mysql_field_count
-(define-cproc mysql-field-count (handle::<mysql-handle>)
-  (call <uint> "mysql_field_count"))
+(define-cproc mysql-field-count (handle::<mysql-handle>) ::<uint>
+  mysql_field_count)
 
 ;; mysql_field_seek()
-(define-cproc mysql-field-seek (result::<mysql-res> offset::<uint>)
-  (call <uint> "mysql_field_seek"))
+(define-cproc mysql-field-seek (result::<mysql-res> offset::<uint>) ::<uint>
+  mysql_field_seek)
 
 ;; mysql_field_tell()
-(define-cproc mysql-field-tell (result::<mysql-res>)
-  (call <uint> "mysql_field_tell"))
+(define-cproc mysql-field-tell (result::<mysql-res>) ::<uint>
+  mysql_field_tell)
 
 ;; mysql_free_result
 (define-cproc mysql-free-result (result) ::<void>
@@ -363,47 +360,46 @@
       ))
 
 ;; mysql_get_client_info
-(define-cproc mysql-get-client-info ()
-  (call <const-cstring> "mysql_get_client_info"))
+(define-cproc mysql-get-client-info () ::<const-cstring>
+  mysql_get_client_info)
 
 ;; mysql_get_client_version
-(define-cproc mysql-get-client-version ()
-  (call <ulong> "mysql_get_client_version"))
+(define-cproc mysql-get-client-version () ::<ulong>
+  mysql_get_client_version)
 
 ;; mysql_get_host_info
-(define-cproc mysql-get-host-info (handle::<mysql-handle>)
-  (call <const-cstring> "mysql_get_host_info"))
+(define-cproc mysql-get-host-info (handle::<mysql-handle>) ::<const-cstring>
+  mysql_get_host_info)
 
 ;; mysql_get_proto_info
-(define-cproc mysql-get-proto-info (handle::<mysql-handle>)
-  (call <uint> "mysql_get_proto_info"))
+(define-cproc mysql-get-proto-info (handle::<mysql-handle>) ::<uint>
+  mysql_get_proto_info)
 
 ;; mysql_get_server_info
-(define-cproc mysql-get-server-info (handle::<mysql-handle>)
-  (call <const-cstring> "mysql_get_server_info"))
+(define-cproc mysql-get-server-info (handle::<mysql-handle>) ::<const-cstring>
+  mysql_get_server_info)
 
 (if "HAVE_DECL_MYSQL_GET_SERVER_VERSION"
     ;; mysql_get_server_version
     (define-cproc mysql-get-server-version (handle::<mysql-handle>)
-      (call <ulong> "mysql_get_server_version")))
+      ::<ulong> mysql_get_server_version))
 
 ;; mysql_get_ssl_cipher()
-(define-cproc mysql-get-ssl-cipher (handle::<mysql-handle>)
-  (call <const-cstring> "mysql_get_ssl_cipher"))
+(define-cproc mysql-get-ssl-cipher (handle::<mysql-handle>) ::<const-cstring>
+  mysql_get_ssl_cipher)
 
 ;; mysql_hex_string()
-(define-cproc mysql-hex-string (src::<string>)
-  (call "MysqlHexString"))
+(define-cproc mysql-hex-string (src::<string>) MysqlHexString)
 
 ;; mysql_info
-(define-cproc mysql-info (handle::<mysql-handle>)
-  (call <const-cstring>? "mysql_info"))
+(define-cproc mysql-info (handle::<mysql-handle>) ::<const-cstring>?
+  mysql_info)
 
 ;; mysql_init(integrated into mysql-real-connect)
 
 ;; mysql_insert_id
-(define-cproc mysql-insert-id (handle::<mysql-handle>)
-  (expr <integer> "(Scm_MakeIntegerU64(mysql_insert_id(handle)))"))
+(define-cproc mysql-insert-id (handle::<mysql-handle>) ::<integer>
+  (result (Scm_MakeIntegerU64 (mysql_insert_id handle))))
 
 ;; mysql_kill
 ;; mysql_library_end
