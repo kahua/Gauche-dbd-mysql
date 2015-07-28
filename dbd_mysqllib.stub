@@ -294,21 +294,21 @@
     (begin
       ;; mysql_fetch_field
       (define-cproc mysql-fetch-field (result::<mysql-res>)
-	(body "MYSQL_FIELD *r = mysql_fetch_field(result);"
-	      "SCM_RESULT = (r == NULL ? SCM_FALSE : Scm_MakeMysqlField(r));"))
+        (let* ([r::MYSQL_FIELD* (mysql_fetch_field result)])
+          (result (?: (== r NULL) '#f (Scm_MakeMysqlField r)))))
 
       ;; mysql_fetch_field_direct
       (define-cproc mysql-fetch-field-direct (result::<mysql-res> offset::<uint>)
-	(body "MYSQL_FIELD *r = mysql_fetch_field_direct(result, offset);"
-	      "SCM_RESULT = (r == NULL ? SCM_FALSE : Scm_MakeMysqlField(r));"))
+        (let* ([r::MYSQL_FIELD* (mysql_fetch_field_direct result offset)])
+          (result (?: (== r NULL) '#f (Scm_MakeMysqlField r)))))
 
       ;; mysql_fetch_fields()
       (define-cproc mysql-fetch-fields (result::<mysql-res>)
-	(call "MysqlFetchFields"))
+	MysqlFetchFields)
 
       ;; mysql_fetch_lengths()
       (define-cproc mysql-fetch-lengths (result::<mysql-res>)
-	(call "MysqlFetchLengths"))
+        MysqlFetchLengths)
       ))
 
 ;; mysql_fetch_row
@@ -435,20 +435,17 @@
 ;; mysql_next_result
 
 ;; mysql_num_fields
-(define-cproc mysql-num-fields (result::<mysql-res>)
-  (call <uint> "mysql_num_fields"))
+(define-cproc mysql-num-fields (result::<mysql-res>) ::<uint> mysql_num_fields)
 
 ;; mysql_num_rows
-(define-cproc mysql-num-rows (result::<mysql-res>)
-  (expr <integer> "Scm_MakeIntegerU64(mysql_num_rows(result))"))
+(define-cproc mysql-num-rows (res::<mysql-res>) ::<integer>
+  (result (Scm_MakeIntegerU64 (mysql_num_rows res))))
 
 ;; mysql_options
 
 ;; mysql_ping
-(define-cproc mysql-ping (handle::<mysql-handle>)
-  (body <void>
-	"if (mysql_ping(handle) != 0)"
-	"  raise_mysql_error(handle, \"mysql_ping\");"))
+(define-cproc mysql-ping (handle::<mysql-handle>) ::<void>
+  (mysql-call mysql_ping handle))
 
 ;; mysql_query(): OMITTED(You should use mysql_real_query().)
 
@@ -460,7 +457,7 @@
 				  port::<uint>
 				  unix_socket::<const-cstring>?
 				  client_flag::<uint>)
-  (call <mysql-handle> "MysqlRealConnect"))
+  ::<mysql-handle> MysqlRealConnect)
 
 ;; mysql_real_escape_string
 (define-cproc mysql-real-escape-string (connection::<mysql-handle>
@@ -513,25 +510,21 @@
 
 ;; mysql_row_seek()
 (define-cproc mysql-row-seek (result::<mysql-res> offset::<mysql-row-offset>)
-  (call <mysql-row-offset> "mysql_row_seek"))
+  ::<mysql-row-offset> mysql_row_seek)
 
 ;; mysql_row_tell()
 (define-cproc mysql-row-tell (result::<mysql-res>)
-  (call <mysql-row-offset> "mysql_row_tell"))
+  ::<mysql-row-offset> mysql_row_tell)
 
 ;; mysql_select_db
 (define-cproc mysql-select-db (handle::<mysql-handle> db::<const-cstring>)
-  (body <void>
-	"if (mysql_select_db(handle, db) != 0)"
-	"  raise_mysql_error(handle, \"mysql_select_db\");"))
+  ::<void> (mysql-call mysql_select_db handle db))
 
 ;; mysql_set_character_set
 (if "HAVE_DECL_MYSQL_SET_CHARACTER_SET"
     (define-cproc mysql-set-character-set (connection::<mysql-handle>
 					   charset::<const-cstring>)
-      (body <void>
-	    "if (mysql_set_character_set(connection, charset) != 0)"
-	    "  raise_mysql_error(connection, \"mysql_set_character_set\");")))
+      ::<void> (mysql-call mysql_set_character_set connection charset)))
 
 ;; mysql_set_local_infile_default
 ;; mysql_set_local_infile_handler
@@ -540,14 +533,10 @@
 ;; mysql_shutdown
 (if "HAVE_DECL_SHUTDOWN_DEFAULT"
     (define-cproc mysql-shutdown (handle::<mysql-handle> &optional (level::<int> (c "SHUTDOWN_DEFAULT")))
-      (body <void>
-	    "if (mysql_shutdown(handle, level) != 0)"
-	    "  raise_mysql_error(handle, \"mysql_shutdown\");")))
+      ::<void> (mysql-call mysql_shutdown handle level)))
 (if "!HAVE_DECL_SHUTDOWN_DEFAULT"
     (define-cproc mysql-shutdown (handle::<mysql-handle> &optional dummy)
-      (body <void>
-	    "if (mysql_shutdown(handle) != 0)"
-	    "  raise_mysql_error(handle, \"mysql_shutdown\");")))
+      ::<void> (mysql-call mysql_shutdown handle)))
 
 ;; mysql_sqlstate
 (if "HAVE_DECL_MYSQL_SQLSTATE"
