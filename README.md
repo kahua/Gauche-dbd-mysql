@@ -1,6 +1,6 @@
-* Gauche-dbd-mysql: MySQL (5.0 or later) native driver and DBD interface module.
+# Gauche-dbd-mysql: MySQL (5.0 or later) native driver and DBD interface module.
 
-** PREREQUISITES
+## PREREQUISITES
 
  Gauche 0.8.6 or later
  MySQL 5.0 or later
@@ -9,7 +9,7 @@
  If you build from the source repository instead of tarball, you also
  need autoconf 2.59 or later.
 
-** PREPARATION
+## PREPARATION
 
 In order to run the test, you need a test user and test database.
 The following mysql commands sets it up.  You can drop those
@@ -19,23 +19,23 @@ after the test is done:
     create database kahua_test character set 'utf8';
     grant all on kahua_test.* to 'kahua_test'@'localhost';
 
-** BUILD, TEST and INSTALL
+## BUILD, TEST and INSTALL
 
 A quick one-liner from tarball:
 
-  gauche-package install -S root Gauche-dbd-mysql-X.X.tgz
+    gauche-package install -S root Gauche-dbd-mysql-X.X.tgz
 
 From source tree:
 
-  git clone https://github.com/kahua/Gauche-dbd-mysql
-  cd Gauche-dbd-mysql
-  ./DIST gen
-  ./configure
-  make
-  make -s check
-  sudo make install
+    git clone https://github.com/kahua/Gauche-dbd-mysql
+    cd Gauche-dbd-mysql
+    ./DIST gen
+    ./configure
+    make
+    make -s check
+    sudo make install
 
-** API Documentation
+## API Documentation
 
 The easier way is to use it through dbi interface.
 Here's an example session.
@@ -67,7 +67,7 @@ The only mysql-specific part is the call to `dbi-connect`; you have to
 give the name of the database (DBNAME) and hostname (HOST) as shown.
 If you need to pass username and password, give them using keyword arguments.
 All the rest are generic dbi operations; see
-[dbi manuary entry of Gauche document](http://practical-scheme.net/gauche/man/?p=dbi)
+[dbi manual entry of Gauche document](http://practical-scheme.net/gauche/man/?p=dbi)
 
 The module also provides low-level API that corresponds to
 MySQL API.
