@@ -2,12 +2,12 @@
 
 ## PREREQUISITES
 
- Gauche 0.8.6 or later
- MySQL 5.0 or later
- MySQL client development library & header files
+* Gauche 0.8.6 or later
+* MySQL 5.0 or later
+* MySQL client development library & header files
 
- If you build from the source repository instead of tarball, you also
- need autoconf 2.59 or later.
+If you build from the source repository instead of tarball, you also
+need autoconf 2.59 or later.
 
 ## PREPARATION
 
