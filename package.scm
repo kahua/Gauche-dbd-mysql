@@ -35,4 +35,6 @@
 
   ;; Repository URL, e.g. github
   :repository "https://github.com/kahua/Gauche-dbd-mysql.git"
+
+  :providing-modules (dbd.mysql)
   )
