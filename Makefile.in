@@ -29,7 +29,7 @@ SCMFILES  = dbd/mysql.scm
 HEADERS   = 
 
 TARGET    = $(ARCHFILES)
-DIST_GENERATED = acconfig.h.in configure DIST_EXCLUDE_X
+DIST_GENERATED = DIST_EXCLUDE_X
 CONFIGURE_GENERATED = Makefile config.cache config.log config.status \
 		      configure.lineno $(PACKAGE).gpd VERSION acconfig.h
 

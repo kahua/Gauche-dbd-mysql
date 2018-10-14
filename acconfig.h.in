@@ -1,0 +1,205 @@
+/* Define to 1 if you have the declaration of `mysql_autocommit', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_AUTOCOMMIT
+
+/* Define to 1 if you have the declaration of `mysql_commit', and to 0 if you
+   don't. */
+#undef HAVE_DECL_MYSQL_COMMIT
+
+/* Define to 1 if you have the declaration of `mysql_get_server_version', and
+   to 0 if you don't. */
+#undef HAVE_DECL_MYSQL_GET_SERVER_VERSION
+
+/* Define to 1 if you have the declaration of `mysql_rollback', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_ROLLBACK
+
+/* Define to 1 if you have the declaration of `mysql_set_character_set', and
+   to 0 if you don't. */
+#undef HAVE_DECL_MYSQL_SET_CHARACTER_SET
+
+/* Define to 1 if you have the declaration of `mysql_sqlstate', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_SQLSTATE
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_BIT', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_BIT
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_BLOB', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_BLOB
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_DATE', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_DATE
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_DATETIME', and to 0
+   if you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_DATETIME
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_DECIMAL', and to 0
+   if you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_DECIMAL
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_DOUBLE', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_DOUBLE
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_ENUM', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_ENUM
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_FLOAT', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_FLOAT
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_GEOMETRY', and to 0
+   if you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_GEOMETRY
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_INT24', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_INT24
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_LONG', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_LONG
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_LONGLONG', and to 0
+   if you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_LONGLONG
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_LONG_BLOB', and to 0
+   if you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_LONG_BLOB
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_MEDIUM_BLOB', and to
+   0 if you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_MEDIUM_BLOB
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_NEWDATE', and to 0
+   if you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_NEWDATE
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_NEWDECIMAL', and to
+   0 if you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_NEWDECIMAL
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_NULL', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_NULL
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_SET', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_SET
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_SHORT', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_SHORT
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_STRING', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_STRING
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_TIME', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_TIME
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_TIMESTAMP', and to 0
+   if you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_TIMESTAMP
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_TINY', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_TINY
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_TINY_BLOB', and to 0
+   if you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_TINY_BLOB
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_VAR_STRING', and to
+   0 if you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_VAR_STRING
+
+/* Define to 1 if you have the declaration of `MYSQL_TYPE_YEAR', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MYSQL_TYPE_YEAR
+
+/* Define to 1 if you have the declaration of `mysql_warning_count', and to 0
+   if you don't. */
+#undef HAVE_DECL_MYSQL_WARNING_COUNT
+
+/* Define to 1 if you have the declaration of `MY_CS_AVAILABLE', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MY_CS_AVAILABLE
+
+/* Define to 1 if you have the declaration of `SHUTDOWN_DEFAULT', and to 0 if
+   you don't. */
+#undef HAVE_DECL_SHUTDOWN_DEFAULT
+
+/* Define to 1 if the system has the type `MYSQL_BIND'. */
+#undef HAVE_MYSQL_BIND
+
+/* Define to 1 if the system has the type `MYSQL_FIELD'. */
+#undef HAVE_MYSQL_FIELD
+
+/* Define to 1 if `catalog' is a member of `MYSQL_FIELD'. */
+#undef HAVE_MYSQL_FIELD_CATALOG
+
+/* Define to 1 if `catalog_length' is a member of `MYSQL_FIELD'. */
+#undef HAVE_MYSQL_FIELD_CATALOG_LENGTH
+
+/* Define to 1 if `charsetnr' is a member of `MYSQL_FIELD'. */
+#undef HAVE_MYSQL_FIELD_CHARSETNR
+
+/* Define to 1 if `db_length' is a member of `MYSQL_FIELD'. */
+#undef HAVE_MYSQL_FIELD_DB_LENGTH
+
+/* Define to 1 if `def_length' is a member of `MYSQL_FIELD'. */
+#undef HAVE_MYSQL_FIELD_DEF_LENGTH
+
+/* Define to 1 if `name_length' is a member of `MYSQL_FIELD'. */
+#undef HAVE_MYSQL_FIELD_NAME_LENGTH
+
+/* Define to 1 if `org_name' is a member of `MYSQL_FIELD'. */
+#undef HAVE_MYSQL_FIELD_ORG_NAME
+
+/* Define to 1 if `org_name_length' is a member of `MYSQL_FIELD'. */
+#undef HAVE_MYSQL_FIELD_ORG_NAME_LENGTH
+
+/* Define to 1 if `org_table_length' is a member of `MYSQL_FIELD'. */
+#undef HAVE_MYSQL_FIELD_ORG_TABLE_LENGTH
+
+/* Define to 1 if `table_length' is a member of `MYSQL_FIELD'. */
+#undef HAVE_MYSQL_FIELD_TABLE_LENGTH
+
+/* Define to 1 if you have linkable get_charset_number */
+#undef HAVE_MYSQL_GET_CHARSET_NUMBER
+
+/* Define to 1 if the system has the type `MYSQL_STMT'. */
+#undef HAVE_MYSQL_STMT
+
+/* Define to 1 if the system has the type `MYSQL_TIME'. */
+#undef HAVE_MYSQL_TIME
+
+/* Define to 1 if the system has the type `MY_CHARSET_INFO'. */
+#undef HAVE_MY_CHARSET_INFO
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION

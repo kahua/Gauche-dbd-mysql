@@ -16,8 +16,6 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "$gen" = "yes" ]; then
-  autoconf
-  autoheader
 fi
 
 if [ "$tgz" = "yes" ]; then
