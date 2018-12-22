@@ -22,22 +22,26 @@
 #ifndef DBD_MYSQL_H
 #define DBD_MYSQL_H
 
+#include <gauche.h>
+#include <gauche/extend.h>
+#include <gauche/class.h>
+
+/* To avoid conflicts with mysql headers */
+#undef HAVE_STRUCT_TIMESPEC
+
 #include <my_global.h>
 #include <my_sys.h>
 #include <mysql.h>
 #include <errmsg.h>
 #include <mysqld_error.h>
 
-#include <gauche.h>
-#include <gauche/extend.h>
-#include <gauche/class.h>
-
-/* To avoid confliction. */
+/* To avoid conflicts with mysql headers */
 #undef PACKAGE_BUGREPORT
 #undef PACKAGE_NAME
 #undef PACKAGE_STRING
 #undef PACKAGE_TARNAME
 #undef PACKAGE_VERSION
+
 #include "acconfig.h"
 
 SCM_DECL_BEGIN
