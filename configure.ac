@@ -4,7 +4,7 @@ dnl  process this file with autoconf to generate 'configure'.
 dnl
 
 AC_PREREQ(2.59)
-AC_INIT(Gauche-dbd-mysql, 0.3_pre3, info@kahua.org)
+AC_INIT(Gauche-dbd-mysql, 0.3, info@kahua.org)
 AC_CONFIG_HEADER(acconfig.h)
 
 dnl

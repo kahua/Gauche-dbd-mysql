@@ -1,3 +1,7 @@
+2018-12-24  Shiro Kawai <shiro@acm.org>
+
+	* Release 0.3 - This is a snapshot that works with pre-0.9.7 Gauche.
+
 2014-10-18  Katsuyuki Tateishi <kt@wheel.jp>
 
 	* Fix: error on fetching MYSQL_TIME_TYPE field
