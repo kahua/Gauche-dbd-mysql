@@ -2,12 +2,12 @@
 
 ## PREREQUISITES
 
-* Gauche 0.8.6 or later
+* Gauche 0.9.7 or later
 * MySQL 5.0 or later
 * MySQL client development library & header files
 
-If you build from the source repository instead of tarball, you also
-need autoconf 2.59 or later.
+(If you're using Gauche 0.9.6 or before, see 'Using with pre-0.9.7 Gauche'
+section below).
 
 ## PREPARATION
 
@@ -29,7 +29,6 @@ From source tree:
 
     git clone https://github.com/kahua/Gauche-dbd-mysql
     cd Gauche-dbd-mysql
-    ./DIST gen
     ./configure
     make
     make -s check
@@ -143,4 +142,20 @@ MySQL API.
     Function: mysql-list-processes handle -> result
 
     ...
+
+## Using with pre-0.9.7 Gauche
+
+Gauche-dbd-mysql 0.4 requires Gauche-0.9.7.  If you want to
+use dbd.mysql module with Gauche 0.9.6 or before (Gauche 0.8.6 or after),
+you need to use Gauche-dbd-mysql 0.3.  To build 0.3 from the source repo,
+check out the tag release0_3:
+
+    git clone https://github.com/kahua/Gauche-dbd-mysql
+    cd Gauche-dbd-mysql
+    git checkout release0_3
+    ./DIST gen
+    ./configure
+    make
+    make -s check
+    sudo make install
 
