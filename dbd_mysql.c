@@ -357,10 +357,18 @@ static void mysql_init_param_string(MYSQL_BIND *param, ScmObj obj)
 
 static void mysql_init_param(MYSQL_BIND *param, ScmObj obj)
 {
-    if (SCM_STRINGP(obj))
+    if (SCM_STRINGP(obj)) {
 	mysql_init_param_string(param, obj);
-    else if (SCM_SYMBOLP(obj))
+    }
+    else if (SCM_SYMBOLP(obj)) {
 	mysql_init_param_string(param, SCM_OBJ(SCM_SYMBOL_NAME(obj)));
+    }
+    else if (SCM_U8VECTORP(obj)) {
+        param->buffer_type = MYSQL_TYPE_BLOB;
+        param->buffer = (void*)SCM_UVECTOR_ELEMENTS(obj);
+        param->buffer_length = SCM_UVECTOR_SIZE(obj);
+        param->length = &(param->buffer_length);
+    }
     else if (SCM_INTEGERP(obj)) {
 	long long int *p = (long long int*)malloc(sizeof(long long int));
 	if (p == NULL)
