@@ -97,6 +97,29 @@
 (test* "dbi-do drop table test" #t
        (begin (dbi-do conn "drop table test") #t))
 
+;; blob access test
+
+(test-section "blob-access")
+
+(test* "blob insertion and retrieval"
+       '((#("abracadabra\x00;foo"))
+         (#(#*"abc\x00;def\xff;")))
+       (unwind-protect
+           (begin
+             (dbi-do conn "drop table if exists test_blob")
+             (dbi-do conn "create table test_blob (name text, data longblob)")
+             (dbi-do conn "insert into test_blob (name, data) values (?, ?)" '()
+                     "abc" #*"abracadabra\x00;foo")
+             (dbi-do conn "insert into test_blob (name, data) values (?, ?)" '()
+                     "def" #u8(97 98 99 0 100 101 102 255))
+             (list
+              (coerce-to <list>
+                         (dbi-do conn "select data from test_blob where name = 'abc'"))
+              (coerce-to <list>
+                         (dbi-do conn "select data from test_blob where name = 'def'"))
+              ))
+         (dbi-do conn "drop table test_blob")))
+
 (test* "dbi-close" #f
        (begin (dbi-close conn)
               (dbi-open? conn)))
