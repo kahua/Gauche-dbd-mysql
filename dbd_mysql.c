@@ -638,7 +638,7 @@ void Scm_Init_dbd_mysql(void)
 {
     ScmModule *mod;
 
-    my_init();
+    mysql_library_init(0, NULL, NULL);
 
     /* Register this DSO to Gauche */
     SCM_INIT_EXTENSION(dbd_mysql);

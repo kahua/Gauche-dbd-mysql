@@ -29,8 +29,6 @@
 /* To avoid conflicts with mysql headers */
 #undef HAVE_STRUCT_TIMESPEC
 
-#include <my_global.h>
-#include <my_sys.h>
 #include <mysql.h>
 #include <errmsg.h>
 #include <mysqld_error.h>

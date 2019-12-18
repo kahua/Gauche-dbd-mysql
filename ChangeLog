@@ -1,3 +1,9 @@
+2019-12-18  Shiro Kawai  <shiro@acm.org>
+
+	* dbd_mysql.c (Scm_Init_dbd_mysql): Use mysql_library_init instead
+	  of my_init(); the latter isn't provided by MariaDB.
+	* dbd_mysql.h: Remove #includes for mysql internal headers.
+
 2019-01-08  Shiro Kawai  <shiro@acm.org>
 
 	* dbd_mysql.c (mysql_init_param): Allow u8vector as param to
