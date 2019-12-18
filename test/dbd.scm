@@ -155,18 +155,22 @@
       (charset-number . 33) (type . ,MYSQL_TYPE_VAR_STRING)
       )))
 
-(define (check-field info field)
+(define (field->alist field)
+  (if (is-class? <mysql-field> field)
+    (map (^[s] (cons (car s) (slot-ref field (car s))))
+         *mysql-field-slots*)
+    '()))
+
+(define (check-field info field-alist)
   (define (cmp-slot-value slot-name cmp-func?)
-    (cmp-func? (slot-ref field slot-name)
+    (cmp-func? (assq-ref field-alist slot-name)
 	       (assq-ref info slot-name #f)))
-  (and (is-class? <mysql-field> field)
-       (call/cc
-	(lambda (ret)
-	  (for-each (lambda (args)
-		      (or (apply cmp-slot-value args)
-			  (ret #f)))
-		    *mysql-field-slots*)
-	  #t))))
+  (let/cc ret
+    (for-each (lambda (args)
+                (or (apply cmp-slot-value args)
+                    (ret #f)))
+              *mysql-field-slots*)
+    #t))
 
 (test* "mysql-real-query/create table" (undefined)
        (mysql-real-query *mysql* "CREATE TABLE DBD_TEST (id integer, data varchar(255), constraint primary key(id))"))
@@ -195,7 +199,8 @@
 (for-each-with-index (lambda (i info)
 		       (test* "mysql-field-tell" i (mysql-field-tell *result*))
 		       (test* "mysql-fetch-field" (vector-ref *field-definition* i)
-			      (mysql-fetch-field *result*) check-field))
+			      (field->alist (mysql-fetch-field *result*))
+                              check-field))
 		     *field-definition*)
 (test* "mysql-field-tell" 2 (mysql-field-tell *result*) =)
 (test* "mysql-fetch-field" #f (mysql-fetch-field *result*) eq?)
@@ -204,19 +209,22 @@
 (for-each-with-index (lambda (i info)
 		       (test* "mysql-field-tell" i (mysql-field-tell *result*))
 		       (test* "mysql-fetch-field" (vector-ref *field-definition* i)
-			      (mysql-fetch-field *result*) check-field))
+			      (field->alist (mysql-fetch-field *result*))
+                              check-field))
 		     *field-definition*)
 (test* "mysql-field-tell" 2 (mysql-field-tell *result*) =)
 (test* "mysql-fetch-field" #f (mysql-fetch-field *result*) eq?)
 
 (for-each (lambda (info field)
-	    (test* "mysql-fetch-fields" info field check-field))
+	    (test* "mysql-fetch-fields" info (field->alist field) check-field))
 	  *field-definition*
 	  (mysql-fetch-fields *result*))
 
 (for-each-with-index (lambda (i info)
 		       (test* "mysql-fetch-field-direct"
-			      info (mysql-fetch-field-direct *result* i) check-field))
+			      info 
+                              (field->alist (mysql-fetch-field-direct *result* i))
+                              check-field))
 		     *field-definition*)
 
 (for-each (lambda (info length)
