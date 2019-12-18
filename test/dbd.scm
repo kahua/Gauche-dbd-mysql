@@ -111,7 +111,7 @@
 (test* "mysql-real-escape-string" "\\0a\\rb\\nc\\\\d\\'e\\\"f\\Z"
        (mysql-real-escape-string *mysql* "\0a\rb\nc\\d'e\"f\x1a"))
 
-(define (default-value-compare expected actual)
+(define (default-value-compare actual expected)
   (if (not expected)
     (or (not actual) (equal? actual "")) ;MySQL and MariaDB differ
     (equal? expected actual)))
