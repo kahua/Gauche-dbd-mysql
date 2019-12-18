@@ -111,6 +111,11 @@
 (test* "mysql-real-escape-string" "\\0a\\rb\\nc\\\\d\\'e\\\"f\\Z"
        (mysql-real-escape-string *mysql* "\0a\rb\nc\\d'e\"f\x1a"))
 
+(define (default-value-compare expected actual)
+  (if (not expected)
+    (or (not actual) (equal? actual "")) ;MySQL and MariaDB differ
+    (equal? expected actual)))
+
 (define-constant *mysql-field-slots*
   `((name            ,string-ci=?)
     (original-name   ,string-ci=?)
@@ -118,7 +123,7 @@
     (original-table  ,string-ci=?)
     (db              ,string-ci=?)
     (catalog         ,string=?)
-    (default-value   ,equal?)
+    (default-value   ,default-value-compare)
     (length          ,=)
     (max-length      ,=)
     (not-null?       ,eqv?)
