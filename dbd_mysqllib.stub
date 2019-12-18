@@ -343,7 +343,7 @@
 	 (state  :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_CHARSET_INFO_STATE(obj));")
 	 (csname :type <const-cstring> :setter #f :getter "SCM_RETURN(SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_CSNAME(obj)));")
 	 (name   :type <const-cstring> :setter #f :getter "SCM_RETURN(SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_NAME(obj)));")
-	 (comment :type <const-cstring> :setter #f :getter "SCM_RETURN(SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_COMMENT(obj)));")
+	 (comment :type <const-cstring>? :setter #f :getter "SCM_RETURN(MYSQL_CHARSET_INFO_COMMENT(obj)?SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_COMMENT(obj)):SCM_FALSE);")
 	 (dir    :type <const-cstring>? :setter #f :getter
 		 "SCM_RETURN(MYSQL_CHARSET_INFO_DIR(obj)==NULL?SCM_FALSE:SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_DIR(obj)));")
 	 (mbminlen :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_CHARSET_INFO_MBMINLEN(obj));")
