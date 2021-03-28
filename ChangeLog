@@ -58,7 +58,7 @@
 2009-11-20  Tatsuya BIZENN  <bizenn@kahua.org>
 
 	* Change: dbd_mysqllib.stub, dbd_mysql.c, dbd_mysql.h,
-	          dbd/mysql.scm
+		  dbd/mysql.scm
 	  add mysql-hex-string but not yet tests.
 
 2009-11-19  Tatsuya BIZENN  <bizenn@kahua.org>
@@ -70,7 +70,7 @@
 2009-11-18  Tatsuya BIZENN  <bizenn@kahua.org>
 
 	* Change: dbd_mysqllib.stub, dbd_mysql.c, mysql_mysql.h,
-	          dbd/mysql.scm, test/dbd.scm
+		  dbd/mysql.scm, test/dbd.scm
 	  add mysql-fetch-lengths, mysql-field-seek and mysql-field-tell.
 	  add <mysql-row-offset>, mysql-row-seek and mysql-row-tell.
 
@@ -177,7 +177,7 @@
 
 2006-03-03 ENDO Yasuyuki <yasuyuki@javaopen.org>
 
-	* dbd_mysqllib.stub (ER_ERROR_MESSAGES): comment out this entry, it's not exist mysql-5.0. 
+	* dbd_mysqllib.stub (ER_ERROR_MESSAGES): comment out this entry, it's not exist mysql-5.0.
 
 2005-11-07  Shiro Kawai  <shiro@acm.org>
 
@@ -192,7 +192,7 @@
 2005-11-04  Shiro Kawai  <shiro@acm.org>
 
 	* release 0.2
-	
+
 	* configure.in, Makefile.in : adapted to prefix override, i.e.
 	  you can pass --prefix (or --libdir/datadir) to configure to
 	  customize where the module is installed.
@@ -224,7 +224,7 @@
 	  relation-accessor, for the latter became the fundamental operation.
 	  Dropped relation-column-setter, for it's better to keep the
 	  result set read-only.
-	
+
 2005-08-29  Shiro Kawai  <shiro@acm.org>
 
 	* dbd_mysqllib.stub (mysql-real-escape-string): added.
@@ -250,4 +250,3 @@
 2005-07-16  Shiro Kawai  <shiro@acm.org>
 
 	* adapted dbd-mysql to the new extension building scheme
-

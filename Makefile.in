@@ -26,7 +26,7 @@ PACKAGE   = Gauche-dbd-mysql
 
 ARCHFILES = dbd_mysql.$(SOEXT)
 SCMFILES  = dbd/mysql.scm
-HEADERS   = 
+HEADERS   =
 
 TARGET    = $(ARCHFILES)
 DIST_GENERATED = DIST_EXCLUDE_X
@@ -48,7 +48,7 @@ dbd_mysql.$(SOEXT): $(dbd_mysql_SRCS)
 	$(GAUCHE_PACKAGE) compile --verbose \
 	   --cflags="-Wall $(MYSQL_CFLAGS)" \
 	   --libs="$(MYSQL_LIBS)"     \
-	   dbd_mysql $(dbd_mysql_SRCS) 
+	   dbd_mysql $(dbd_mysql_SRCS)
 
 dbd-check : all
 	@rm -f test/dbd-test.log
@@ -62,13 +62,13 @@ check : dbd-check dbi-check
 
 install : all
 	$(INSTALL) -m 444 -T $(GAUCHE_PKGINCDIR) $(HEADERS)
-	$(INSTALL) -m 444 -T $(GAUCHE_PKGLIBDIR) $(SCMFILES) 
+	$(INSTALL) -m 444 -T $(GAUCHE_PKGLIBDIR) $(SCMFILES)
 	$(INSTALL) -m 555 -T $(GAUCHE_PKGARCHDIR) $(ARCHFILES)
 	$(INSTALL) -m 444 -T $(GAUCHE_PKGLIBDIR)/.packages $(PACKAGE).gpd
 
 uninstall :
 	$(INSTALL) -U $(GAUCHE_PKGINCDIR) $(HEADERS)
-	$(INSTALL) -U $(GAUCHE_PKGLIBDIR) $(SCMFILES) 
+	$(INSTALL) -U $(GAUCHE_PKGLIBDIR) $(SCMFILES)
 	$(INSTALL) -U $(GAUCHE_PKGARCHDIR) $(ARCHFILES)
 	$(INSTALL) -U $(GAUCHE_PKGLIBDIR)/.packages $(PACKAGE).gpd
 
@@ -81,4 +81,3 @@ distclean : clean
 
 maintainer-clean : distclean
 	rm -rf $(DIST_GENERATED)
-

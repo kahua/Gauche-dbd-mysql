@@ -33,7 +33,7 @@
 
 (define (with-mysql-connection user password db proc)
   (and-let* ((mysql (guard (_ (else #f))
-		      (mysql-real-connect #f user password db 0 #f 0))))
+                      (mysql-real-connect #f user password db 0 #f 0))))
     (unwind-protect
      (proc mysql)
      (mysql-close mysql))))
@@ -62,7 +62,7 @@
 (with-mysql-connection *user* *password* *db*
   (lambda (mysql)
     (let ((sinfo #f)
-	  (sver  #f))
+          (sver  #f))
       (test* "mysql-get-server-info" <string> (set!! sinfo (mysql-get-server-info mysql)) is-class?)
       (test* "mysql-get-server-version" <integer> (set!! sver (mysql-get-server-version mysql)) is-class?)
       (test* "server-info and server-version matching" sver (info->version sinfo) =)
@@ -73,8 +73,8 @@
       (sinfo #f)
       (sver  #f))
   (test* "mysql-real-connect w/o db" <mysql-handle>
-	 (set!! mysql (mysql-real-connect #f *user* *password* *db* 0 #f 0))
-	 is-class?)
+         (set!! mysql (mysql-real-connect #f *user* *password* *db* 0 #f 0))
+         is-class?)
   (test* "mysql-handle-closed?/before close" #f (mysql-handle-closed? mysql))
   (test* "mysql-close" (undefined) (mysql-close mysql))
   (test* "mysql-handle-closed?/after close" #t (mysql-handle-closed? mysql))
@@ -91,22 +91,22 @@
 (test-section "Character set handling")
 (when (global-variable-bound? (current-module) 'mysql-character-set-name)
   (test* "mysql-character-set-name" "utf8"
-	 (mysql-character-set-name *mysql*) string=?))
+         (mysql-character-set-name *mysql*) string=?))
 (when (global-variable-bound? (current-module) 'mysql-get-character-set-info)
   (let1 charset (mysql-get-character-set-info *mysql*)
     (test* "mysql-get-character-set-info: <mysql-charset>" <mysql-charset> (class-of charset))
     (for-each (lambda (args)
-		(apply (lambda (sname comp value)
-			 (test* (format "mysql-get-character-set-info: ~a" sname)
-				value (slot-ref charset sname) comp))
-		       args))
-	      `((name ,string=? "utf8_general_ci")
-		(csname ,string=? "utf8")
-		(number ,= 33)
-		(comment ,(^[x y] (or (is-class? x y) (not y))) ,<string>)
-		(dir ,equal? #f)
-		(mbminlen ,= 1)
-		(mbmaxlen ,= 3)))))
+                (apply (lambda (sname comp value)
+                         (test* (format "mysql-get-character-set-info: ~a" sname)
+                                value (slot-ref charset sname) comp))
+                       args))
+              `((name ,string=? "utf8_general_ci")
+                (csname ,string=? "utf8")
+                (number ,= 33)
+                (comment ,(^[x y] (or (is-class? x y) (not y))) ,<string>)
+                (dir ,equal? #f)
+                (mbminlen ,= 1)
+                (mbmaxlen ,= 3)))))
 
 (test* "mysql-real-escape-string" "\\0a\\rb\\nc\\\\d\\'e\\\"f\\Z"
        (mysql-real-escape-string *mysql* "\0a\rb\nc\\d'e\"f\x1a"))
@@ -169,7 +169,7 @@
 (define (check-field info field-alist)
   (define (cmp-slot-value slot-name cmp-func?)
     (cmp-func? (assq-ref field-alist slot-name)
-	       (assq-ref info slot-name #f)))
+               (assq-ref info slot-name #f)))
   (let/cc ret
     (for-each (lambda (args)
                 (or (apply cmp-slot-value args)
@@ -181,7 +181,7 @@
        (mysql-real-query *mysql* "CREATE TABLE DBD_TEST (id integer, data varchar(255), constraint primary key(id))"))
 (dotimes (i 10)
   (test* #`"mysql-real-query/insert record #,|i|" (undefined)
-	 (mysql-real-query *mysql* #`"INSERT INTO DBD_TEST (id, data) values (,|i|,, 'DATA,|i|')"))
+         (mysql-real-query *mysql* #`"INSERT INTO DBD_TEST (id, data) values (,|i|,, 'DATA,|i|')"))
   (test* "mysql-affected-rows/insert one record" 1 (mysql-affected-rows *mysql*)))
 (test* "mysql-store-result/insert" #f (mysql-store-result *mysql*))
 (test* "mysql-real-query/select all" (undefined)
@@ -202,40 +202,40 @@
   (test* #`"mysql-fetch-row record #,|i|" `#(,#`",|i|" ,#`"DATA,|i|") (mysql-fetch-row *result*) equal?))
 
 (for-each-with-index (lambda (i info)
-		       (test* "mysql-field-tell" i (mysql-field-tell *result*))
-		       (test* "mysql-fetch-field" (vector-ref *field-definition* i)
-			      (field->alist (mysql-fetch-field *result*))
+                       (test* "mysql-field-tell" i (mysql-field-tell *result*))
+                       (test* "mysql-fetch-field" (vector-ref *field-definition* i)
+                              (field->alist (mysql-fetch-field *result*))
                               check-field))
-		     *field-definition*)
+                     *field-definition*)
 (test* "mysql-field-tell" 2 (mysql-field-tell *result*) =)
 (test* "mysql-fetch-field" #f (mysql-fetch-field *result*) eq?)
 
 (test* "mysql-field-seek" 2 (mysql-field-seek *result* 0) =)
 (for-each-with-index (lambda (i info)
-		       (test* "mysql-field-tell" i (mysql-field-tell *result*))
-		       (test* "mysql-fetch-field" (vector-ref *field-definition* i)
-			      (field->alist (mysql-fetch-field *result*))
+                       (test* "mysql-field-tell" i (mysql-field-tell *result*))
+                       (test* "mysql-fetch-field" (vector-ref *field-definition* i)
+                              (field->alist (mysql-fetch-field *result*))
                               check-field))
-		     *field-definition*)
+                     *field-definition*)
 (test* "mysql-field-tell" 2 (mysql-field-tell *result*) =)
 (test* "mysql-fetch-field" #f (mysql-fetch-field *result*) eq?)
 
 (for-each (lambda (info field)
-	    (test* "mysql-fetch-fields" info (field->alist field) check-field))
-	  *field-definition*
-	  (mysql-fetch-fields *result*))
+            (test* "mysql-fetch-fields" info (field->alist field) check-field))
+          *field-definition*
+          (mysql-fetch-fields *result*))
 
 (for-each-with-index (lambda (i info)
-		       (test* "mysql-fetch-field-direct"
-			      info 
+                       (test* "mysql-fetch-field-direct"
+                              info
                               (field->alist (mysql-fetch-field-direct *result* i))
                               check-field))
-		     *field-definition*)
+                     *field-definition*)
 
 (for-each (lambda (info length)
-	    (test* "mysql-fetch-lengths" (assq-ref info 'max-length) length =))
-	  *field-definition*
-	  (mysql-fetch-lengths *result*))
+            (test* "mysql-fetch-lengths" (assq-ref info 'max-length) length =))
+          *field-definition*
+          (mysql-fetch-lengths *result*))
 
 (test* "mysql-free-result" (undefined) (mysql-free-result *result*))
 (test* "mysql-res-closed?/after close" #t (mysql-res-closed? *result*))
@@ -244,14 +244,14 @@
 (when (global-variable-bound? (current-module) '<mysql-stmt>)
   (test-section "Issue MySQL Prepared Statement")
   (test* "mysql-stmt-prepare/create table" <mysql-stmt>
-	 (set!! *stmt* (mysql-stmt-prepare *mysql* "
+         (set!! *stmt* (mysql-stmt-prepare *mysql* "
                   CREATE TABLE DBD_TEST (
                     id integer,
                     name varchar(20),
                     data varchar(255),
                     constraint primary key (id),
                     constraint unique (name))"))
-	 is-class?)
+         is-class?)
   (test* "mysql-stmt-param-count/create table" 0 (mysql-stmt-param-count *stmt*))
   (test* "mysql-stmt-field-count/create table" 0 (mysql-stmt-field-count *stmt*))
   (test* "mysql-stmt-execute/create table" (undefined) (mysql-stmt-execute *stmt*))
@@ -263,7 +263,7 @@
     (test* "mysql-stmt-field-count/insert" 0 (mysql-stmt-field-count stmt) =)
     (dotimes (i 10)
       (test* #`"mysql-stmt-execute/insert record #,|i| with parameters" (undefined)
-	     (mysql-stmt-execute stmt i #`"DATA,|i|" "This is test data."))
+             (mysql-stmt-execute stmt i #`"DATA,|i|" "This is test data."))
       (test* "mysql-stmt-affected-rows" 1 (mysql-stmt-affected-rows stmt) =))
     (mysql-stmt-close stmt))
   (let1 stmt (mysql-stmt-prepare *mysql* "SELECT id, name, data FROM DBD_TEST where ID in (?,?,?,?)")
@@ -272,11 +272,11 @@
     (test* "mysql-stmt-execute/select with parameter" (undefined) (mysql-stmt-execute stmt 2 4 5 9))
     (test* "mysql-stmt-affected-rows/after select 4 records" 4 (mysql-stmt-affected-rows stmt) =)
     (for-each (lambda (r) (test* "mysql-stmt-fetch" r (mysql-stmt-fetch stmt) equal?))
-	      '(#(2 "DATA2" "This is test data.")
-		#(4 "DATA4" "This is test data.")
-		#(5 "DATA5" "This is test data.")
-		#(9 "DATA9" "This is test data.")
-		#f))
+              '(#(2 "DATA2" "This is test data.")
+                #(4 "DATA4" "This is test data.")
+                #(5 "DATA5" "This is test data.")
+                #(9 "DATA9" "This is test data.")
+                #f))
     (mysql-stmt-close stmt))
   (let1 stmt (mysql-stmt-prepare *mysql* "UPDATE DBD_TEST set data=? where ID between ? and ?")
     (test* "mysql-stmt-param-count/update" 3 (mysql-stmt-param-count stmt) =)
@@ -305,8 +305,8 @@
     (mysql-stmt-execute stmt)
     (test* "mysql-stmt-data-seek" (undefined) (mysql-stmt-data-seek stmt 5))
     (for-each (lambda (r)
-		(test* "mysql-stmt-fetch/seeked" r (mysql-stmt-fetch stmt) equal?))
-	      '(#(5 "DATA5") #(6 "DATA6") #(7 "DATA7") #(8 "DATA8") #(9 "DATA9") #f))
+                (test* "mysql-stmt-fetch/seeked" r (mysql-stmt-fetch stmt) equal?))
+              '(#(5 "DATA5") #(6 "DATA6") #(7 "DATA7") #(8 "DATA8") #(9 "DATA9") #f))
     (test* "mysql-stmt-data-seek" (undefined) (mysql-stmt-data-seek stmt 0))
     (dotimes (i 7)
       (test* #`"mysql-stmt-fetch/record #,|i|" `#(,i ,#`"DATA,|i|") (mysql-stmt-fetch stmt) equal?))

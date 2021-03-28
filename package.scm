@@ -3,7 +3,7 @@
 ;;
 
 (define-gauche-package "Gauche-dbd-mysql"
-  ;; 
+  ;;
   :version "0.4"
 
   ;; Description of the package.  The first line is used as a short

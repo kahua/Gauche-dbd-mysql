@@ -53,7 +53,7 @@ Here's an example session.
   (dbi-execute q 20 "Bob"))
 
 (map (lambda (row)
-       (list (dbi-get-value row 0) (dbi-get-value row 1))) 
+       (list (dbi-get-value row 0) (dbi-get-value row 1)))
      (dbi-do conn "select id, name from test"))
  ; => (("10" "Alice") ("20" "Bob"))
 
@@ -158,4 +158,3 @@ check out the tag release0_3:
     make
     make -s check
     sudo make install
-

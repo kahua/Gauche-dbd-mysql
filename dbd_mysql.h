@@ -78,12 +78,12 @@ void MysqlResultMarkClosed(ScmObj obj);
 void MysqlResultUnmarkClosed(ScmObj obj);
 
 extern MYSQL *MysqlRealConnect(const char *host,
-			       const char *user,
-			       const char *password,
-			       const char *db,
-			       unsigned int port,
-			       const char *unix_socket,
-			       unsigned int client_flag);
+                               const char *user,
+                               const char *password,
+                               const char *db,
+                               unsigned int port,
+                               const char *unix_socket,
+                               unsigned int client_flag);
 extern ScmObj MysqlAffectedRows(MYSQL *handle);
 extern ScmObj MysqlFetchFieldNames(MYSQL_RES *result);
 extern ScmObj MysqlFetchLengths(MYSQL_RES *result);
