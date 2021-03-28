@@ -38,22 +38,11 @@
 ;; Loads extension
 (dynamic-load "dbd_mysql")
 
-;; This is a transitional way.
-(define-macro (compile-when condition . bodies)
-  (let ((_compile-when_ (gensym "%%dbd.mysql"))
-        (_bodies_ `(begin ,@bodies)))
-    `(begin (define-macro (,_compile-when_)
-              (if ,condition
-                  ',_bodies_
-                  '(begin)))
-            (,_compile-when_))))
-
 (define-condition-type <mysql-error> <dbi-error> mysql-error?
   (error-code)
   (sql-code))                         ;mysql error code
 
-(compile-when (global-variable-bound? (current-module) '<mysql-stmt>)
-  (define-condition-type <mysql-stmt-error> <mysql-error> mysql-stmt-error?))
+(define-condition-type <mysql-stmt-error> <mysql-error> mysql-stmt-error?)
 
 (define-class <mysql-driver> (<dbi-driver> <singleton-mixin>)
   ())
