@@ -181,84 +181,93 @@
 
 ;; <mysql-time> handling
 
-(if (global-variable-bound? (current-module) '<mysql-time>)
-    (begin
-      (define (mysql-time->string t)
+(define-macro (when-available sym . definitions)
+  (if (global-variable-bound? (current-module) sym)
+    `(begin ,@definitions)
+    `(begin ,@(filter-map (^[def]
+                            (match def
+                              [('define x . _) `(define ,x (undefined))]
+                              [_ #f]))
+                          definitions))))
 
-        (define fmt-date "~d-~2,'0d-~2,'0d")
-        (define fmt-time "~2,'0d:~2,'0d:~2,'0d")
-        (define fmt-flacsec ".~6,'0d")
-        (define fmt-time/f (string-append fmt-time fmt-flacsec))
-        (define fmt-datetime (string-append fmt-date " " fmt-time))
-        (define fmt-datetime/f (string-append fmt-datetime fmt-flacsec))
+(when-available
+ <mysql-time>
+ (define (mysql-time->string t)
 
-        (define (ts-date->string t)
-          (format #f fmt-date
-                  (slot-ref t 'year) (slot-ref t 'month) (slot-ref t 'day)))
-        (define (ts-datetime->string t)
-          (if (> (slot-ref t 'second-part) 0)
-              (format #f fmt-datetime/f
-                      (slot-ref t 'year) (slot-ref t 'month) (slot-ref t 'day)
-                      (slot-ref t 'hour) (slot-ref t 'minute) (slot-ref t 'second)
-                      (slot-ref t 'second-part))
-              (format #f fmt-datetime
-                      (slot-ref t 'year) (slot-ref t 'month) (slot-ref t 'day)
-                      (slot-ref t 'hour) (slot-ref t 'minute) (slot-ref t 'second))))
-        (define (ts-time->string t)
-          (if (> (slot-ref t 'second-part) 0)
-              (format #f fmt-time/f
-                      (slot-ref t 'hour) (slot-ref t 'minute) (slot-ref t 'second)
-                      (slot-ref t 'second-part))
-              (format #f fmt-time
-                      (slot-ref t 'hour) (slot-ref t 'minute) (slot-ref t 'second))))
+   (define fmt-date "~d-~2,'0d-~2,'0d")
+   (define fmt-time "~2,'0d:~2,'0d:~2,'0d")
+   (define fmt-flacsec ".~6,'0d")
+   (define fmt-time/f (string-append fmt-time fmt-flacsec))
+   (define fmt-datetime (string-append fmt-date " " fmt-time))
+   (define fmt-datetime/f (string-append fmt-datetime fmt-flacsec))
 
-        (let1 time-type (slot-ref t 'time-type)
-          (cond
-           ((eqv? MYSQL_TIMESTAMP_DATE time-type) (ts-date->string t))
-           ((eqv? MYSQL_TIMESTAMP_DATETIME time-type) (ts-datetime->string t))
-           ((eqv? MYSQL_TIMESTAMP_TIME time-type) (ts-time->string t))
-           ((or (eqv? MYSQL_TIMESTAMP_NONE time-type)
-                (eqv? MYSQL_TIMESTAMP_ERROR time-type))
-            (error "time-type indicates some error on this field:" time-type))
-           (else (error "Unknown time-type")))))
-      (define-method x->string ((t <mysql-time>))
-        (mysql-time->string t))
+   (define (ts-date->string t)
+     (format #f fmt-date
+             (slot-ref t 'year) (slot-ref t 'month) (slot-ref t 'day)))
+   (define (ts-datetime->string t)
+     (if (> (slot-ref t 'second-part) 0)
+       (format #f fmt-datetime/f
+               (slot-ref t 'year) (slot-ref t 'month) (slot-ref t 'day)
+               (slot-ref t 'hour) (slot-ref t 'minute) (slot-ref t 'second)
+               (slot-ref t 'second-part))
+       (format #f fmt-datetime
+               (slot-ref t 'year) (slot-ref t 'month) (slot-ref t 'day)
+               (slot-ref t 'hour) (slot-ref t 'minute) (slot-ref t 'second))))
+   (define (ts-time->string t)
+     (if (> (slot-ref t 'second-part) 0)
+       (format #f fmt-time/f
+               (slot-ref t 'hour) (slot-ref t 'minute) (slot-ref t 'second)
+               (slot-ref t 'second-part))
+       (format #f fmt-time
+               (slot-ref t 'hour) (slot-ref t 'minute) (slot-ref t 'second))))
 
-      (define (sys-tm->mysql-time tm)
-        (make <mysql-time>
-         :year (+ 1900 (slot-ref tm 'year))
-         :month (+ 1 (slot-ref tm 'mon))
-         :day (slot-ref tm 'mday)
-         :hour (slot-ref tm 'hour)
-         :minute (slot-ref tm 'min)
-         :second (slot-ref tm 'sec)
-         :second-part 0))
-      (define (mysql-time->sys-tm mtime)
-        (make <sys-tm>
-         :year (- (slot-ref mtime 'year) 1900)
-         :mon (- (slot-ref mtime 'month) 1)
-         :mday (slot-ref mtime 'day)
-         :hour (slot-ref mtime 'hour)
-         :min (slot-ref mtime 'minute)
-         :sec (slot-ref mtime 'second)))
+   (let1 time-type (slot-ref t 'time-type)
+     (cond
+      ((eqv? MYSQL_TIMESTAMP_DATE time-type) (ts-date->string t))
+      ((eqv? MYSQL_TIMESTAMP_DATETIME time-type) (ts-datetime->string t))
+      ((eqv? MYSQL_TIMESTAMP_TIME time-type) (ts-time->string t))
+      ((or (eqv? MYSQL_TIMESTAMP_NONE time-type)
+           (eqv? MYSQL_TIMESTAMP_ERROR time-type))
+       (error "time-type indicates some error on this field:" time-type))
+      (else (error "Unknown time-type")))))
+ (define-method x->string ((t <mysql-time>))
+   (mysql-time->string t))
 
-      (define (date->mysql-time d)
-        (make <mysql-time>
-         :year (slot-ref d 'year)
-         :month (slot-ref d 'month)
-         :day (slot-ref d 'day)
-         :hour (slot-ref d 'hour)
-         :minute (slot-ref d 'minute)
-         :second (slot-ref d 'second)
-         :second-part (quotient (slot-ref d 'nanosecond) 1000)))
-      (define (mysql-time->date t)
-        (let1 d (current-date)
-          (for-each (lambda (sname)
-                      (slot-set! d sname (slot-ref t sname)))
-                    '(year month day hour minute second))
-          (slot-set! d 'nanosecond (* 1000 (slot-ref t 'second-part)))
-          d))
-      ))
+ (define (sys-tm->mysql-time tm)
+   (make <mysql-time>
+     :year (+ 1900 (slot-ref tm 'year))
+     :month (+ 1 (slot-ref tm 'mon))
+     :day (slot-ref tm 'mday)
+     :hour (slot-ref tm 'hour)
+     :minute (slot-ref tm 'min)
+     :second (slot-ref tm 'sec)
+     :second-part 0))
+ (define (mysql-time->sys-tm mtime)
+   (make <sys-tm>
+     :year (- (slot-ref mtime 'year) 1900)
+     :mon (- (slot-ref mtime 'month) 1)
+     :mday (slot-ref mtime 'day)
+     :hour (slot-ref mtime 'hour)
+     :min (slot-ref mtime 'minute)
+     :sec (slot-ref mtime 'second)))
+
+ (define (date->mysql-time d)
+   (make <mysql-time>
+     :year (slot-ref d 'year)
+     :month (slot-ref d 'month)
+     :day (slot-ref d 'day)
+     :hour (slot-ref d 'hour)
+     :minute (slot-ref d 'minute)
+     :second (slot-ref d 'second)
+     :second-part (quotient (slot-ref d 'nanosecond) 1000)))
+ (define (mysql-time->date t)
+   (let1 d (current-date)
+     (for-each (lambda (sname)
+                 (slot-set! d sname (slot-ref t sname)))
+               '(year month day hour minute second))
+     (slot-set! d 'nanosecond (* 1000 (slot-ref t 'second-part)))
+     d))
+ )
 
 ;; Low-level API
 (export-if-defined <mysql-handle> <mysql-res> <mysql-row-offset> <mysql-field> <mysql-charset>

@@ -1,3 +1,11 @@
+2021-03-28  Shiro Kawai  <shiro@acm.org>
+
+	* dbd/mysql.scm: Avoid conditional definition form such as
+	  (when <something> (define ...)).  It is invalid in RnRS, and Gauche
+	  never officially supports them---it just happens that Gauche didn't
+	  check the error.  Now, Gauche will warn them on 0.9.11 and eventually
+	  rejects them.
+
 2019-12-18  Shiro Kawai  <shiro@acm.org>
 
 	* dbd_mysql.c (Scm_Init_dbd_mysql): Use mysql_library_init instead
