@@ -90,8 +90,8 @@
 
 (test-section "Character set handling")
 (when (global-variable-bound? (current-module) 'mysql-character-set-name)
-  (test* "mysql-character-set-name" "utf8"
-         (mysql-character-set-name *mysql*) string=?))
+  (test* "mysql-character-set-name" (test-one-of "utf8" "utf8mb3")
+         (mysql-character-set-name *mysql*)))
 (when (global-variable-bound? (current-module) 'mysql-get-character-set-info)
   (let1 charset (mysql-get-character-set-info *mysql*)
     (test* "mysql-get-character-set-info: <mysql-charset>" <mysql-charset> (class-of charset))
@@ -101,7 +101,8 @@
                                 value (slot-ref charset sname) comp))
                        args))
               `((name ,string=? "utf8_general_ci")
-                (csname ,string=? "utf8")
+                (csname ,(^[expected result] (member result expected))
+                        ("utf8" "utf8mb3"))
                 (number ,= 33)
                 (comment ,(^[x y] (or (is-class? x y) (not y))) ,<string>)
                 (dir ,equal? #f)

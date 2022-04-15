@@ -379,10 +379,10 @@ static void mysql_init_param(MYSQL_BIND *param, ScmObj obj)
     }
     else if (SCM_FALSEP(obj)) {
         param->buffer_type = MYSQL_TYPE_NULL;
-        if ((param->is_null = malloc(sizeof(my_bool))) == NULL)
+        if ((param->is_null = malloc(sizeof(bool))) == NULL)
             Scm_SysError("Cannot allocate is_null buffer.");
         else
-            *(my_bool*)param->is_null = 1;
+            *(bool*)param->is_null = 1;
     }
     else if (SCM_FLONUMP(obj)) {
         double *p = (double*)malloc(sizeof(double));
@@ -419,7 +419,7 @@ static void mysql_init_field(MYSQL_BIND *bind, MYSQL_FIELD *field)
             if ((bind->buffer = malloc(bind->buffer_length)) == NULL)
                 Scm_SysError("Cannot allocate bind buffer.");
             bind->length = 0;
-            if ((bind->is_null = malloc(sizeof(my_bool))) == NULL)
+            if ((bind->is_null = malloc(sizeof(bool))) == NULL)
                 Scm_SysError("Cannot allocate is_null buffer.");
             break;
         case MYSQL_TYPE_FLOAT: case MYSQL_TYPE_DOUBLE:
@@ -428,7 +428,7 @@ static void mysql_init_field(MYSQL_BIND *bind, MYSQL_FIELD *field)
             if ((bind->buffer = malloc(sizeof(double))) == NULL)
                 Scm_SysError("Cannot allocate bind buffer.");
             bind->length = 0;
-            if ((bind->is_null = malloc(sizeof(my_bool))) == NULL)
+            if ((bind->is_null = malloc(sizeof(bool))) == NULL)
                 Scm_SysError("Cannot allocate is_null buffer.");
             break;
         case MYSQL_TYPE_STRING: case MYSQL_TYPE_VAR_STRING:
@@ -438,7 +438,7 @@ static void mysql_init_field(MYSQL_BIND *bind, MYSQL_FIELD *field)
                 Scm_SysError("Cannot allocate bind buffer.");
             if ((bind->length = malloc(sizeof(unsigned long))) == NULL)
                 Scm_SysError("Cannot allocate length buffer.");
-            if ((bind->is_null = malloc(sizeof(my_bool))) == NULL)
+            if ((bind->is_null = malloc(sizeof(bool))) == NULL)
                 Scm_SysError("Cannot allocate is_null buffer.");
             break;
         case MYSQL_TYPE_TINY_BLOB: case MYSQL_TYPE_BLOB:
@@ -449,7 +449,7 @@ static void mysql_init_field(MYSQL_BIND *bind, MYSQL_FIELD *field)
                 Scm_SysError("Cannot allocate bind buffer.");
             if ((bind->length = malloc(sizeof(unsigned long))) == NULL)
                 Scm_SysError("Cannot allocate length buffer.");
-            if ((bind->is_null = malloc(sizeof(my_bool))) == NULL)
+            if ((bind->is_null = malloc(sizeof(bool))) == NULL)
                 Scm_SysError("Cannot allocate is_null buffer.");
             break;
         case MYSQL_TYPE_DATE: case MYSQL_TYPE_TIME:
@@ -460,7 +460,7 @@ static void mysql_init_field(MYSQL_BIND *bind, MYSQL_FIELD *field)
                 Scm_SysError("Cannot allocate bind buffer.");
             if ((bind->length = malloc(sizeof(unsigned long))) == NULL)
                 Scm_SysError("Cannot allocate bind buffer.");
-            if ((bind->is_null = malloc(sizeof(my_bool))) == NULL)
+            if ((bind->is_null = malloc(sizeof(bool))) == NULL)
                 Scm_SysError("Cannot allocate bind buffer.");
             break;
         default:
@@ -477,7 +477,7 @@ void MysqlStmtxExecute(MYSQL_STMTX *stmtx, ScmObj args)
     MYSQL_BIND *fields, *field;
     unsigned int param_count, field_count, i;
     ScmObj ptr, obj;
-    my_bool fix_metadata = 0;
+    bool fix_metadata = 0;
 
     SCM_ASSERT(stmtx != NULL);
     SCM_ASSERT(args != NULL);

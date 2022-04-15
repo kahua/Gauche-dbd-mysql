@@ -1,3 +1,10 @@
+2022-04-15  Shiro Kawai  <shiro@acm.org>
+
+	* dbd_mysql.c: Replace my_bool -> bool, as the MySQL 8.0.1 dropped
+	  my_bool type.
+	  https://github.com/kahua/Gauche-dbd-mysql/issues/5
+	* test/dbd.scm: Allow utf8mb3 in charset reporting
+
 2021-03-28  Shiro Kawai  <shiro@acm.org>
 
 	* dbd/mysql.scm: Avoid conditional definition form such as
