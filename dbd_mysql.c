@@ -19,6 +19,7 @@
  */
 
 #include "dbd_mysql.h"
+#include <stdbool.h>
 #include <stdlib.h>
 
 #define MYSQL_ERROR      SCM_SYMBOL_VALUE("dbd.mysql", "<mysql-error>")
