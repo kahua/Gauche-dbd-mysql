@@ -1,0 +1,7 @@
+/Gauche-dbd-mysql.gpd
+/Makefile
+/VERSION
+/acconfig.h
+*.log
+*.o
+*.so
