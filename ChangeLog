@@ -1,3 +1,7 @@
+2022-04-17  Shiro Kawai  <shiro@acm.org>
+
+	* Release 0.4.1
+
 2022-04-15  Shiro Kawai  <shiro@acm.org>
 
 	* dbd_mysql.c: Replace my_bool -> bool, as the MySQL 8.0.1 dropped
