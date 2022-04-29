@@ -14,7 +14,7 @@ jobs:
       run: |
         curl -f -o get-gauche.sh $GET_GAUCHE_URL/get-gauche.sh
         chmod +x get-gauche.sh
-        ./get-gauche.sh --sudo --auto --prefix=/usr
+        ./get-gauche.sh --sudo --auto --skip-tests --prefix=/usr
         sudo service mysql start
         mysql -V
         mysql -uroot -proot < tools/create-test-db-and-user.sql
