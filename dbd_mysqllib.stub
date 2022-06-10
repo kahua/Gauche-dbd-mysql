@@ -19,27 +19,21 @@
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
 
-"
-#include \"dbd_mysql.h\"
-"
+"#include \"dbd_mysql.h\""
 
 (define-cproc mysql-dbd-version () ::<const-cstring>
   (return PACKAGE_VERSION))
 
-(define-type <mysql-handle> "MYSQL*" "MySQL handle"
+(declare-stub-type <mysql-handle> "MYSQL*" "MySQL handle"
   "MYSQL_HANDLE_P" "MYSQL_HANDLE_UNBOX" "MYSQL_HANDLE_BOX")
-(define-type <mysql-res> "MYSQL_RES*" "MySQL result handle"
+(declare-stub-type <mysql-res> "MYSQL_RES*" "MySQL result handle"
   "MYSQL_RES_P" "MYSQL_RES_UNBOX" "MYSQL_RES_BOX")
-(define-type <mysql-row-offset> "MYSQL_ROWS*" "MySQL row offset"
+(declare-stub-type <mysql-row-offset> "MYSQL_ROWS*" "MySQL row offset"
   "MYSQL_ROWS_P" "MYSQL_ROWS_UNBOX" "MYSQL_ROWS_BOX")
 
 (define-cproc mysql-handle? (obj) ::<boolean> MYSQL_HANDLE_P)
 (define-cproc mysql-res? (obj) ::<boolean> MYSQL_RES_P)
 (define-cproc mysql-row-offset? (obj) ::<boolean> MYSQL_ROWS_P)
-
-;; key to the foreign pointer attribute to keep track of closed state
-;; of handles.
-(define-symbol closed? "sym_closed")
 
 ;; mysql_affected_rows
 (define-cproc mysql-affected-rows (connection::<mysql-handle>)
@@ -76,9 +70,9 @@
   (mysql_cleanup connection))
 
 ;; mysql_commit
-(if "HAVE_DECL_MYSQL_COMMIT"
-    (define-cproc mysql-commit (connection::<mysql-handle>) ::<void>
-      (mysql-call mysql-commit connection)))
+(.when HAVE_DECL_MYSQL_COMMIT
+  (define-cproc mysql-commit (connection::<mysql-handle>) ::<void>
+    (mysql-call mysql-commit connection)))
 
 ;; mysql_connect(): OMITTED(deprecated)
 ;; mysql_create_db(): OMITTED(deprecated)
@@ -215,101 +209,100 @@
         (call <boolean> "MYSQL_FIELD_P"))))
 
 ;; Field Types
-(if "HAVE_DECL_MYSQL_TYPE_TINY"
-    (define-enum MYSQL_TYPE_TINY)
-    (define-constant MYSQL_TYPE_TINY (c "SCM_MAKE_INT(FIELD_TYPE_TINY)")))
-(if "HAVE_DECL_MYSQL_TYPE_SHORT"
-    (define-enum MYSQL_TYPE_SHORT)
-    (define-constant MYSQL_TYPE_SHORT (c "SCM_MAKE_INT(FIELD_TYPE_SHORT)")))
-(if "HAVE_DECL_MYSQL_TYPE_LONG"
-    (define-enum MYSQL_TYPE_LONG)
-    (define-constant MYSQL_TYPE_LONG (c "SCM_MAKE_INT(FIELD_TYPE_LONG)")))
-(if "HAVE_DECL_MYSQL_TYPE_INT24"
-    (define-enum MYSQL_TYPE_INT24)
-    (define-constant MYSQL_TYPE_INT24 (c "SCM_MAKE_INT(FIELD_TYPE_INT24)")))
-(if "HAVE_DECL_MYSQL_TYPE_LONGLONG"
-    (define-enum MYSQL_TYPE_LONGLONG)
-    (define-constant MYSQL_TYPE_LONGLONG (c "SCM_MAKE_INT(FIELD_TYPE_LONGLONG)")))
-(if "HAVE_DECL_MYSQL_TYPE_DECIMAL"
-    (define-enum MYSQL_TYPE_DECIMAL)
-    (define-constant MYSQL_TYPE_DECIMAL (c "SCM_MAKE_INT(FIELD_TYPE_DECIMAL)")))
+(.if HAVE_DECL_MYSQL_TYPE_TINY
+  (define-enum MYSQL_TYPE_TINY)
+  (define-constant MYSQL_TYPE_TINY (c "SCM_MAKE_INT(FIELD_TYPE_TINY)")))
+(.if HAVE_DECL_MYSQL_TYPE_SHORT
+  (define-enum MYSQL_TYPE_SHORT)
+  (define-constant MYSQL_TYPE_SHORT (c "SCM_MAKE_INT(FIELD_TYPE_SHORT)")))
+(.if HAVE_DECL_MYSQL_TYPE_LONG
+  (define-enum MYSQL_TYPE_LONG)
+  (define-constant MYSQL_TYPE_LONG (c "SCM_MAKE_INT(FIELD_TYPE_LONG)")))
+(.if HAVE_DECL_MYSQL_TYPE_INT24
+  (define-enum MYSQL_TYPE_INT24)
+  (define-constant MYSQL_TYPE_INT24 (c "SCM_MAKE_INT(FIELD_TYPE_INT24)")))
+(.if HAVE_DECL_MYSQL_TYPE_LONGLONG
+  (define-enum MYSQL_TYPE_LONGLONG)
+  (define-constant MYSQL_TYPE_LONGLONG (c "SCM_MAKE_INT(FIELD_TYPE_LONGLONG)")))
+(.if HAVE_DECL_MYSQL_TYPE_DECIMAL
+  (define-enum MYSQL_TYPE_DECIMAL)
+  (define-constant MYSQL_TYPE_DECIMAL (c "SCM_MAKE_INT(FIELD_TYPE_DECIMAL)")))
 (define-enum-conditionally MYSQL_TYPE_NEWDECIMAL) ; 5.0.3 or later
-(if "HAVE_DECL_MYSQL_TYPE_FLOAT"
-    (define-enum MYSQL_TYPE_FLOAT)
-    (define-constant MYSQL_TYPE_FLOAT (c "SCM_MAKE_INT(FIELD_TYPE_FLOAT)")))
-(if "HAVE_DECL_MYSQL_TYPE_DOUBLE"
-    (define-enum MYSQL_TYPE_DOUBLE)
-    (define-constant MYSQL_TYPE_DOUBLE (c "SCM_MAKE_INT(FIELD_TYPE_DOUBLE)")))
+(.if HAVE_DECL_MYSQL_TYPE_FLOAT
+  (define-enum MYSQL_TYPE_FLOAT)
+  (define-constant MYSQL_TYPE_FLOAT (c "SCM_MAKE_INT(FIELD_TYPE_FLOAT)")))
+(.if HAVE_DECL_MYSQL_TYPE_DOUBLE
+  (define-enum MYSQL_TYPE_DOUBLE)
+  (define-constant MYSQL_TYPE_DOUBLE (c "SCM_MAKE_INT(FIELD_TYPE_DOUBLE)")))
 (define-enum-conditionally MYSQL_TYPE_BIT)	 ; 5.0.3 or later
-(if "HAVE_DECL_MYSQL_TYPE_TIMESTAMP"
-    (define-enum MYSQL_TYPE_TIMESTAMP)
-    (define-constant MYSQL_TYPE_TIMESTAMP (c "SCM_MAKE_INT(FIELD_TYPE_TIMESTAMP)")))
-(if "HAVE_DECL_MYSQL_TYPE_DATE"
-    (define-enum MYSQL_TYPE_DATE)
-    (define-constant MYSQL_TYPE_DATE (c "SCM_MAKE_INT(FIELD_TYPE_DATE)")))
-(if "HAVE_DECL_MYSQL_TYPE_TIME"
-    (define-enum MYSQL_TYPE_TIME)
-    (define-constant MYSQL_TYPE_TIME (c "SCM_MAKE_INT(FIELD_TYPE_TIME)")))
-(if "HAVE_DECL_MYSQL_TYPE_DATETIME"
-    (define-enum MYSQL_TYPE_DATETIME)
-    (define-constant MYSQL_TYPE_DATETIME (c "SCM_MAKE_INT(FIELD_TYPE_DATETIME)")))
-(if "HAVE_DECL_MYSQL_TYPE_YEAR"
-    (define-enum MYSQL_TYPE_YEAR)
-    (define-constant MYSQL_TYPE_YEAR (c "SCM_MAKE_INT(FIELD_TYPE_YEAR)")))
-(if "HAVE_DECL_MYSQL_TYPE_NEWDATE"
-    (define-enum MYSQL_TYPE_NEWDATE)
-    (define-constant MYSQL_TYPE_NEWDATE (c "SCM_MAKE_INT(FIELD_TYPE_NEWDATE)")))
-(if "HAVE_DECL_MYSQL_TYPE_STRING"
-    (define-enum MYSQL_TYPE_STRING)
-    (define-constant MYSQL_TYPE_STRING (c "SCM_MAKE_INT(FIELD_TYPE_STRING)")))
-(if "HAVE_DECL_MYSQL_TYPE_VAR_STRING"
-    (define-enum MYSQL_TYPE_VAR_STRING)
-    (define-constant MYSQL_TYPE_VAR_STRING (c "SCM_MAKE_INT(FIELD_TYPE_VAR_STRING)")))
-(if "HAVE_DECL_MYSQL_TYPE_BLOB"
-    (define-enum MYSQL_TYPE_BLOB)
-    (define-constant MYSQL_TYPE_BLOB (c "SCM_MAKE_INT(FIELD_TYPE_BLOB)")))
-(if "HAVE_DECL_MYSQL_TYPE_TINY_BLOB"
-    (define-enum MYSQL_TYPE_TINY_BLOB)
-    (define-constant MYSQL_TYPE_TINY_BLOB (c "SCM_MAKE_INT(FIELD_TYPE_TINY_BLOB)")))
-(if "HAVE_DECL_MYSQL_TYPE_MEDIUM_BLOB"
-    (define-enum MYSQL_TYPE_MEDIUM_BLOB)
-    (define-constant MYSQL_TYPE_MEDIUM_BLOB (c "SCM_MAKE_INT(FIELD_TYPE_MEDIUM_BLOB)")))
-(if "HAVE_DECL_MYSQL_TYPE_LONG_BLOB"
-    (define-enum MYSQL_TYPE_LONG_BLOB)
-    (define-constant MYSQL_TYPE_LONG_BLOB (c "SCM_MAKE_INT(FIELD_TYPE_LONG_BLOB)")))
-(if "HAVE_DECL_MYSQL_TYPE_SET"
-    (define-enum MYSQL_TYPE_SET)
-    (define-constant MYSQL_TYPE_SET (c "SCM_MAKE_INT(FIELD_TYPE_SET)")))
-(if "HAVE_DECL_MYSQL_TYPE_ENUM"
-    (define-enum MYSQL_TYPE_ENUM)
-    (define-constant MYSQL_TYPE_ENUM (c "SCM_MAKE_INT(FIELD_TYPE_ENUM)")))
-(if "HAVE_DECL_MYSQL_TYPE_GEOMETRY"
-    (define-enum MYSQL_TYPE_GEOMETRY)
-    (define-constant MYSQL_TYPE_GEOMETRY (c "SCM_MAKE_INT(FIELD_TYPE_GEOMETRY)")))
-(if "HAVE_DECL_MYSQL_TYPE_NULL"
-    (define-enum MYSQL_TYPE_NULL)
-    (define-constant MYSQL_TYPE_NULL (c "SCM_MAKE_INT(FIELD_TYPE_NULL)")))
+(.if HAVE_DECL_MYSQL_TYPE_TIMESTAMP
+  (define-enum MYSQL_TYPE_TIMESTAMP)
+  (define-constant MYSQL_TYPE_TIMESTAMP (c "SCM_MAKE_INT(FIELD_TYPE_TIMESTAMP)")))
+(.if HAVE_DECL_MYSQL_TYPE_DATE
+  (define-enum MYSQL_TYPE_DATE)
+  (define-constant MYSQL_TYPE_DATE (c "SCM_MAKE_INT(FIELD_TYPE_DATE)")))
+(.if HAVE_DECL_MYSQL_TYPE_TIME
+  (define-enum MYSQL_TYPE_TIME)
+  (define-constant MYSQL_TYPE_TIME (c "SCM_MAKE_INT(FIELD_TYPE_TIME)")))
+(.if HAVE_DECL_MYSQL_TYPE_DATETIME
+  (define-enum MYSQL_TYPE_DATETIME)
+  (define-constant MYSQL_TYPE_DATETIME (c "SCM_MAKE_INT(FIELD_TYPE_DATETIME)")))
+(.if HAVE_DECL_MYSQL_TYPE_YEAR
+  (define-enum MYSQL_TYPE_YEAR)
+  (define-constant MYSQL_TYPE_YEAR (c "SCM_MAKE_INT(FIELD_TYPE_YEAR)")))
+(.if HAVE_DECL_MYSQL_TYPE_NEWDATE
+  (define-enum MYSQL_TYPE_NEWDATE)
+  (define-constant MYSQL_TYPE_NEWDATE (c "SCM_MAKE_INT(FIELD_TYPE_NEWDATE)")))
+(.if HAVE_DECL_MYSQL_TYPE_STRING
+  (define-enum MYSQL_TYPE_STRING)
+  (define-constant MYSQL_TYPE_STRING (c "SCM_MAKE_INT(FIELD_TYPE_STRING)")))
+(.if HAVE_DECL_MYSQL_TYPE_VAR_STRING
+  (define-enum MYSQL_TYPE_VAR_STRING)
+  (define-constant MYSQL_TYPE_VAR_STRING (c "SCM_MAKE_INT(FIELD_TYPE_VAR_STRING)")))
+(.if HAVE_DECL_MYSQL_TYPE_BLOB
+  (define-enum MYSQL_TYPE_BLOB)
+  (define-constant MYSQL_TYPE_BLOB (c "SCM_MAKE_INT(FIELD_TYPE_BLOB)")))
+(.if HAVE_DECL_MYSQL_TYPE_TINY_BLOB
+  (define-enum MYSQL_TYPE_TINY_BLOB)
+  (define-constant MYSQL_TYPE_TINY_BLOB (c "SCM_MAKE_INT(FIELD_TYPE_TINY_BLOB)")))
+(.if HAVE_DECL_MYSQL_TYPE_MEDIUM_BLOB
+  (define-enum MYSQL_TYPE_MEDIUM_BLOB)
+  (define-constant MYSQL_TYPE_MEDIUM_BLOB (c "SCM_MAKE_INT(FIELD_TYPE_MEDIUM_BLOB)")))
+(.if HAVE_DECL_MYSQL_TYPE_LONG_BLOB
+  (define-enum MYSQL_TYPE_LONG_BLOB)
+  (define-constant MYSQL_TYPE_LONG_BLOB (c "SCM_MAKE_INT(FIELD_TYPE_LONG_BLOB)")))
+(.if HAVE_DECL_MYSQL_TYPE_SET
+  (define-enum MYSQL_TYPE_SET)
+  (define-constant MYSQL_TYPE_SET (c "SCM_MAKE_INT(FIELD_TYPE_SET)")))
+(.if HAVE_DECL_MYSQL_TYPE_ENUM
+  (define-enum MYSQL_TYPE_ENUM)
+  (define-constant MYSQL_TYPE_ENUM (c "SCM_MAKE_INT(FIELD_TYPE_ENUM)")))
+(.if HAVE_DECL_MYSQL_TYPE_GEOMETRY
+  (define-enum MYSQL_TYPE_GEOMETRY)
+  (define-constant MYSQL_TYPE_GEOMETRY (c "SCM_MAKE_INT(FIELD_TYPE_GEOMETRY)")))
+(.if HAVE_DECL_MYSQL_TYPE_NULL
+  (define-enum MYSQL_TYPE_NULL)
+  (define-constant MYSQL_TYPE_NULL (c "SCM_MAKE_INT(FIELD_TYPE_NULL)")))
 
-(if "HAVE_MYSQL_FIELD"
-    (begin
-      ;; mysql_fetch_field
-      (define-cproc mysql-fetch-field (result::<mysql-res>)
-        (let* ([r::MYSQL_FIELD* (mysql_fetch_field result)])
-          (result (?: (== r NULL) '#f (Scm_MakeMysqlField r)))))
+(.when HAVE_MYSQL_FIELD
+  ;; mysql_fetch_field
+  (define-cproc mysql-fetch-field (result::<mysql-res>)
+    (let* ([r::MYSQL_FIELD* (mysql_fetch_field result)])
+      (result (?: (== r NULL) '#f (Scm_MakeMysqlField r)))))
 
-      ;; mysql_fetch_field_direct
-      (define-cproc mysql-fetch-field-direct (result::<mysql-res> offset::<uint>)
-        (let* ([r::MYSQL_FIELD* (mysql_fetch_field_direct result offset)])
-          (result (?: (== r NULL) '#f (Scm_MakeMysqlField r)))))
+  ;; mysql_fetch_field_direct
+  (define-cproc mysql-fetch-field-direct (result::<mysql-res> offset::<uint>)
+    (let* ([r::MYSQL_FIELD* (mysql_fetch_field_direct result offset)])
+      (result (?: (== r NULL) '#f (Scm_MakeMysqlField r)))))
 
-      ;; mysql_fetch_fields()
-      (define-cproc mysql-fetch-fields (result::<mysql-res>)
-        MysqlFetchFields)
+  ;; mysql_fetch_fields()
+  (define-cproc mysql-fetch-fields (result::<mysql-res>)
+    MysqlFetchFields)
 
-      ;; mysql_fetch_lengths()
-      (define-cproc mysql-fetch-lengths (result::<mysql-res>)
-        MysqlFetchLengths)
-      ))
+  ;; mysql_fetch_lengths()
+  (define-cproc mysql-fetch-lengths (result::<mysql-res>)
+    MysqlFetchLengths)
+  )
 
 ;; mysql_fetch_row
 (define-cproc mysql-fetch-row (result::<mysql-res>) MysqlFetchRow)
@@ -331,33 +324,34 @@
   (unless (MYSQL_RES_P result) (SCM_TYPE_ERROR result "<mysql-res>"))
   (mysql_res_cleanup result))
 
-(if "HAVE_MY_CHARSET_INFO"
-    (begin
-      ;; MY_CHARSET_INFO
-      (define-type <mysql-charset> "ScmMysqlCharsetInfo*" "MySQL character set information"
-        "MYSQL_CHARSET_INFO_P" "SCM_MYSQL_CHARSET_INFO")
-      (define-cclass <mysql-charset>
-        "ScmMysqlCharsetInfo*" "Scm_MysqlCharsetInfoClass"
-        ()
-        ((number :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_CHARSET_INFO_NUMBER(obj));")
-         (state  :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_CHARSET_INFO_STATE(obj));")
-         (csname :type <const-cstring> :setter #f :getter "SCM_RETURN(SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_CSNAME(obj)));")
-         (name   :type <const-cstring> :setter #f :getter "SCM_RETURN(SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_NAME(obj)));")
-         (comment :type <const-cstring>? :setter #f :getter "SCM_RETURN(MYSQL_CHARSET_INFO_COMMENT(obj)?SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_COMMENT(obj)):SCM_FALSE);")
-         (dir    :type <const-cstring>? :setter #f :getter
-                 "SCM_RETURN(MYSQL_CHARSET_INFO_DIR(obj)==NULL?SCM_FALSE:SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_DIR(obj)));")
-         (mbminlen :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_CHARSET_INFO_MBMINLEN(obj));")
-         (mbmaxlen :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_CHARSET_INFO_MBMAXLEN(obj));")))
-      (define-cproc mysql-charset? (obj)
-        (call <boolean> "MYSQL_CHARSET_INFO_P"))
+(.when HAVE_MY_CHARSET_INFO
+  ;; MY_CHARSET_INFO
+  (define-type <mysql-charset> "ScmMysqlCharsetInfo*" "MySQL character set information"
+    "MYSQL_CHARSET_INFO_P" "SCM_MYSQL_CHARSET_INFO")
+  (define-cclass <mysql-charset>
+    "ScmMysqlCharsetInfo*" "Scm_MysqlCharsetInfoClass"
+    ()
+    ((number :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_CHARSET_INFO_NUMBER(obj));")
+     (state  :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_CHARSET_INFO_STATE(obj));")
+     (csname :type <const-cstring> :setter #f :getter "SCM_RETURN(SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_CSNAME(obj)));")
+     (name   :type <const-cstring> :setter #f :getter "SCM_RETURN(SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_NAME(obj)));")
+     (comment :type <const-cstring>? :setter #f :getter "SCM_RETURN(MYSQL_CHARSET_INFO_COMMENT(obj)?SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_COMMENT(obj)):SCM_FALSE);")
+     (dir    :type <const-cstring>? :setter #f :getter
+             "SCM_RETURN(MYSQL_CHARSET_INFO_DIR(obj)==NULL?SCM_FALSE:SCM_MAKE_STR_COPYING(MYSQL_CHARSET_INFO_DIR(obj)));")
+     (mbminlen :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_CHARSET_INFO_MBMINLEN(obj));")
+     (mbmaxlen :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_CHARSET_INFO_MBMAXLEN(obj));")))
+  (define-cproc mysql-charset? (obj) ::<boolean>
+    MYSQL_CHARSET_INFO_P)
 
-      ;; mysql_get_character_set_info(5.0.10 or later)
-      (define-cproc mysql-get-character-set-info (handle::<mysql-handle>)
-        (body <mysql-charset>
-              "SCM_RESULT = SCM_NEW_ATOMIC2(ScmMysqlCharsetInfo*, sizeof(ScmMysqlCharsetInfo));"
-              "SCM_SET_CLASS(SCM_RESULT, SCM_CLASS_MYSQL_CHARSET_INFO);"
-              "mysql_get_character_set_info(handle, &MYSQL_CHARSET_INFO_UNBOX(SCM_RESULT));"))
-      ))
+  ;; mysql_get_character_set_info(5.0.10 or later)
+  (define-cproc mysql-get-character-set-info (handle::<mysql-handle>)
+    (let* ([r::ScmMysqlCharsetInfo*
+            (SCM_NEW_ATOMIC2 (.type ScmMysqlCharsetInfo*)
+                             (sizeof ScmMysqlCharsetInfo))])
+      (SCM_SET_CLASS r SCM_CLASS_MYSQL_CHARSET_INFO)
+      (mysql_get_character_set_info handle (& (MYSQL_CHARSET_INFO_UNBOX r)))
+      (return (SCM_OBJ r))))
+  )
 
 ;; mysql_get_client_info
 (define-cproc mysql-get-client-info () ::<const-cstring>
@@ -379,10 +373,10 @@
 (define-cproc mysql-get-server-info (handle::<mysql-handle>) ::<const-cstring>
   mysql_get_server_info)
 
-(if "HAVE_DECL_MYSQL_GET_SERVER_VERSION"
-    ;; mysql_get_server_version
-    (define-cproc mysql-get-server-version (handle::<mysql-handle>)
-      ::<ulong> mysql_get_server_version))
+(.when HAVE_DECL_MYSQL_GET_SERVER_VERSION
+  ;; mysql_get_server_version
+  (define-cproc mysql-get-server-version (handle::<mysql-handle>)
+    ::<ulong> mysql_get_server_version))
 
 ;; mysql_get_ssl_cipher()
 (define-cproc mysql-get-ssl-cipher (handle::<mysql-handle>) ::<const-cstring>
@@ -407,29 +401,37 @@
 
 ;; mysql_list_dbs
 (define-cproc mysql-list-dbs (handle::<mysql-handle> wild::<const-cstring>?)
-  (body <mysql-res>
-        "if ((SCM_RESULT = mysql_list_dbs(handle, wild)) == NULL)"
-        "  raise_mysql_error(handle, \"mysql_list_dbs\");"))
+  ::<mysql-res>
+  (let* ([r::MYSQL_RES* (mysql_list_dbs handle wild)])
+    (if (== r NULL)
+      (raise_mysql_error handle "mysql_list_dbs")
+      (return r))))
 
 ;; mysql_list_fields
 (define-cproc mysql-list-fields (handle::<mysql-handle>
                                  table::<const-cstring>
                                  wild::<const-cstring>?)
-  (body <mysql-res>
-        "if ((SCM_RESULT = mysql_list_fields(handle, table, wild)) == NULL)"
-        "  raise_mysql_error(handle, \"mysql_list_fields\");"))
+  ::<mysql-res>
+  (let* ([r::MYSQL_RES* (mysql_list_fields handle table wild)])
+    (if (== r NULL)
+      (raise_mysql_error handle "mysql_list_fields")
+      (return r))))
 
 ;; mysql_list_processes
 (define-cproc mysql-list-processes (handle::<mysql-handle>)
-  (body <mysql-res>
-        "if ((SCM_RESULT = mysql_list_processes(handle)) == NULL)"
-        "  raise_mysql_error(handle, \"mysql_list_processes\");"))
+  ::<mysql-res>
+  (let* ([r::MYSQL_RES* (mysql_list_processes handle)])
+    (if (== r NULL)
+      (raise_mysql_error handle "mysql_list_processes")
+      (return r))))
 
 ;; mysql_list_tables
 (define-cproc mysql-list-tables (handle::<mysql-handle> wild::<const-cstring>?)
-  (body <mysql-res>
-        "if ((SCM_RESULT = mysql_list_tables(handle, wild)) == NULL)"
-        "  raise_mysql_error(handle, \"mysql_list_tables\");"))
+  ::<mysql-res>
+  (let* ([r::MYSQL_RES* (mysql_list_tables handle wild)])
+    (if (== r NULL)
+      (raise_mysql_error handle "mysql_list_tables")
+      (return r))))
 
 ;; mysql_more_results
 ;; mysql_next_result
@@ -438,8 +440,7 @@
 (define-cproc mysql-num-fields (result::<mysql-res>) ::<uint> mysql_num_fields)
 
 ;; mysql_num_rows
-(define-cproc mysql-num-rows (res::<mysql-res>) ::<integer>
-  (result (Scm_MakeIntegerU64 (mysql_num_rows res))))
+(define-cproc mysql-num-rows (res::<mysql-res>) ::<uint64> mysql_num_rows)
 
 ;; mysql_options
 
@@ -502,11 +503,9 @@
 ;; mysql_reload(): OMITTED(deprecated)
 
 ;; mysql_rollback
-(if "HAVE_DECL_MYSQL_ROLLBACK"
-    (define-cproc mysql-rollback (handle::<mysql-handle>)
-      (body <void>
-            "if (mysql_rollback(handle) != 0)"
-            "  raise_mysql_error(handle, \"mysql_rollback\");")))
+(.when HAVE_DECL_MYSQL_ROLLBACK
+  (define-cproc mysql-rollback (handle::<mysql-handle>) ::<void>
+    (mysql-call mysql_rollback handle)))
 
 ;; mysql_row_seek()
 (define-cproc mysql-row-seek (result::<mysql-res> offset::<mysql-row-offset>)
@@ -521,27 +520,27 @@
   ::<void> (mysql-call mysql_select_db handle db))
 
 ;; mysql_set_character_set
-(if "HAVE_DECL_MYSQL_SET_CHARACTER_SET"
-    (define-cproc mysql-set-character-set (connection::<mysql-handle>
-                                           charset::<const-cstring>)
-      ::<void> (mysql-call mysql_set_character_set connection charset)))
+(.when HAVE_DECL_MYSQL_SET_CHARACTER_SET
+  (define-cproc mysql-set-character-set (connection::<mysql-handle>
+                                         charset::<const-cstring>)
+    ::<void> (mysql-call mysql_set_character_set connection charset)))
 
 ;; mysql_set_local_infile_default
 ;; mysql_set_local_infile_handler
 ;; mysql_set_server_option
 
 ;; mysql_shutdown
-(if "HAVE_DECL_SHUTDOWN_DEFAULT"
-    (define-cproc mysql-shutdown (handle::<mysql-handle> &optional (level::<int> (c "SHUTDOWN_DEFAULT")))
-      ::<void> (mysql-call mysql_shutdown handle level)))
-(if "!HAVE_DECL_SHUTDOWN_DEFAULT"
-    (define-cproc mysql-shutdown (handle::<mysql-handle> &optional dummy)
-      ::<void> (mysql-call mysql_shutdown handle)))
+(.if HAVE_DECL_SHUTDOWN_DEFAULT
+     (define-cproc mysql-shutdown (handle::<mysql-handle>
+                                   :optional (level::<int> (c "SHUTDOWN_DEFAULT")))
+       ::<void> (mysql-call mysql_shutdown handle level))
+     (define-cproc mysql-shutdown (handle::<mysql-handle> :optional _)
+       ::<void> (mysql-call mysql_shutdown handle)))
 
 ;; mysql_sqlstate
-(if "HAVE_DECL_MYSQL_SQLSTATE"
-    (define-cproc mysql-sqlstate (handle::<mysql-handle>)
-      (call <const-cstring> "mysql_sqlstate")))
+(.when HAVE_DECL_MYSQL_SQLSTATE
+  (define-cproc mysql-sqlstate (handle::<mysql-handle>) ::<const-cstring>
+    mysql_sqlstate))
 
 ;; mysql_ssl_set()
 (define-cproc mysql-ssl-set (handle::<mysql-handle>
@@ -550,36 +549,39 @@
                              ca::<const-cstring>?
                              capath::<const-cstring>?
                              cipher::<const-cstring>?)
-  (call <boolean> "mysql_ssl_set"))
+  ::<boolean> mysql_ssl_set)
 
 ;; mysql-stat
-(define-cproc mysql-stat (handle::<mysql-handle>)
-  (body <const-cstring>
-        "if ((SCM_RESULT = mysql_stat(handle)) == NULL)"
-        "  raise_mysql_error(handle, \"mysql_stat\");"))
+(define-cproc mysql-stat (handle::<mysql-handle>) ::<const-cstring>
+  (let* ((r::(const char*) (mysql_stat handle)))
+    (if (== r NULL)
+      (raise_mysql_error handle "mysql_stat")
+      (return r))))
 
 ;; mysql_store_result
-(define-cproc mysql-store-result (connection::<mysql-handle>)
-  (body <mysql-res>?
-        "SCM_RESULT = mysql_store_result(connection);"
-        "if ((SCM_RESULT == NULL) && (mysql_errno(connection) != 0))"
-        "  raise_mysql_error(connection, \"mysql_store_result\");"))
+(define-cproc mysql-store-result (connection::<mysql-handle>) ::<mysql-res>?
+  (let* ([r::MYSQL_RES* (mysql_store_result connection)])
+    (when (and (== r NULL)
+               (!= (mysql_errno connection) 0))
+      (raise_mysql_error connection "mysql_store_result"))
+    (return r)))
 
 ;; mysql_thread_id
-(define-cproc mysql-thread-id (handle::<mysql-handle>)
-  (call <ulong> "mysql_thread_id"))
+(define-cproc mysql-thread-id (handle::<mysql-handle>) ::<ulong>
+  mysql_thread_id)
 
 ;; mysql_use_result()
-(define-cproc mysql-use-result (connection::<mysql-handle>)
-  (body <mysql-res>?
-        "SCM_RESULT = mysql_use_result(connection);"
-        "if ((SCM_RESULT == NULL) && (mysql_errno(connection) != 0))"
-        "  raise_mysql_error(connection, \"mysql_use_result\");"))
+(define-cproc mysql-use-result (connection::<mysql-handle>) ::<mysql-res>?
+  (let* ([r::MYSQL_RES* (mysql_use_result connection)])
+    (when (and (== r NULL)
+               (!= (mysql_errno connection) 0))
+      (raise_mysql_error connection "mysql_use_result"))
+    (return r)))
 
 ;; mysql_warning_count
-(if "HAVE_DECL_MYSQL_WARNING_COUNT"
-    (define-cproc mysql-warning-count (handle::<mysql-handle>)
-      (call <uint> "mysql_warning_count")))
+(.when HAVE_DECL_MYSQL_WARNING_COUNT
+  (define-cproc mysql-warning-count (handle::<mysql-handle>) ::<uint>
+    mysql_warning_count))
 
 (define-cproc mysql-handle-closed? (connection) ::<boolean>
   (unless (MYSQL_HANDLE_P connection)
@@ -592,145 +594,140 @@
   (result (MysqlClosedP result)))
 
 (define-cproc mysql-fetch-field-names (result::<mysql-res>?)
-  (call "MysqlFetchFieldNames"))
+  MysqlFetchFieldNames)
 
 ;;
 ;; Native Prepared Statement API
 ;;
 
-(if "HAVE_MYSQL_STMT"
-    (begin
-      (define-type <mysql-stmt> "MYSQL_STMTX*" "MySQL enhanced statement handle"
-        "MYSQL_STMTX_P" "MYSQL_STMTX_UNBOX" "MYSQL_STMTX_BOX")
-      (define-cproc mysql-stmt? (obj)
-        (call <boolean> "MYSQL_STMTX_P"))
+(.when HAVE_MYSQL_STMT
+  (declare-stub-type <mysql-stmt> "MYSQL_STMTX*"
+                     "MySQL enhanced statement handle"
+                     "MYSQL_STMTX_P" "MYSQL_STMTX_UNBOX" "MYSQL_STMTX_BOX")
+  (define-cproc mysql-stmt? (obj) ::<boolean> MYSQL_STMTX_P)
 
-      ;; mysql_stmt_affected_rows
-      (define-cproc mysql-stmt-affected-rows (stmtx::<mysql-stmt>)
-        (expr "MysqlStmtAffectedRows(stmtx->stmt)"))
+  ;; mysql_stmt_affected_rows
+  (define-cproc mysql-stmt-affected-rows (stmtx::<mysql-stmt>)
+    (return (MysqlStmtAffectedRows (-> stmtx stmt))))
 
-      ;; mysql_stmt_attr_get
-      ;; mysql_stmt_attr_set
-      ;; mysql_stmt_bind_param(integrated into mysql-stmt-prepare)
-      ;; mysql_stmt_bind_result(integrated into mysql-stmt-execute)
+  ;; mysql_stmt_attr_get
+  ;; mysql_stmt_attr_set
+  ;; mysql_stmt_bind_param(integrated into mysql-stmt-prepare)
+  ;; mysql_stmt_bind_result(integrated into mysql-stmt-execute)
 
-      ;; mysql_stmt_close
-      (define-cproc mysql-stmt-close (stmtx) ::<void>
-        (unless (MYSQL_STMTX_P stmtx) (SCM_TYPE_ERROR stmtx "<mysql-stmt>"))
-        (mysql_stmtx_cleanup stmtx))
+  ;; mysql_stmt_close
+  (define-cproc mysql-stmt-close (stmtx) ::<void>
+    (unless (MYSQL_STMTX_P stmtx) (SCM_TYPE_ERROR stmtx "<mysql-stmt>"))
+    (mysql_stmtx_cleanup stmtx))
 
-      ;; mysql_stmt_data_seek
-      (define-cproc mysql-stmt-data-seek (stmtx::<mysql-stmt> offset::<integer>) ::<void>
-        (mysql_stmt_data_seek (-> stmtx stmt) (Scm_GetIntegerU64 offset)))
+  ;; mysql_stmt_data_seek
+  (define-cproc mysql-stmt-data-seek (stmtx::<mysql-stmt> offset::<integer>) ::<void>
+    (mysql_stmt_data_seek (-> stmtx stmt) (Scm_GetIntegerU64 offset)))
 
-      ;; mysql_stmt_errno
-      (define-cproc mysql-stmt-errno (stmtx::<mysql-stmt>) ::<uint>
-        (result (mysql_stmt_errno (-> stmtx stmt))))
+  ;; mysql_stmt_errno
+  (define-cproc mysql-stmt-errno (stmtx::<mysql-stmt>) ::<uint>
+    (result (mysql_stmt_errno (-> stmtx stmt))))
 
-      ;; mysql_stmt_error
-      (define-cproc mysql-stmt-error (stmtx::<mysql-stmt>) ::<const-cstring>
-        (result (mysql_stmt_error (-> stmtx stmt))))
+  ;; mysql_stmt_error
+  (define-cproc mysql-stmt-error (stmtx::<mysql-stmt>) ::<const-cstring>
+    (result (mysql_stmt_error (-> stmtx stmt))))
 
-      ;; mysql_stmt_execute
-      (define-cproc mysql-stmt-execute (stmtx::<mysql-stmt> &rest args) ::<void>
-        (MysqlStmtxExecute stmtx args)
-        (MysqlResultUnmarkClosed stmtx_scm))
+  ;; mysql_stmt_execute
+  (define-cproc mysql-stmt-execute (stmtx::<mysql-stmt> &rest args) ::<void>
+    (MysqlStmtxExecute stmtx args)
+    (MysqlResultUnmarkClosed stmtx_scm))
 
-      ;; mysql_stmt_fetch
-      (define-cproc mysql-stmt-fetch (stmtx::<mysql-stmt>)
-        (call "MysqlStmtxFetch"))
+  ;; mysql_stmt_fetch
+  (define-cproc mysql-stmt-fetch (stmtx::<mysql-stmt>) MysqlStmtxFetch)
 
-      ;; mysql_stmt_fetch_column
+  ;; mysql_stmt_fetch_column
 
-      ;; mysql_stmt_field_count
-      (define-cproc mysql-stmt-field-count (stmtx::<mysql-stmt>)
-        (expr <uint> "mysql_stmt_field_count(stmtx->stmt)"))
+  ;; mysql_stmt_field_count
+  (define-cproc mysql-stmt-field-count (stmtx::<mysql-stmt>) ::<uint>
+    (return (mysql_stmt_field_count (-> stmtx stmt))))
 
-      ;; mysql_stmt_free_result
-      (define-cproc mysql-stmt-free-result (stmtx::<mysql-stmt>)
-        (body <void>
-              "if (mysql_stmt_free_result(stmtx->stmt))"
-              "  raise_mysql_stmt_error(stmtx->stmt, \"mysql_stmt_free_result\");"
-              "MysqlResultMarkClosed(stmtx_scm);"))
+  ;; mysql_stmt_free_result
+  (define-cproc mysql-stmt-free-result (stmtx::<mysql-stmt>) ::<void>
+    (when (mysql_stmt_free_result (-> stmtx stmt))
+      (raise_mysql_stmt_error (-> stmtx stmt) "mysql_stmt_free_result"))
+    (MysqlResultMarkClosed stmtx_scm))
 
-      ;; mysql_stmt_init(integrate into mysql-stmt-prepare)
+  ;; mysql_stmt_init(integrate into mysql-stmt-prepare)
 
-      ;; mysql_stmt_insert_id
-      (define-cproc mysql-stmt-insert-id (stmtx::<mysql-stmt>)
-        (expr <integer> "Scm_MakeIntegerU64(mysql_stmt_insert_id(stmtx->stmt))"))
+  ;; mysql_stmt_insert_id
+  (define-cproc mysql-stmt-insert-id (stmtx::<mysql-stmt>) ::<uint64>
+    (return (mysql_stmt_insert_id (-> stmtx stmt))))
 
-      ;; mysql_stmt_num_rows
-      (define-cproc mysql-stmt-num-rows (stmtx::<mysql-stmt>)
-        (expr <integer> "Scm_MakeIntegerU64(mysql_stmt_num_rows(stmtx->stmt))"))
+  ;; mysql_stmt_num_rows
+  (define-cproc mysql-stmt-num-rows (stmtx::<mysql-stmt>)::<uint64>
+    (return (mysql_stmt_num_rows (-> stmtx stmt))))
 
-      ;; mysql_stmt_param_count
-      (define-cproc mysql-stmt-param-count (stmtx::<mysql-stmt>)
-        (expr <uint> "mysql_stmt_param_count(stmtx->stmt)"))
+  ;; mysql_stmt_param_count
+  (define-cproc mysql-stmt-param-count (stmtx::<mysql-stmt>) ::<uint>
+    (return (mysql_stmt_param_count (-> stmtx stmt))))
 
-      ;; mysql_stmt_param_metadata
+  ;; mysql_stmt_param_metadata
 
-      ;; mysql_stmt_prepare
-      (define-cproc mysql-stmt-prepare (connection::<mysql-handle> sql::<string>)
-        (call <mysql-stmt> "MysqlStmtxPrepare"))
+  ;; mysql_stmt_prepare
+  (define-cproc mysql-stmt-prepare (connection::<mysql-handle> sql::<string>)
+    ::<mysql-stmt> MysqlStmtxPrepare)
 
-      ;; mysql_stmt_reset
-      (define-cproc mysql-stmt-reset (stmtx::<mysql-stmt>)
-        (body <void>
-              "if (mysql_stmt_reset(stmtx->stmt) != 0)"
-              "  raise_mysql_stmt_error(stmtx->stmt, \"mysql_stmt_reset\");"
-              "MysqlResultMarkClosed(stmtx_scm);"))
+  ;; mysql_stmt_reset
+  (define-cproc mysql-stmt-reset (stmtx::<mysql-stmt>) ::<void>
+    (when (!= (mysql_stmt_reset (-> stmtx stmt)) 0)
+      (raise_mysql_stmt_error (-> stmtx stmt) "mysql_stmt_reset"))
+    (MysqlResultMarkClosed stmtx_scm))
 
-      ;; mysql_stmt_result_metadata
-      ;; mysql_stmt_row_seek
-      ;; mysql_stmt_row_tell
-      ;; mysql_stmt_send_long_data
+  ;; mysql_stmt_result_metadata
+  ;; mysql_stmt_row_seek
+  ;; mysql_stmt_row_tell
+  ;; mysql_stmt_send_long_data
 
-      (define-cproc mysql-stmt-sqlstate (stmtx::<mysql-stmt>)
-        (expr <const-cstring> "mysql_stmt_sqlstate(stmtx->stmt)"))
+  (define-cproc mysql-stmt-sqlstate (stmtx::<mysql-stmt>) ::<const-cstring>
+    (return (mysql_stmt_sqlstate (-> stmtx stmt))))
 
-      ;; mysql_stmt_store_result(integrated into mysql-stmt-execute)
+  ;; mysql_stmt_store_result(integrated into mysql-stmt-execute)
 
-      (define-cproc mysql-stmt-closed? (stmtx) ::<boolean>
-        (unless (MYSQL_STMTX_P stmtx) (SCM_TYPE_ERROR stmtx "<mysql-stmt>"))
-        (result (MysqlClosedP stmtx)))
+  (define-cproc mysql-stmt-closed? (stmtx) ::<boolean>
+    (unless (MYSQL_STMTX_P stmtx) (SCM_TYPE_ERROR stmtx "<mysql-stmt>"))
+    (result (MysqlClosedP stmtx)))
 
-      (define-cproc mysql-stmt-res-closed? (stmtx) ::<boolean>
-        (unless (MYSQL_STMTX_P stmtx) (SCM_TYPE_ERROR stmtx "<mysql-stmt>"))
-        (result (MysqlResultClosedP stmtx)))
+  (define-cproc mysql-stmt-res-closed? (stmtx) ::<boolean>
+    (unless (MYSQL_STMTX_P stmtx) (SCM_TYPE_ERROR stmtx "<mysql-stmt>"))
+    (result (MysqlResultClosedP stmtx)))
 
-      (define-cproc mysql-stmt-fetch-field-names (stmtx::<mysql-stmt>)
-        MysqlStmtxFetchFieldNames)
-      ))
+  (define-cproc mysql-stmt-fetch-field-names (stmtx::<mysql-stmt>)
+    MysqlStmtxFetchFieldNames)
+  )
 
-(if "HAVE_MYSQL_TIME"
-    (begin
-      (define-type <mysql-time> "ScmMysqlTime*" "MySQL DATE/TIME/TIMESTAMP structure"
-        "MYSQL_TIME_P" "SCM_MYSQL_TIME")
-      (define-enum MYSQL_TIMESTAMP_NONE)
-      (define-constant MYSQL_TIMESTAMP_NONE (c "SCM_MAKE_INT(MYSQL_TIMESTAMP_NONE)"))
-      (define-enum MYSQL_TIMESTAMP_ERROR)
-      (define-constant MYSQL_TIMESTAMP_ERROR (c "SCM_MAKE_INT(MYSQL_TIMESTAMP_ERROR)"))
-      (define-enum MYSQL_TIMESTAMP_DATE)
-      (define-constant MYSQL_TIMESTAMP_DATE (c "SCM_MAKE_INT(MYSQL_TIMESTAMP_DATE)"))
-      (define-enum MYSQL_TIMESTAMP_DATETIME)
-      (define-constant MYSQL_TIMESTAMP_DATETIME (c "SCM_MAKE_INT(MYSQL_TIMESTAMP_DATETIME)"))
-      (define-enum MYSQL_TIMESTAMP_TIME)
-      (define-constant MYSQL_TIMESTAMP_TIME (c "SCM_MAKE_INT(MYSQL_TIMESTAMP_TIME)"))
-      (define-cclass <mysql-time>
-        "ScmMysqlTime*" "Scm_MysqlTimeClass"
-        ()
-        ((year :type <uint> :c-spec "MYSQL_TIME_YEAR(obj)")
-         (month :type <uint> :c-spec "MYSQL_TIME_MONTH(obj)")
-         (day :type <uint> :c-spec "MYSQL_TIME_DAY(obj)")
-         (hour :type <uint> :c-spec "MYSQL_TIME_HOUR(obj)")
-         (minute :type <uint> :c-spec "MYSQL_TIME_MINUTE(obj)")
-         (second :type <uint> :c-spec "MYSQL_TIME_SECOND(obj)")
-         (second-part :type <uint> :c-spec "MYSQL_TIME_SECOND_PART(obj)") ; microsecond/unused
-         (time-type :type <uint> :c-spec "MYSQL_TIME_TIME_TYPE(obj)")
-         (nagative? :type <boolean> :c-spec "MYSQL_TIME_NEGATIVE_P(obj)"))
-        (allocator (c "mysql_time_allocate")))
-      (define-cproc mysql-time? (obj)
-        (call <boolean> "MYSQL_TIME_P"))))
+(.when HAVE_MYSQL_TIME
+  (declare-stub-type <mysql-time> "ScmMysqlTime*" "MySQL DATE/TIME/TIMESTAMP structure"
+    "MYSQL_TIME_P" "SCM_MYSQL_TIME")
+  (define-enum MYSQL_TIMESTAMP_NONE)
+  (define-constant MYSQL_TIMESTAMP_NONE (c "SCM_MAKE_INT(MYSQL_TIMESTAMP_NONE)"))
+  (define-enum MYSQL_TIMESTAMP_ERROR)
+  (define-constant MYSQL_TIMESTAMP_ERROR (c "SCM_MAKE_INT(MYSQL_TIMESTAMP_ERROR)"))
+  (define-enum MYSQL_TIMESTAMP_DATE)
+  (define-constant MYSQL_TIMESTAMP_DATE (c "SCM_MAKE_INT(MYSQL_TIMESTAMP_DATE)"))
+  (define-enum MYSQL_TIMESTAMP_DATETIME)
+  (define-constant MYSQL_TIMESTAMP_DATETIME (c "SCM_MAKE_INT(MYSQL_TIMESTAMP_DATETIME)"))
+  (define-enum MYSQL_TIMESTAMP_TIME)
+  (define-constant MYSQL_TIMESTAMP_TIME (c "SCM_MAKE_INT(MYSQL_TIMESTAMP_TIME)"))
+  (define-cclass <mysql-time>
+    "ScmMysqlTime*" "Scm_MysqlTimeClass"
+    ()
+    ((year :type <uint> :c-spec "MYSQL_TIME_YEAR(obj)")
+     (month :type <uint> :c-spec "MYSQL_TIME_MONTH(obj)")
+     (day :type <uint> :c-spec "MYSQL_TIME_DAY(obj)")
+     (hour :type <uint> :c-spec "MYSQL_TIME_HOUR(obj)")
+     (minute :type <uint> :c-spec "MYSQL_TIME_MINUTE(obj)")
+     (second :type <uint> :c-spec "MYSQL_TIME_SECOND(obj)")
+     (second-part :type <uint> :c-spec "MYSQL_TIME_SECOND_PART(obj)") ; microsecond/unused
+     (time-type :type <uint> :c-spec "MYSQL_TIME_TIME_TYPE(obj)")
+     (nagative? :type <boolean> :c-spec "MYSQL_TIME_NEGATIVE_P(obj)"))
+    (allocator (c "mysql_time_allocate")))
+  (define-cproc mysql-time? (obj)
+    (call <boolean> "MYSQL_TIME_P")))
 
 "
 #if HAVE_DECL_MY_CS_AVAILABLE
