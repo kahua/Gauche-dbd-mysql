@@ -5,13 +5,12 @@
 ;;  Copyright (c) 2003-2009 Scheme Arts, L.L.C., All rights reserved.
 ;;  Copyright (c) 2003-2009 Time Intermedia Corporation, All rights reserved.
 
-(use gauche.test)
 (use gauche.collection)
-(use gauche.sequence)
 (use gauche.interactive)
-(use srfi-1)
-(use srfi-13)
-(use util.list)
+(use gauche.sequence)
+(use gauche.test)
+(use scheme.list)
+(use srfi.13)
 
 ;; Utilities
 

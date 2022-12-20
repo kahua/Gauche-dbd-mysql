@@ -17,18 +17,16 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
-;; $Id: mysql.scm,v 1.38 2007/05/23 14:41:31 bizenn Exp $
 
 (define-module dbd.mysql
   (use dbi)
-  (use gauche.sequence)
-  (use util.relation)
-  (use srfi-1)
-  (use srfi-13)
-  (use srfi-19)
-  (use util.list)
-  (use util.match)
   (use gauche.mop.singleton)
+  (use gauche.sequence)
+  (use scheme.list)
+  (use srfi.13)
+  (use srfi.19)
+  (use util.match)
+  (use util.relation)
   (export <mysql-driver> <mysql-connection> <mysql-result-set>
           <mysql-error>
           mysql-dbd-version
@@ -317,6 +315,3 @@
 
 (export-if-defined MYSQL_TIMESTAMP_NONE MYSQL_TIMESTAMP_ERROR MYSQL_TIMESTAMP_DATE
                    MYSQL_TIMESTAMP_DATETIME MYSQL_TIMESTAMP_TIME)
-
-;; Epilogue
-(provide "dbd/mysql")
