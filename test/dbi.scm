@@ -6,10 +6,10 @@
 ;;  Copyright (c) 2003-2009 Time Intermedia Corporation, All rights reserved.
 
 (use dbi)
+(use scheme.list)
 (use gauche.collection)
 (use gauche.sequence)
 (use gauche.test)
-(use scheme.list)
 (use srfi.13)
 (use util.relation)
 
