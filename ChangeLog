@@ -1,3 +1,8 @@
+2023-10-29  Shiro Kawai  <shiro@acm.org>
+
+	* test/dbd.scm: Fix character set info test for possible variations
+	  (utf8mb3_general_ci).
+
 2022-04-17  Shiro Kawai  <shiro@acm.org>
 
 	* Release 0.4.1
