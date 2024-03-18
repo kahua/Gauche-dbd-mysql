@@ -48,9 +48,9 @@
       (raise_mysql_error ,handle ,(x->string ',api)))])
 
 ;; mysql_autocommit
-(if "HAVE_DECL_MYSQL_AUTOCOMMIT"
-    (define-cproc mysql-autocommit (handle::<mysql-handle> flag::<boolean>)
-      ::<void> (mysql-call mysql_autocommit handle flag)))
+(.if "HAVE_DECL_MYSQL_AUTOCOMMIT"
+  (define-cproc mysql-autocommit (handle::<mysql-handle> flag::<boolean>)
+    ::<void> (mysql-call mysql_autocommit handle flag)))
 
 ;; mysql_change_user
 (define-cproc mysql-change-user (handle::<mysql-handle>
@@ -102,9 +102,9 @@
 ;; mysql_escape_string(): OMITTED(You should use mysql_real_escape_string().)
 
 ;; MYSQL_FIELD
-(if "HAVE_MYSQL_FIELD"
-    (begin
-      "
+(.if "HAVE_MYSQL_FIELD"
+  (begin
+    "
 #if HAVE_MYSQL_FIELD_NAME_LENGTH
 #  define MYSQL_FIELD_NAME_STRING(obj) \\
      {return Scm_MakeString(MYSQL_FIELD_NAME(obj), MYSQL_FIELD_NAME_LENGTH(obj), -1, SCM_STRING_COPYING);}
@@ -179,34 +179,34 @@
      {Scm_Error(\"%S doesn't have slot charset-number\", obj); return SCM_FALSE;}
 #endif
 "
-      (define-type <mysql-field> "ScmMysqlField*" "MySQL field information"
-        "MYSQL_FIELD_P" "SCM_MYSQL_FIELD")
-      (define-cclass <mysql-field>
-        "ScmMysqlField*" "Scm_MysqlFieldClass"
-        ()
-        ((name          :type <const-cstring> :setter #f :getter "MYSQL_FIELD_NAME_STRING(obj)")
-         (original-name :type <const-cstring> :setter #f :getter "MYSQL_FIELD_ORG_NAME_STRING(obj)")
-         (table         :type <const-cstring> :setter #f :getter "MYSQL_FIELD_TABLE_STRING(obj)")
-         (original-table :type <const-cstring> :setter #f :getter "MYSQL_FIELD_ORG_TABLE_STRING(obj)")
-         (db            :type <const-cstring> :setter #f :getter "MYSQL_FIELD_DB_STRING(obj)")
-         (catalog       :type <const-cstring> :setter #f :getter "MYSQL_FIELD_CATALOG_STRING(obj)")
-         (default-value :type <const-cstring>? :setter #f :getter "MYSQL_FIELD_DEF_STRING(obj)")
-         (length        :type <ulong> :setter #f :getter "return Scm_MakeIntegerU64(MYSQL_FIELD_LENGTH(obj));")
-         (max-length    :type <ulong> :setter #f :getter "return Scm_MakeIntegerU64(MYSQL_FIELD_MAX_LENGTH(obj));")
-         (not-null?     :type <boolean> :setter #f :getter "return MYSQL_FIELD_NOT_NULL_P(obj);")
-         (primary-key?  :type <boolean> :setter #f :getter "return MYSQL_FIELD_PRIMARY_KEY_P(obj);")
-         (unique-key?   :type <boolean> :setter #f :getter "return MYSQL_FIELD_UNIQUE_KEY_P(obj);")
-         (multiple-key? :type <boolean> :setter #f :getter "return MYSQL_FIELD_MULTIPLE_KEY_P(obj);")
-         (unsigned?     :type <boolean> :setter #f :getter "return MYSQL_FIELD_UNSIGNED_P(obj);")
-         (zerofill?     :type <boolean> :setter #f :getter "return MYSQL_FIELD_ZEROFILL_P(obj);")
-         (binary?       :type <boolean> :setter #f :getter "return MYSQL_FIELD_BINARY_P(obj);")
-         (auto-increment? :type <boolean> :setter #f :getter "return MYSQL_FIELD_AUTO_INCREMENT_P(obj);")
-         (decimals      :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_FIELD_DECIMALS(obj));")
-         (charset-number :type <uint> :setter #f :getter "MYSQL_FIELD_CHARSETNR_INTEGERU(obj)")
-         (type          :type <int> :setter #f :getter "return Scm_MakeInteger(MYSQL_FIELD_TYPE(obj));")
-         ))
-      (define-cproc mysql-field? (obj)
-        (call <boolean> "MYSQL_FIELD_P"))))
+    (define-type <mysql-field> "ScmMysqlField*" "MySQL field information"
+      "MYSQL_FIELD_P" "SCM_MYSQL_FIELD")
+    (define-cclass <mysql-field>
+      "ScmMysqlField*" "Scm_MysqlFieldClass"
+      ()
+      ((name          :type <const-cstring> :setter #f :getter "MYSQL_FIELD_NAME_STRING(obj)")
+       (original-name :type <const-cstring> :setter #f :getter "MYSQL_FIELD_ORG_NAME_STRING(obj)")
+       (table         :type <const-cstring> :setter #f :getter "MYSQL_FIELD_TABLE_STRING(obj)")
+       (original-table :type <const-cstring> :setter #f :getter "MYSQL_FIELD_ORG_TABLE_STRING(obj)")
+       (db            :type <const-cstring> :setter #f :getter "MYSQL_FIELD_DB_STRING(obj)")
+       (catalog       :type <const-cstring> :setter #f :getter "MYSQL_FIELD_CATALOG_STRING(obj)")
+       (default-value :type <const-cstring>? :setter #f :getter "MYSQL_FIELD_DEF_STRING(obj)")
+       (length        :type <ulong> :setter #f :getter "return Scm_MakeIntegerU64(MYSQL_FIELD_LENGTH(obj));")
+       (max-length    :type <ulong> :setter #f :getter "return Scm_MakeIntegerU64(MYSQL_FIELD_MAX_LENGTH(obj));")
+       (not-null?     :type <boolean> :setter #f :getter "return MYSQL_FIELD_NOT_NULL_P(obj);")
+       (primary-key?  :type <boolean> :setter #f :getter "return MYSQL_FIELD_PRIMARY_KEY_P(obj);")
+       (unique-key?   :type <boolean> :setter #f :getter "return MYSQL_FIELD_UNIQUE_KEY_P(obj);")
+       (multiple-key? :type <boolean> :setter #f :getter "return MYSQL_FIELD_MULTIPLE_KEY_P(obj);")
+       (unsigned?     :type <boolean> :setter #f :getter "return MYSQL_FIELD_UNSIGNED_P(obj);")
+       (zerofill?     :type <boolean> :setter #f :getter "return MYSQL_FIELD_ZEROFILL_P(obj);")
+       (binary?       :type <boolean> :setter #f :getter "return MYSQL_FIELD_BINARY_P(obj);")
+       (auto-increment? :type <boolean> :setter #f :getter "return MYSQL_FIELD_AUTO_INCREMENT_P(obj);")
+       (decimals      :type <uint> :setter #f :getter "return Scm_MakeIntegerU(MYSQL_FIELD_DECIMALS(obj));")
+       (charset-number :type <uint> :setter #f :getter "MYSQL_FIELD_CHARSETNR_INTEGERU(obj)")
+       (type          :type <int> :setter #f :getter "return Scm_MakeInteger(MYSQL_FIELD_TYPE(obj));")
+       ))
+    (define-cproc mysql-field? (obj)
+      (call <boolean> "MYSQL_FIELD_P"))))
 
 ;; Field Types
 (.if HAVE_DECL_MYSQL_TYPE_TINY
