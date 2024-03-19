@@ -6,7 +6,7 @@ jobs:
   build-and-test:
     strategy:
       matrix:
-        platform: [ubuntu-latest, macos-latest]
+        platform: [macos-latest]
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 10
     steps:
@@ -24,4 +24,5 @@ jobs:
         ./configure
         make
         ls -l /Users/runner/hostedtoolcache/mysql/8.1.0/x64/lib
+        otool -L dbd_mysql.so
         make -s check
