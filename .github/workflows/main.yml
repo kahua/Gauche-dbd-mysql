@@ -23,4 +23,5 @@ jobs:
       run: |
         ./configure
         make
+        ls -l /Users/runner/hostedtoolcache/mysql/8.1.0/x64/lib
         make -s check
