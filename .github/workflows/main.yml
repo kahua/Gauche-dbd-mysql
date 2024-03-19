@@ -12,19 +12,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: shirok/setup-gauche@v3
+    - uses: shogo82148/actions-setup-mysql@v1
+      with:
+        mysql-version: "8.1"
     - name: Setup mysql
       run: |
-        if [ "${{ matrix.platform }}" == 'ubuntu-latest' ]; then
-          sudo service mysql start
-          mysql -V
-          mysql -uroot -proot < tools/create-test-db-and-user.sql
-        elif [ "${{ matrix.platform }}" == 'macos-latest' ]; then
-          brew install mysql
-          brew services start mysql
-          # mysqld seems to need some time to star up
-          sleep 10
-          mysql -uroot < tools/create-test-db-and-user.sql
-        fi
+        mysql -V
+        mysql -uroot -proot < tools/create-test-db-and-user.sql
     - name: Build and check
       run: |
         ./configure
