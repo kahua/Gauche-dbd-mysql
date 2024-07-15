@@ -25,4 +25,8 @@ jobs:
       run: |
         ./configure
         make
+        #macosx needs this
+        if [ -d /Users/runner/hostedtoolcache/ ]; then \
+          otool -L dbd_mysql.so; \
+        fi
         make -s check
