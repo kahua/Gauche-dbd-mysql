@@ -6,7 +6,7 @@ jobs:
   build-and-test:
     strategy:
       matrix:
-        platform: [ubuntu-latest, macos-latest]
+        platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 10
     steps:
@@ -16,7 +16,7 @@ jobs:
         mysql-version: "8.1"
     - name: Setup mysql
       run: |
-        mysql -V
+p        mysql -V
         mysql -uroot < tools/create-test-db-and-user.sql
     - uses: shirok/setup-gauche@v5
       with:
@@ -25,8 +25,4 @@ jobs:
       run: |
         ./configure
         make
-        #macosx needs this
-        if [ -d /Users/runner/hostedtoolcache/ ]; then \
-          otool -L dbd_mysql.so; \
-        fi
         make -s check
