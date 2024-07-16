@@ -16,7 +16,7 @@ jobs:
         mysql-version: "8.1"
     - name: Setup mysql
       run: |
-p        mysql -V
+        mysql -V
         mysql -uroot < tools/create-test-db-and-user.sql
     - uses: shirok/setup-gauche@v5
       with:
