@@ -19,7 +19,13 @@
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ;;
 
-"#include \"dbd_mysql.h\""
+
+(define-module dbd.mssql)
+(select-module dbd.mysql)
+
+(inline-stub
+
+(.include "dbd_mysql.h")
 
 (define-cproc mysql-dbd-version () ::<const-cstring>
   (return PACKAGE_VERSION))
@@ -179,7 +185,7 @@
      {Scm_Error(\"%S doesn't have slot charset-number\", obj); return SCM_FALSE;}
 #endif
 "
-    (define-type <mysql-field> "ScmMysqlField*" "MySQL field information"
+    (declare-stub-type <mysql-field> "ScmMysqlField*" "MySQL field information"
       "MYSQL_FIELD_P" "SCM_MYSQL_FIELD")
     (define-cclass <mysql-field>
       "ScmMysqlField*" "Scm_MysqlFieldClass"
@@ -326,7 +332,7 @@
 
 (.when HAVE_MY_CHARSET_INFO
   ;; MY_CHARSET_INFO
-  (define-type <mysql-charset> "ScmMysqlCharsetInfo*" "MySQL character set information"
+  (declare-stub-type <mysql-charset> "ScmMysqlCharsetInfo*" "MySQL character set information"
     "MYSQL_CHARSET_INFO_P" "SCM_MYSQL_CHARSET_INFO")
   (define-cclass <mysql-charset>
     "ScmMysqlCharsetInfo*" "Scm_MysqlCharsetInfoClass"
@@ -403,9 +409,9 @@
 (define-cproc mysql-list-dbs (handle::<mysql-handle> wild::<const-cstring>?)
   ::<mysql-res>
   (let* ([r::MYSQL_RES* (mysql_list_dbs handle wild)])
-    (if (== r NULL)
-      (raise_mysql_error handle "mysql_list_dbs")
-      (return r))))
+    (when (== r NULL)
+      (raise_mysql_error handle "mysql_list_dbs"))
+    (return r)))
 
 ;; mysql_list_fields
 (define-cproc mysql-list-fields (handle::<mysql-handle>
@@ -413,25 +419,25 @@
                                  wild::<const-cstring>?)
   ::<mysql-res>
   (let* ([r::MYSQL_RES* (mysql_list_fields handle table wild)])
-    (if (== r NULL)
-      (raise_mysql_error handle "mysql_list_fields")
-      (return r))))
+    (when (== r NULL)
+      (raise_mysql_error handle "mysql_list_fields"))
+    (return r)))
 
 ;; mysql_list_processes
 (define-cproc mysql-list-processes (handle::<mysql-handle>)
   ::<mysql-res>
   (let* ([r::MYSQL_RES* (mysql_list_processes handle)])
-    (if (== r NULL)
-      (raise_mysql_error handle "mysql_list_processes")
-      (return r))))
+    (when (== r NULL)
+      (raise_mysql_error handle "mysql_list_processes"))
+    (return r)))
 
 ;; mysql_list_tables
 (define-cproc mysql-list-tables (handle::<mysql-handle> wild::<const-cstring>?)
   ::<mysql-res>
   (let* ([r::MYSQL_RES* (mysql_list_tables handle wild)])
-    (if (== r NULL)
-      (raise_mysql_error handle "mysql_list_tables")
-      (return r))))
+    (when (== r NULL)
+      (raise_mysql_error handle "mysql_list_tables"))
+    (return r)))
 
 ;; mysql_more_results
 ;; mysql_next_result
@@ -482,7 +488,7 @@
         ))
 
 ;; mysql_refresh
-(define-cproc mysql-refresh (handle::<mysql-handle> &rest options)
+(define-cproc mysql-refresh (handle::<mysql-handle> :rest options)
   (body <void>
         "unsigned int accum = 0;"
         "ScmObj obj;"
@@ -532,7 +538,8 @@
 ;; mysql_shutdown
 (.if HAVE_DECL_SHUTDOWN_DEFAULT
      (define-cproc mysql-shutdown (handle::<mysql-handle>
-                                   :optional (level::<int> (c "SHUTDOWN_DEFAULT")))
+                                   :optional (level::<int>
+                                              (SCM_MAKE_INT (c "SHUTDOWN_DEFAULT"))))
        ::<void> (mysql-call mysql_shutdown handle level))
      (define-cproc mysql-shutdown (handle::<mysql-handle> :optional _)
        ::<void> (mysql-call mysql_shutdown handle)))
@@ -554,9 +561,9 @@
 ;; mysql-stat
 (define-cproc mysql-stat (handle::<mysql-handle>) ::<const-cstring>
   (let* ((r::(const char*) (mysql_stat handle)))
-    (if (== r NULL)
-      (raise_mysql_error handle "mysql_stat")
-      (return r))))
+    (when (== r NULL)
+      (raise_mysql_error handle "mysql_stat"))
+    (return r)))
 
 ;; mysql_store_result
 (define-cproc mysql-store-result (connection::<mysql-handle>) ::<mysql-res>?
@@ -633,7 +640,7 @@
     (result (mysql_stmt_error (-> stmtx stmt))))
 
   ;; mysql_stmt_execute
-  (define-cproc mysql-stmt-execute (stmtx::<mysql-stmt> &rest args) ::<void>
+  (define-cproc mysql-stmt-execute (stmtx::<mysql-stmt> :rest args) ::<void>
     (MysqlStmtxExecute stmtx args)
     (MysqlResultUnmarkClosed stmtx_scm))
 
@@ -1319,3 +1326,4 @@ static int get_charset_number_int(const char *csname)
 (define-enum-conditionally CLIENT_MULTI_RESULTS)
 (define-enum-conditionally CLIENT_SSL_VERIFY_SERVER_CERT)
 (define-enum-conditionally CLIENT_REMEMBER_OPTIONS)
+)
