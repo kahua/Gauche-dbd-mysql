@@ -20,7 +20,6 @@
 ;;
 
 
-(define-module dbd.mssql)
 (select-module dbd.mysql)
 
 (inline-stub
