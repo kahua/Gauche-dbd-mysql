@@ -87,27 +87,29 @@
        (set!! *mysql* (mysql-real-connect #f *user* *password* *db* 0 #f 0))
        is-class?)
 
-(test-section "Character set handling")
-(when (global-variable-bound? (current-module) 'mysql-character-set-name)
-  (test* "mysql-character-set-name" (test-one-of "utf8" "utf8mb3")
-         (mysql-character-set-name *mysql*)))
-(when (global-variable-bound? (current-module) 'mysql-get-character-set-info)
-  (let1 charset (mysql-get-character-set-info *mysql*)
-    (test* "mysql-get-character-set-info: <mysql-charset>" <mysql-charset> (class-of charset))
-    (for-each (lambda (args)
-                (apply (lambda (sname comp value)
-                         (test* (format "mysql-get-character-set-info: ~a" sname)
-                                value (slot-ref charset sname) comp))
-                       args))
-              `((name ,(^[expected result] (member result expected))
-                      ("utf8_general_ci" "utf8mb3_general_ci"))
-                (csname ,(^[expected result] (member result expected))
-                        ("utf8" "utf8mb3"))
-                (number ,= 33)
-                (comment ,(^[x y] (or (is-class? x y) (not y))) ,<string>)
-                (dir ,equal? #f)
-                (mbminlen ,= 1)
-                (mbmaxlen ,= 3)))))
+;; These tests depend on the installation settings.
+
+;; (test-section "Character set handling")
+;; (when (global-variable-bound? (current-module) 'mysql-character-set-name)
+;;   (test* "mysql-character-set-name" (test-one-of "utf8" "utf8mb3")
+;;          (mysql-character-set-name *mysql*)))
+;; (when (global-variable-bound? (current-module) 'mysql-get-character-set-info)
+;;   (let1 charset (mysql-get-character-set-info *mysql*)
+;;     (test* "mysql-get-character-set-info: <mysql-charset>" <mysql-charset> (class-of charset))
+;;     (for-each (lambda (args)
+;;                 (apply (lambda (sname comp value)
+;;                          (test* (format "mysql-get-character-set-info: ~a" sname)
+;;                                 value (slot-ref charset sname) comp))
+;;                        args))
+;;               `((name ,(^[expected result] (member result expected))
+;;                       ("utf8_general_ci" "utf8mb3_general_ci"))
+;;                 (csname ,(^[expected result] (member result expected))
+;;                         ("utf8" "utf8mb3"))
+;;                 (number ,= 33)
+;;                 (comment ,(^[x y] (or (is-class? x y) (not y))) ,<string>)
+;;                 (dir ,equal? #f)
+;;                 (mbminlen ,= 1)
+;;                 (mbmaxlen ,= 3)))))
 
 (test* "mysql-real-escape-string" "\\0a\\rb\\nc\\\\d\\'e\\\"f\\Z"
        (mysql-real-escape-string *mysql* "\0a\rb\nc\\d'e\"f\x1a"))
@@ -117,6 +119,8 @@
     (or (not actual) (equal? actual "")) ;MySQL and MariaDB differ
     (equal? expected actual)))
 
+;; NB: a couple of fields (commented) are excluded from the test, for they
+;; depend on the default charset setting of MySQL installation.
 (define-constant *mysql-field-slots*
   `((name            ,string-ci=?)
     (original-name   ,string-ci=?)
@@ -125,7 +129,7 @@
     (db              ,string-ci=?)
     (catalog         ,string=?)
     (default-value   ,default-value-compare)
-    (length          ,=)
+    ;(length          ,=)
     (max-length      ,=)
     (not-null?       ,eqv?)
     (primary-key?    ,eqv?)
@@ -135,7 +139,7 @@
     (zerofill?       ,eqv?)
     (auto-increment? ,eqv?)
     (decimals        ,=)
-    (charset-number  ,=)
+    ;(charset-number  ,=)
     (type            ,=)))
 
 (test-section "Issue MySQL statement(not prepared)")
