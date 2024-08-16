@@ -468,33 +468,32 @@
 ;; mysql_real_escape_string
 (define-cproc mysql-real-escape-string (connection::<mysql-handle>
                                         string::<string>)
-  (body "const ScmStringBody *body = SCM_STRING_BODY(string);"
-        "const char *s = SCM_STRING_BODY_START(body);"
-        "unsigned int origsize = SCM_STRING_BODY_SIZE(body);"
-        "unsigned int bufsize = origsize*2+2;"
-        "char *buf = SCM_NEW_ATOMIC2(char*, bufsize);"
-        "unsigned long finalsize = mysql_real_escape_string(connection, buf, s, origsize);"
-        "SCM_RESULT = Scm_MakeString(buf, finalsize, -1, SCM_MAKSTR_COPYING);")) ; buf is now NUL terminated.
+  (let* ([body::(const ScmStringBody *) (SCM_STRING_BODY string)]
+         [s::(const char*) (SCM_STRING_BODY_START body)]
+         [origsize::u_int (SCM_STRING_BODY_SIZE body)]
+         [bufsize::u_int (+ (* origsize 2) 2)]
+         [buf::(char*) (SCM_NEW_ATOMIC2 (char*) bufsize)]
+         [finalsize::u_long (mysql_real_escape_string connection buf s origsize)])
+    ;; buf is new NUL terminated
+    (return (Scm_MakeString buf finalsize -1 SCM_MAKSTR_COPYING))))
 
 ;; mysql_real_query
 (define-cproc mysql-real-query (connection::<mysql-handle> query::<string>)
-  (body <void>
-        "const ScmStringBody *body = SCM_STRING_BODY(query);"
-        "const char *q = SCM_STRING_BODY_START(body);"
-        "unsigned int qlen = SCM_STRING_BODY_SIZE(body);"
-        "if (mysql_real_query(connection, q, qlen) != 0)"
-        "  raise_mysql_error(connection, \"mysql_real_query\");"
-        ))
+  ::<void>
+  (let* ([body::(const ScmStringBody*) (SCM_STRING_BODY query)]
+         [q::(const char *) (SCM_STRING_BODY_START body)]
+         [qlen::u_int (SCM_STRING_BODY_SIZE body)])
+    (unless (== (mysql_real_query connection q qlen) 0)
+      (raise_mysql_error connection "mysql_real_query"))))
 
 ;; mysql_refresh
-(define-cproc mysql-refresh (handle::<mysql-handle> :rest options)
-  (body <void>
-        "unsigned int accum = 0;"
-        "ScmObj obj;"
-        "for (obj = options; SCM_NULLP(obj); obj = Scm_Cdr(obj))"
-        "  accum |= Scm_GetIntegerU(obj);"
-        "if (mysql_refresh(handle, accum) != 0)"
-        "  raise_mysql_error(handle, \"mysql_refresh\");"))
+(define-cproc mysql-refresh (handle::<mysql-handle> :rest options) ::<void>
+  (let* ([accum::u_int 0])
+    (for-each (lambda (flag)
+                (logior= accum (Scm_GetIntegerU flag)))
+              options)
+    (unless (== (mysql_refresh handle accum) 0)
+      (raise_mysql_error handle "mysql_refresh"))))
 
 (define-enum-conditionally REFRESH_GRANT)
 (define-enum-conditionally REFRESH_LOG)
